@@ -1,0 +1,55 @@
+# Claude Code memory — not part of the project
+.claude/
+
+# Old / experimental project folders — not part of this app
+frontend/
+hedge_fund_app/
+investment_bot/
+investment_research_system/
+
+# Environment / secrets — never commit these
+.env
+*.env
+.env.local
+.env.production
+.env.*.local
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.Python
+*.egg-info/
+dist/
+build/
+.eggs/
+*.egg
+.venv/
+venv/
+env/
+
+# SQLite database (cache — regenerated at runtime)
+repo/storage/*.db
+*.db
+
+# Node / Next.js
+node_modules/
+nextjs-frontend/.next/
+nextjs-frontend/out/
+nextjs-frontend/.vercel/
+
+# Logs
+*.log
+logs/
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo

@@ -1,0 +1,231 @@
+"""
+research.py — /api/research/{ticker} comprehensive stock research endpoint.
+
+Combines valuation engine, key ratios, financial statements, analyst
+actions, recent news, and earnings into a single parallel response.
+The Research page calls this one endpoint instead of multiple separate calls.
+"""
+
+from fastapi import APIRouter, Query
+from concurrent.futures import ThreadPoolExecutor, as_completed
+
+from services.valuation_engine import run_valuation
+from services import market_data_service, fundamentals_service, news_service
+from services.scoring_service import build_scoring_inputs, compute_scores, generate_investment_thesis
+
+router = APIRouter()
+
+
+def _classify_rating(rating: str) -> str:
+    """Map analyst rating strings to Buy / Hold / Sell."""
+    r = (rating or "").lower()
+    if any(w in r for w in ("buy", "outperform", "overweight", "strong buy", "accumulate", "add")):
+        return "buy"
+    if any(w in r for w in ("sell", "underperform", "underweight", "reduce", "strong sell")):
+        return "sell"
+    return "hold"
+
+
+def _extract_income_series(statements: dict | None) -> list[dict]:
+    """
+    Extract annual revenue and EPS series from FMP/yfinance income statement list.
+    Returns [{year, revenue_b, eps}, ...] sorted oldest → newest, max 5 years.
+    """
+    if not statements or not statements.get("income"):
+        return []
+
+    rows = []
+    for item in statements["income"]:
+        date = str(item.get("date") or item.get("period") or "")
+        year = date[:4]
+        if not year.isdigit():
+            continue
+        revenue = item.get("revenue") or item.get("totalRevenue") or 0
+        eps     = item.get("eps") or item.get("epsDiluted") or 0
+        if revenue:
+            rows.append({
+                "year":      year,
+                "revenue_b": round(revenue / 1_000_000_000, 2) if revenue > 1_000_000 else round(revenue, 2),
+                "eps":       round(float(eps), 2) if eps else 0,
+            })
+
+    # Deduplicate by year (keep first occurrence = most recent quarter aggregation)
+    seen, unique = set(), []
+    for r in rows:
+        if r["year"] not in seen:
+            seen.add(r["year"])
+            unique.append(r)
+
+    # Sort oldest → newest, keep last 5
+    unique.sort(key=lambda r: r["year"])
+    return unique[-5:]
+
+
+def _extract_margins(statements: dict | None) -> dict | None:
+    """Extract latest gross / operating / net margin from income statement."""
+    if not statements or not statements.get("income"):
+        return None
+
+    latest = statements["income"][0]  # most recent period first
+    revenue = latest.get("revenue") or latest.get("totalRevenue") or 0
+    if not revenue:
+        return None
+
+    gross_profit = latest.get("grossProfit") or 0
+    operating    = latest.get("operatingIncome") or latest.get("ebit") or 0
+    net_income   = latest.get("netIncome") or 0
+
+    return {
+        "gross":     round(gross_profit / revenue * 100, 1) if gross_profit else None,
+        "operating": round(operating    / revenue * 100, 1) if operating    else None,
+        "net":       round(net_income   / revenue * 100, 1) if net_income   else None,
+    }
+
+
+@router.get("/{ticker}")
+def get_research(ticker: str, price: float = Query(None)):
+    """
+    Full stock research for any ticker.
+    Runs valuation engine + 5 service calls in parallel (30 s budget).
+    Returns: valuation, ratios, income_series, margins, analyst_actions,
+             recent_news, earnings.
+    """
+    ticker = ticker.strip().upper()
+
+    # ── Fetch live price first (fast, 4 s timeout handled by market_data_service)
+    change_pct = 0.0
+    if price is None:
+        try:
+            pd = market_data_service.get_live_price(ticker)
+            if pd and pd.get("price"):
+                price      = pd["price"]
+                change_pct = pd.get("change_pct", 0.0) or 0.0
+        except Exception:
+            pass
+
+    # ── Parallel fetch of all research data ───────────────────────────────────
+    results: dict = {}
+
+    tasks = {
+        "valuation":       lambda: run_valuation(ticker, price=price),
+        "ratios":          lambda: fundamentals_service.get_key_ratios(ticker),
+        "statements":      lambda: fundamentals_service.get_financial_statements(ticker),
+        "analyst_actions": lambda: news_service.get_analyst_actions(ticker),
+        "recent_news":     lambda: news_service.get_stock_news(ticker, days_back=30),
+        "earnings":        lambda: news_service.get_earnings_events(ticker),
+    }
+
+    with ThreadPoolExecutor(max_workers=6) as executor:
+        future_map = {executor.submit(fn): key for key, fn in tasks.items()}
+        for future in as_completed(future_map, timeout=45):
+            key = future_map[future]
+            try:
+                results[key] = future.result()
+            except Exception:
+                results[key] = None
+
+    # ── Post-process analyst actions ──────────────────────────────────────────
+    analyst_actions = results.get("analyst_actions") or []
+    buy_count  = sum(1 for a in analyst_actions if _classify_rating(a.get("rating", "")) == "buy")
+    hold_count = sum(1 for a in analyst_actions if _classify_rating(a.get("rating", "")) == "hold")
+    sell_count = sum(1 for a in analyst_actions if _classify_rating(a.get("rating", "")) == "sell")
+
+    # Average price target from actions that have one
+    targets = [a["price_target"] for a in analyst_actions if a.get("price_target")]
+    avg_target = round(sum(targets) / len(targets), 2) if targets else None
+
+    # ── Post-process financial statements ────────────────────────────────────
+    statements   = results.get("statements")
+    income_series = _extract_income_series(statements)
+    margins      = _extract_margins(statements)
+
+    # ── Scoring ───────────────────────────────────────────────────────────────
+    valuation_result = results.get("valuation")
+    ratios_result    = results.get("ratios")
+    confidence       = (valuation_result or {}).get("overall_confidence")
+
+    scoring_inputs = build_scoring_inputs(
+        ratios       = ratios_result,
+        margins      = margins,
+        statements   = statements,
+        income_series= income_series,
+        price        = price,
+        valuation    = valuation_result,
+    )
+    scores = compute_scores(scoring_inputs, confidence)
+    thesis = generate_investment_thesis(
+        ticker    = ticker,
+        price     = price,
+        scores    = scores,
+        ratios    = ratios_result,
+        valuation = valuation_result,
+        margins   = margins,
+    )
+
+    return {
+        "ticker":     ticker,
+        "price":      price,
+        "change_pct": change_pct,
+
+        # Valuation engine result (fair value low/base/high, models, confidence)
+        "valuation": valuation_result,
+
+        # Key ratios from FMP + Finnhub
+        "ratios": ratios_result,
+
+        # Income series for revenue + EPS charts
+        "income_series": income_series,
+
+        # Latest margin percentages
+        "margins": margins,
+
+        # Composite scoring across Quality / Valuation / Growth / Safety
+        "scores": scores,
+
+        # Data-driven Bull / Bear / Base / Watch investment thesis
+        "investment_thesis": thesis,
+
+        # Analyst actions summary + raw list
+        "analyst_summary": {
+            "buy":        buy_count,
+            "hold":       hold_count,
+            "sell":       sell_count,
+            "total":      len(analyst_actions),
+            "avg_target": avg_target,
+        },
+        "analyst_actions": [
+            {
+                "analyst_firm":       a.get("analyst_firm", ""),
+                "action":             a.get("action", ""),
+                "rating":             a.get("rating", ""),
+                "rating_prior":       a.get("rating_prior"),
+                "price_target":       a.get("price_target"),
+                "price_target_prior": a.get("price_target_prior"),
+                "published_at":       a.get("published_at", ""),
+                "bucket":             _classify_rating(a.get("rating", "")),
+            }
+            for a in analyst_actions[:20]  # cap at 20 most recent
+        ],
+
+        # Recent news for this ticker
+        "recent_news": [
+            {
+                "headline":     n.get("headline", ""),
+                "source":       n.get("source", ""),
+                "published_at": n.get("published_at", ""),
+                "summary":      n.get("summary"),
+            }
+            for n in (results.get("recent_news") or [])[:10]
+        ],
+
+        # Upcoming earnings events
+        "earnings": [
+            {
+                "date":         e.get("date", ""),
+                "hour":         e.get("hour", ""),
+                "eps_estimate": e.get("eps_estimate"),
+                "revenue_est":  e.get("revenue_est"),
+            }
+            for e in (results.get("earnings") or [])[:3]
+        ],
+    }
