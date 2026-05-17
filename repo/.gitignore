@@ -1,0 +1,18 @@
+# API keys and secrets — never commit these
+.env
+
+# SQLite database — rebuilt automatically from API calls
+storage/pcc_data.db
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+.pytest_cache/
+
+# Streamlit cache
+.streamlit/secrets.toml
+
+# OS files
+.DS_Store
+Thumbs.db
