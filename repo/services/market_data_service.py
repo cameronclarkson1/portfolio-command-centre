@@ -212,9 +212,12 @@ def get_candles(ticker: str, period: str = "1y") -> list[dict]:
     from_date = n_days_ago_str(days)
     to_date   = to_date_str()
 
+    yf_period_map = {"1m": "1mo", "3m": "3mo", "6m": "6mo", "1y": "1y", "2y": "2y", "5y": "5y"}
+    yf_period = yf_period_map.get(period, "1y")
+
     result, _, _ = _try_providers([
         ("polygon",  lambda: polygon.get_candles(ticker, from_date, to_date)),
-        ("yfinance", lambda: yfinance.get_candles(ticker, period=period)),
+        ("yfinance", lambda: yfinance.get_candles(ticker, period=yf_period)),
     ], f"{ticker} candles")
 
     candles = result or []

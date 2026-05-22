@@ -435,9 +435,10 @@ def get_performance(period: str = Query("3m", regex="^(1m|3m|6m|1y)$")):
 
     Returns a date-indexed series plus overall change stats.
     """
+    base_holdings = _get_base_holdings()
     holdings_meta = [
         {"ticker": h["ticker"], "shares": h["shares"]}
-        for h in PORTFOLIO_HOLDINGS
+        for h in base_holdings
     ]
     cash_balance = PORTFOLIO_SUMMARY.get("cash", 0.0)
 
