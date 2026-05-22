@@ -121,14 +121,24 @@ def sharesight_callback(request: Request, code: str = None, error: str = None):
     _update_env("SHARESIGHT_ACCESS_TOKEN",  access_token)
     _update_env("SHARESIGHT_REFRESH_TOKEN", refresh_token)
 
-    return HTMLResponse("""
+    return HTMLResponse(f"""
     <html>
     <head><title>Sharesight Connected</title></head>
-    <body style="font-family:sans-serif; max-width:500px; margin:60px auto; text-align:center;">
+    <body style="font-family:sans-serif; max-width:600px; margin:60px auto;">
       <h2>&#10003; Sharesight connected successfully</h2>
-      <p>Your tokens have been saved to <code>repo/.env</code>.</p>
-      <p>Restart the API server, then your real portfolio holdings
-         will load automatically at <code>/api/portfolio</code>.</p>
+      <p>Copy these two values into your Railway environment variables to make
+         the connection permanent (it will be lost on restart otherwise).</p>
+      <table style="width:100%; border-collapse:collapse; margin:20px 0;">
+        <tr>
+          <td style="padding:8px; font-weight:bold; width:220px;">SHARESIGHT_ACCESS_TOKEN</td>
+          <td style="padding:8px; word-break:break-all; background:#f5f5f5; font-family:monospace; font-size:12px;">{access_token}</td>
+        </tr>
+        <tr>
+          <td style="padding:8px; font-weight:bold;">SHARESIGHT_REFRESH_TOKEN</td>
+          <td style="padding:8px; word-break:break-all; background:#f5f5f5; font-family:monospace; font-size:12px;">{refresh_token}</td>
+        </tr>
+      </table>
+      <p style="color:#888; font-size:13px;">Add these in Railway → your service → Variables, then redeploy.</p>
     </body>
     </html>
     """)
