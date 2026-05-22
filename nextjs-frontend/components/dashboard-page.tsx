@@ -32,7 +32,8 @@ export function DashboardPage({ liveData }: DashboardPageProps) {
 
   useEffect(() => {
     fetchPortfolioPerformance('1y').then((d) => {
-      if (d && d.series.length > 0) setLivePerf(d.series)
+      if (d && d.series.length > 0)
+        setLivePerf(d.series.map((s: { date: string; value: number }) => ({ date: s.date, portfolio: s.value })))
     })
   }, [])
 
@@ -65,14 +66,14 @@ export function DashboardPage({ liveData }: DashboardPageProps) {
   // Weekly P&L derived from last 5 trading days of performance series
   const weeklyChange = (() => {
     if (!livePerf || livePerf.length < 2) return portfolioData.weeklyChange
-    const end   = livePerf[livePerf.length - 1].value
-    const start = livePerf[Math.max(0, livePerf.length - 6)].value
+    const end   = livePerf[livePerf.length - 1].portfolio
+    const start = livePerf[Math.max(0, livePerf.length - 6)].portfolio
     return Math.round((end - start) * 100) / 100
   })()
   const weeklyChangePct = (() => {
     if (!livePerf || livePerf.length < 2) return portfolioData.weeklyChangePercent
-    const end   = livePerf[livePerf.length - 1].value
-    const start = livePerf[Math.max(0, livePerf.length - 6)].value
+    const end   = livePerf[livePerf.length - 1].portfolio
+    const start = livePerf[Math.max(0, livePerf.length - 6)].portfolio
     return start ? Math.round((end - start) / start * 10000) / 100 : 0
   })()
   const buyingPower = portfolioData.buyingPower
