@@ -12,7 +12,7 @@ export function APIStatus() {
 
   useEffect(() => {
     const controller = new AbortController()
-    const timer = setTimeout(() => controller.abort(), 3000)
+    const timer = setTimeout(() => controller.abort(), 10000)
 
     fetch(`${API_BASE}/api/health`, { signal: controller.signal, cache: 'no-store' })
       .then((r) => setStatus(r.ok ? 'live' : 'mock'))
