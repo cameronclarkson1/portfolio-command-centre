@@ -131,7 +131,7 @@ export type LivePriceData = Record<string, { price: number; change_pct: number }
 // ── Internal helpers ──────────────────────────────────────────────────────────
 
 /** Fetch with a configurable timeout so a cold/offline API doesn't block the page. */
-async function apiFetch(path: string, timeoutMs = 4000, init?: RequestInit): Promise<unknown> {
+async function apiFetch(path: string, timeoutMs = 15000, init?: RequestInit): Promise<unknown> {
   const controller = new AbortController()
   const timer = setTimeout(() => controller.abort(), timeoutMs)
   try {
