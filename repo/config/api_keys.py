@@ -52,6 +52,15 @@ SEC_USER_AGENT = _get_secret("SEC_USER_AGENT", "PortfolioCommandCentre contact@e
 # GDELT — free, no key needed
 GDELT_ENABLED = _get_secret("GDELT_ENABLED", "true").lower() == "true"
 
+# Sharesight — portfolio holdings (OAuth 2.0)
+# Client ID + Secret: Sharesight account → Settings → API
+# Access + Refresh tokens: set automatically after visiting /auth/sharesight/start
+SHARESIGHT_CLIENT_ID     = _get_secret("SHARESIGHT_CLIENT_ID")
+SHARESIGHT_CLIENT_SECRET = _get_secret("SHARESIGHT_CLIENT_SECRET")
+SHARESIGHT_ACCESS_TOKEN  = _get_secret("SHARESIGHT_ACCESS_TOKEN")
+SHARESIGHT_REFRESH_TOKEN = _get_secret("SHARESIGHT_REFRESH_TOKEN")
+SHARESIGHT_PORTFOLIO_ID  = _get_secret("SHARESIGHT_PORTFOLIO_ID")  # auto-set on first connect
+
 
 def available_providers() -> dict[str, bool]:
     """Return which providers have API keys configured. Used in the data audit panel."""
@@ -62,5 +71,6 @@ def available_providers() -> dict[str, bool]:
         "fred":      bool(FRED_API_KEY),
         "sec_edgar": True,   # always available (free, no key)
         "gdelt":     GDELT_ENABLED,
-        "yfinance":  True,   # always available (emergency fallback, no key)
+        "yfinance":   True,   # always available (emergency fallback, no key)
+        "sharesight": bool(SHARESIGHT_ACCESS_TOKEN),
     }

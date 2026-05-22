@@ -30,7 +30,8 @@ from routes.portfolio import router as portfolio_router
 from routes.research  import router as research_router
 from routes.settings     import router as settings_router
 from routes.health       import router as health_router
-from routes.watchlist_api import router as watchlist_router
+from routes.watchlist_api    import router as watchlist_router
+from routes.sharesight_auth  import router as sharesight_auth_router
 
 app = FastAPI(title="AI HedgeFund API", version="1.0.0")
 
@@ -53,7 +54,8 @@ app.include_router(portfolio_router, prefix="/api/portfolio", tags=["portfolio"]
 app.include_router(research_router,  prefix="/api/research",  tags=["research"])
 app.include_router(settings_router,   prefix="/api/settings",   tags=["settings"])
 app.include_router(health_router,     prefix="/api/health",     tags=["health"])
-app.include_router(watchlist_router,  prefix="/api/watchlist",  tags=["watchlist"])
+app.include_router(watchlist_router,      prefix="/api/watchlist",        tags=["watchlist"])
+app.include_router(sharesight_auth_router, prefix="/auth/sharesight",     tags=["auth"])
 
 
 @app.get("/api/health")

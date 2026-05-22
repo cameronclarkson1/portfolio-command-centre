@@ -20,7 +20,7 @@ _SECTOR_SOFT  = 25.0
 _SECTOR_HARD  = 30.0
 _CASH_MIN     = 5.0
 _CASH_TARGET  = 10.0
-_CASH_MAX     = 20.0
+_CASH_MAX     = 15.0
 _BETA_TARGET  = (0.8, 1.2)
 _BETA_ALERT   = 1.3
 
@@ -34,6 +34,24 @@ _WL_FV: dict[str, float] = {
 
 # ── Internal helpers ──────────────────────────────────────────────────────────
 
+def _get_base_holdings() -> list[dict]:
+    """
+    Return the base holdings list — tries Sharesight first, falls back to sample_data.
+    Sharesight provides: ticker, name, sector, shares, avg_cost, current_price.
+    """
+    try:
+        import providers.sharesight_provider as sharesight
+        from config.api_keys import SHARESIGHT_ACCESS_TOKEN
+        if SHARESIGHT_ACCESS_TOKEN:
+            holdings = sharesight.get_holdings()
+            if holdings:
+                return holdings
+    except Exception as e:
+        import logging
+        logging.getLogger(__name__).warning(f"Sharesight unavailable, using sample_data: {e}")
+    return list(PORTFOLIO_HOLDINGS)
+
+
 def _build_live_portfolio():
     """
     Fetch live prices and recompute per-holding metrics.
@@ -42,7 +60,8 @@ def _build_live_portfolio():
     Returns: (holdings, sector_weights, total_value, total_invested,
                cash, cash_pct, daily_change_dollars, daily_change_pct, prices_live)
     """
-    tickers = [h["ticker"] for h in PORTFOLIO_HOLDINGS]
+    base_holdings = _get_base_holdings()
+    tickers = [h["ticker"] for h in base_holdings]
     try:
         live_prices = market_data_service.get_portfolio_prices(tickers) or {}
     except Exception:
@@ -51,7 +70,7 @@ def _build_live_portfolio():
     prices_live = False
     holdings: list[dict] = []
 
-    for h in PORTFOLIO_HOLDINGS:
+    for h in base_holdings:
         item = h.copy()
         pd   = live_prices.get(h["ticker"])
 
