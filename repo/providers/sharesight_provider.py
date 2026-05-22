@@ -101,10 +101,10 @@ def _refresh_access_token() -> str:
     _update_env("SHARESIGHT_ACCESS_TOKEN",  new_access)
     _update_env("SHARESIGHT_REFRESH_TOKEN", new_refresh)
 
-    # Reload so the module-level variables pick up the new values
-    import importlib
-    import config.api_keys as _keys
-    importlib.reload(_keys)
+    # Update module-level globals so refreshed tokens are used for this session
+    global SHARESIGHT_ACCESS_TOKEN, SHARESIGHT_REFRESH_TOKEN
+    SHARESIGHT_ACCESS_TOKEN  = new_access
+    SHARESIGHT_REFRESH_TOKEN = new_refresh
 
     log.info("Sharesight: token refreshed successfully")
     return new_access
