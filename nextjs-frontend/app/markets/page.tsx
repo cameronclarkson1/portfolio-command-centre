@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic'
+
 import { AppLayout }       from '@/components/app-layout'
 import { MarketsPage }     from '@/components/markets-page'
 import { fetchMarketsData } from '@/lib/api'

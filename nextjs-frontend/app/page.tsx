@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic'
+
 import { AppLayout }      from '@/components/app-layout'
 import { DashboardPage }  from '@/components/dashboard-page'
 import { fetchDashboardData } from '@/lib/api'

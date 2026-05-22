@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic'
+
 import { AppLayout } from '@/components/app-layout'
 import { ResearchPage } from '@/components/research-page'
 

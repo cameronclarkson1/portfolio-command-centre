@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic'
+
 import { AppLayout }       from '@/components/app-layout'
 import { RiskPage }        from '@/components/risk-page'
 import { fetchPortfolioRisk } from '@/lib/api'

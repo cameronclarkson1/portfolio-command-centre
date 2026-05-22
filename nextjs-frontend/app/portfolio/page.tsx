@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic'
+
 import { AppLayout }    from '@/components/app-layout'
 import { PortfolioPage } from '@/components/portfolio-page'
 import { fetchPortfolio } from '@/lib/api'

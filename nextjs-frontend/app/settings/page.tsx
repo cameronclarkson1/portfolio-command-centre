@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic'
+
 import { AppLayout } from '@/components/app-layout'
 import { SettingsPage } from '@/components/settings-page'
 
