@@ -468,8 +468,14 @@ def get_performance(period: str = Query("3m", regex="^(1m|3m|6m|1y)$")):
     if not sorted_dates:
         return {"series": [], "period": period, "change_pct": 0.0, "change_dollars": 0.0}
 
-    # Forward-fill: carry last known price through missing dates
+    # Pre-populate with each ticker's earliest price so all holdings contribute from day one
     last_known: dict[str, float] = {}
+    for h in holdings_meta:
+        t = h["ticker"]
+        dates = sorted(ticker_prices.get(t, {}).keys())
+        if dates:
+            last_known[t] = ticker_prices[t][dates[0]]
+
     series: list[dict] = []
 
     for date in sorted_dates:
