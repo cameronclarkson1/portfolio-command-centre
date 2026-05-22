@@ -1,5 +1,6 @@
 'use client'
 
+import { useState, useEffect } from 'react'
 import {
   PieChart, Pie, Cell, ResponsiveContainer, AreaChart, Area, XAxis, YAxis, Tooltip, Line,
 } from 'recharts'
@@ -18,6 +19,7 @@ import {
   marketIndices as mockIndices, newsEvents as mockNews, upcomingEvents, topMovers, allocationDrift,
 } from '@/lib/mock-data'
 import type { LiveDashboardData, DashboardDecision, DashboardOpportunity, DashboardHolding, DashboardSectorEntry } from '@/lib/api'
+import { fetchPortfolioPerformance } from '@/lib/api'
 import { cn } from '@/lib/utils'
 import Link from 'next/link'
 
@@ -26,6 +28,14 @@ interface DashboardPageProps {
 }
 
 export function DashboardPage({ liveData }: DashboardPageProps) {
+  const [livePerf, setLivePerf] = useState<{ date: string; value: number }[] | null>(null)
+
+  useEffect(() => {
+    fetchPortfolioPerformance('1y').then((d) => {
+      if (d && d.series.length > 0) setLivePerf(d.series)
+    })
+  }, [])
+
   // Use live data from FastAPI where available, fall back to mock data
   const marketRegime  = liveData?.marketRegime  ?? mockRegime
   const marketIndices = liveData?.marketIndices ?? mockIndices
@@ -52,10 +62,20 @@ export function DashboardPage({ liveData }: DashboardPageProps) {
   const investedCapital    = ps?.invested             ?? portfolioData.investedCapital
   const healthScore        = ps?.health_score         ?? portfolioData.portfolioHealthScore
   const portfolioBeta      = pr?.metrics.portfolio_beta ?? portfolioData.beta
-  // Weekly/monthly/sharpe/volatility/buyingPower not yet in API — use mock
-  const weeklyChange       = portfolioData.weeklyChange
-  const weeklyChangePct    = portfolioData.weeklyChangePercent
-  const buyingPower        = portfolioData.buyingPower
+  // Weekly P&L derived from last 5 trading days of performance series
+  const weeklyChange = (() => {
+    if (!livePerf || livePerf.length < 2) return portfolioData.weeklyChange
+    const end   = livePerf[livePerf.length - 1].value
+    const start = livePerf[Math.max(0, livePerf.length - 6)].value
+    return Math.round((end - start) * 100) / 100
+  })()
+  const weeklyChangePct = (() => {
+    if (!livePerf || livePerf.length < 2) return portfolioData.weeklyChangePercent
+    const end   = livePerf[livePerf.length - 1].value
+    const start = livePerf[Math.max(0, livePerf.length - 6)].value
+    return start ? Math.round((end - start) / start * 10000) / 100 : 0
+  })()
+  const buyingPower = portfolioData.buyingPower
 
   return (
     <div className="px-4 py-6 lg:px-8 lg:py-8 space-y-6 max-w-[1600px] mx-auto">
@@ -137,7 +157,7 @@ export function DashboardPage({ liveData }: DashboardPageProps) {
           />
           <div className="mt-4 h-52 lg:h-64">
             <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={performanceData} margin={{ top: 5, right: 5, left: 0, bottom: 5 }}>
+              <AreaChart data={livePerf ?? performanceData} margin={{ top: 5, right: 5, left: 0, bottom: 5 }}>
                 <defs>
                   <linearGradient id="pgGrad" x1="0" y1="0" x2="0" y2="1">
                     <stop offset="0%" stopColor="var(--primary)" stopOpacity={0.2} />
