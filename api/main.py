@@ -35,14 +35,10 @@ from routes.sharesight_auth  import router as sharesight_auth_router
 
 app = FastAPI(title="AI HedgeFund API", version="1.0.0")
 
-# CORS — allow the frontend origin (set CORS_ORIGIN in production env vars)
-_cors_origins_raw = os.getenv("CORS_ORIGIN", "http://localhost:3000")
-_cors_origins = [o.strip() for o in _cors_origins_raw.split(",") if o.strip()]
-
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=_cors_origins,
-    allow_credentials=True,
+    allow_origins=["*"],
+    allow_credentials=False,
     allow_methods=["GET", "POST"],
     allow_headers=["*"],
 )
