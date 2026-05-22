@@ -24,6 +24,7 @@ import {
   type WatchlistItem,
   getStoredWatchlist,
   saveWatchlist,
+  loadWatchlist,
 } from '@/lib/watchlist-store'
 import { cn } from '@/lib/utils'
 
@@ -93,6 +94,13 @@ export function WatchlistPage({ livePrices }: { livePrices?: LivePriceData | nul
     const stored = getStoredWatchlist()
     return stored ?? buildInitialList(livePrices)
   })
+
+  // On mount: load from server (cross-device persistence)
+  useEffect(() => {
+    loadWatchlist().then((serverItems) => {
+      if (serverItems.length > 0) setItems(serverItems)
+    })
+  }, [])
   const [searchQuery,  setSearchQuery]  = useState('')
   const [activeFilter, setActiveFilter] = useState('all')
   const [sortBy,       setSortBy]       = useState('change')

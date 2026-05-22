@@ -6,9 +6,28 @@ valuation, scores (Quality/Growth/Valuation/Safety), and live price.
 All tasks run in parallel to minimise latency.
 """
 
+import json
+import os
 from fastapi import APIRouter
 from pydantic import BaseModel
 from concurrent.futures import ThreadPoolExecutor, as_completed
+
+_WATCHLIST_FILE = os.path.join(os.path.dirname(__file__), "..", "..", "data", "watchlist.json")
+
+def _read_watchlist() -> list:
+    try:
+        os.makedirs(os.path.dirname(_WATCHLIST_FILE), exist_ok=True)
+        if os.path.exists(_WATCHLIST_FILE):
+            with open(_WATCHLIST_FILE) as f:
+                return json.load(f)
+    except Exception:
+        pass
+    return []
+
+def _write_watchlist(items: list) -> None:
+    os.makedirs(os.path.dirname(_WATCHLIST_FILE), exist_ok=True)
+    with open(_WATCHLIST_FILE, "w") as f:
+        json.dump(items, f)
 
 from services.valuation_engine import run_valuation
 from services import market_data_service, fundamentals_service
@@ -136,3 +155,18 @@ def refresh_watchlist(body: RefreshRequest):
             }
 
     return {"items": items}
+
+
+class WatchlistSaveRequest(BaseModel):
+    items: list
+
+
+@router.get("/items")
+def get_watchlist_items():
+    return {"items": _read_watchlist()}
+
+
+@router.post("/items")
+def save_watchlist_items(body: WatchlistSaveRequest):
+    _write_watchlist(body.items)
+    return {"ok": True, "count": len(body.items)}

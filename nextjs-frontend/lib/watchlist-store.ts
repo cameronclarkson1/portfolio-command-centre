@@ -27,6 +27,7 @@ export type WatchlistItem = {
 }
 
 const STORAGE_KEY = 'ai_hedgefund_watchlist'
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'https://portfolio-command-centre-production.up.railway.app'
 
 export function getStoredWatchlist(): WatchlistItem[] | null {
   if (typeof window === 'undefined') return null
@@ -43,6 +44,27 @@ export function saveWatchlist(items: WatchlistItem[]): void {
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(items))
   } catch {}
+  // Sync to server (fire and forget)
+  fetch(`${API_BASE}/api/watchlist/items`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ items }),
+  }).catch(() => {})
+}
+
+/** Load watchlist from server, falling back to localStorage. */
+export async function loadWatchlist(): Promise<WatchlistItem[]> {
+  try {
+    const res = await fetch(`${API_BASE}/api/watchlist/items`, { cache: 'no-store' })
+    if (res.ok) {
+      const data = await res.json()
+      if (Array.isArray(data.items) && data.items.length > 0) {
+        saveWatchlist(data.items) // keep localStorage in sync
+        return data.items as WatchlistItem[]
+      }
+    }
+  } catch {}
+  return getStoredWatchlist() ?? []
 }
 
 /** Returns false if the ticker is already in the stored list. */
