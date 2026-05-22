@@ -1,6 +1,2 @@
 [build]
 builder = "nixpacks"
-buildCommand = "pip3 install -r api/requirements.txt"
-
-[deploy]
-startCommand = "cd api && uvicorn main:app --host 0.0.0.0 --port $PORT"
