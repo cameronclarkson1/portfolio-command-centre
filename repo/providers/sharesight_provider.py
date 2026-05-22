@@ -182,11 +182,15 @@ def get_holdings(portfolio_id: int = None) -> list[dict]:
         _update_env("SHARESIGHT_PORTFOLIO_ID", str(pid))
         log.info(f"Sharesight: auto-selected portfolio id={pid}")
 
-    data     = _api_get(f"/portfolios/{pid}/holdings.json")
-    raw_list = data.get("holdings", [])
+    # performance.json includes shareholdings and is available on all plans
+    from datetime import date
+    today    = date.today().isoformat()
+    data     = _api_get(f"/portfolios/{pid}/performance.json?start_date=2000-01-01&end_date={today}")
+    portfolio = data.get("portfolio", data)
+    raw_list  = portfolio.get("shareholdings", [])
 
     if not raw_list:
-        log.warning(f"Sharesight: portfolio {pid} returned no holdings")
+        log.warning(f"Sharesight: portfolio {pid} returned no shareholdings")
         return []
 
     holdings = []
@@ -202,11 +206,11 @@ def get_holdings(portfolio_id: int = None) -> list[dict]:
             continue
 
         # Sharesight provides total cost_basis; derive per-share avg
-        total_cost = float(h.get("cost_basis") or h.get("cost_base") or 0)
+        total_cost = float(h.get("cost_base") or h.get("cost_basis") or 0)
         avg_cost   = round(total_cost / quantity, 4) if total_cost else 0.0
 
-        # Use Sharesight's market_value for a snapshot current price
-        market_val    = float(h.get("market_value") or h.get("value") or 0)
+        # Use Sharesight's market value for a snapshot current price
+        market_val    = float(h.get("value") or h.get("market_value") or 0)
         current_price = round(market_val / quantity, 4) if market_val and quantity else avg_cost
 
         holdings.append({
