@@ -75,6 +75,7 @@ def _refresh_access_token() -> str:
     Saves the new tokens to repo/.env so they persist across restarts.
     Returns the new access token, or raises if refresh fails.
     """
+    global SHARESIGHT_ACCESS_TOKEN, SHARESIGHT_REFRESH_TOKEN
     if not SHARESIGHT_REFRESH_TOKEN:
         raise RuntimeError(
             "No Sharesight refresh token found. "
