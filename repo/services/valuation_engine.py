@@ -245,14 +245,26 @@ def run_valuation(ticker: str, price: float | None = None) -> dict:
             if w not in all_warnings:
                 all_warnings.append(w)
 
-    # 9. Generate confidence explanation (additive — does not change overall_confidence)
+    # 9. Adjust confidence and generate explanation
+    raw_confidence      = blend.get("overall_confidence", 0.0)
+    adjusted_confidence = raw_confidence
     confidence_explanation = ""
     try:
-        from services.confidence_service import build_confidence_explanation
+        from services.confidence_service import (
+            compute_adjusted_confidence,
+            build_confidence_explanation,
+        )
+        adjusted_confidence = compute_adjusted_confidence(
+            base_confidence = raw_confidence,
+            model_results   = models_run,
+            bucket          = bucket,
+            statements      = statements,
+            val_inputs      = val_inputs,
+        )
         confidence_explanation = build_confidence_explanation(
             model_results      = models_run,
             bucket             = bucket,
-            overall_confidence = blend.get("overall_confidence", 0.0),
+            overall_confidence = adjusted_confidence,
             statements         = statements,
             val_inputs         = val_inputs,
         )
@@ -268,6 +280,7 @@ def run_valuation(ticker: str, price: float | None = None) -> dict:
         "why_these_models":       BUCKET_EXPLANATIONS.get(bucket, ""),
         "models_run":             models_run,
         **blend,
+        "overall_confidence":     adjusted_confidence,   # overrides blend's raw value
         "confidence_explanation": confidence_explanation,
         "warnings":               all_warnings,
     }

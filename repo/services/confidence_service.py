@@ -1,12 +1,19 @@
 """
-confidence_service.py — Generates plain-English explanations for valuation confidence scores.
+confidence_service.py — Valuation confidence scoring and explanation.
 
-Stage 1: Explainability only.
-  Inspects model results, financial data quality, and model agreement
-  to produce a human-readable explanation of the existing overall_confidence score.
-  Does NOT modify overall_confidence.
+Stage 1 (explainability): build_confidence_explanation() — plain-English reason text.
+Stage 2 (adjusted score):  compute_adjusted_confidence()  — applies model agreement,
+  source quality, and structural caps on top of the raw weighted-average confidence.
+
+The raw weighted average from _blend_results() is kept as the starting point.
+Stage 2 makes three adjustments the individual model confidences cannot capture:
+  A. Model agreement  — how closely multiple models agree on fair value.
+  B. Source penalty   — whether a fallback financial data provider was used.
+  C. Structural caps  — hard ceilings based on number of models, sector gaps, completeness.
 
 Public API:
+  compute_adjusted_confidence(base_confidence, model_results, bucket,
+                              statements, val_inputs) -> float
   build_confidence_explanation(model_results, bucket, overall_confidence,
                                statements, val_inputs) -> str
 """
@@ -30,6 +37,93 @@ _ESTIMATION_KEYWORDS = (
     "defaulted", "estimated", "inferred", "unavailable", "missing",
     "derived", "fallback", "assumed", "cannot",
 )
+
+
+def compute_adjusted_confidence(
+    base_confidence: float,
+    model_results: dict,
+    bucket: str,
+    statements: Optional[dict],
+    val_inputs: Optional[dict],
+) -> float:
+    """
+    Apply three adjustments to the raw weighted-average confidence score.
+
+    A. Model agreement  (−12 to +8)
+       Compares the spread between highest and lowest model fair values.
+       Individual models cannot see each other's outputs, so this is genuinely
+       new signal that the weighted average misses.
+
+    B. Source penalty  (0 or −8)
+       Applied when financial statements came from a fallback provider (yfinance)
+       rather than the primary provider (FMP). Fallback data is less complete.
+
+    C. Structural caps
+       Hard ceilings independent of model quality:
+         • Only 1 model produced a result          → max 62
+         • Sector-critical model failed             → max 60
+         • Data completeness below 50%             → max 65
+         • Fallback provider used                  → max 72
+
+    Note: completeness is NOT re-applied as a multiplier here because the DCF
+    model already multiplies its own confidence by completeness. Re-applying it
+    globally would double-count that penalty.
+
+    Parameters match build_confidence_explanation() for ease of calling both.
+    """
+    stmts  = statements or {}
+    inputs = val_inputs  or {}
+
+    valid_models = {k: v for k, v in model_results.items() if v.get("fair_value")}
+    n_valid      = len(valid_models)
+
+    if n_valid == 0:
+        return 0.0
+
+    # ── A. Model agreement adjustment ────────────────────────────────────────
+    agreement_adj = 0.0
+    if n_valid >= 2:
+        fvs = [v["fair_value"] for v in valid_models.values()]
+        lo, hi = min(fvs), max(fvs)
+        mid    = (lo + hi) / 2
+        spread = (hi - lo) / mid if mid > 0 else 0
+
+        if spread <= 0.10:
+            agreement_adj = +8.0
+        elif spread <= 0.20:
+            agreement_adj = +4.0
+        elif spread <= 0.30:
+            agreement_adj = 0.0
+        elif spread <= 0.45:
+            agreement_adj = -6.0
+        else:
+            agreement_adj = -12.0
+
+    # ── B. Source quality penalty ─────────────────────────────────────────────
+    source_penalty = -8.0 if stmts.get("fallback_used", False) else 0.0
+
+    # ── C. Structural caps ────────────────────────────────────────────────────
+    cap = 100.0
+
+    if n_valid == 1:
+        cap = min(cap, 62.0)
+
+    if bucket in _SECTOR_CRITICAL_MODELS:
+        critical_keys, _ = _SECTOR_CRITICAL_MODELS[bucket]
+        if not any(k in valid_models for k in critical_keys):
+            cap = min(cap, 60.0)
+
+    completeness = inputs.get("completeness")
+    if completeness is not None and completeness < 0.50:
+        cap = min(cap, 65.0)
+
+    if stmts.get("fallback_used", False):
+        cap = min(cap, 72.0)
+
+    # ── Combine and clamp ─────────────────────────────────────────────────────
+    raw    = base_confidence + agreement_adj + source_penalty
+    result = round(min(max(raw, 5.0), cap), 1)
+    return result
 
 
 def build_confidence_explanation(
