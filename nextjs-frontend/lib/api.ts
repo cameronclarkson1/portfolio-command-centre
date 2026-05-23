@@ -638,8 +638,9 @@ export interface ValuationResult {
   fair_value_high:    number
   upside_pct:         number
   valuation_rating:   string
-  overall_confidence: number
-  warnings:           string[]
+  overall_confidence:     number
+  confidence_explanation: string
+  warnings:               string[]
 }
 
 export async function fetchValuation(ticker: string, price?: number): Promise<ValuationResult | null> {

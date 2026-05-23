@@ -420,6 +420,11 @@ function ValuationTab({ research }: { research: ResearchData }) {
             </div>
           </div>
         </div>
+        {val.confidence_explanation && (
+          <p className="mt-3 pt-3 border-t border-border text-xs text-muted-foreground leading-relaxed">
+            {val.confidence_explanation}
+          </p>
+        )}
       </div>
 
       {/* Models breakdown */}

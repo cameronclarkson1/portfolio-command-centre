@@ -238,23 +238,38 @@ def run_valuation(ticker: str, price: float | None = None) -> dict:
     # 7. Blend results into fair value range
     blend = _blend_results(models_run, weights, price or 0)
 
-    # 7. Collect unique warnings across all models
+    # 8. Collect unique warnings across all models
     all_warnings = []
     for result in models_run.values():
         for w in result.get("warnings", []):
             if w not in all_warnings:
                 all_warnings.append(w)
 
+    # 9. Generate confidence explanation (additive — does not change overall_confidence)
+    confidence_explanation = ""
+    try:
+        from services.confidence_service import build_confidence_explanation
+        confidence_explanation = build_confidence_explanation(
+            model_results      = models_run,
+            bucket             = bucket,
+            overall_confidence = blend.get("overall_confidence", 0.0),
+            statements         = statements,
+            val_inputs         = val_inputs,
+        )
+    except Exception as e:
+        log.warning(f"confidence_service failed for {ticker}: {e}")
+
     result = {
-        "ticker":           ticker,
-        "sector":           sector   or "Unknown",
-        "industry":         industry or "Unknown",
-        "bucket":           bucket,
-        "bucket_label":     BUCKET_LABELS.get(bucket, bucket),
-        "why_these_models": BUCKET_EXPLANATIONS.get(bucket, ""),
-        "models_run":       models_run,
+        "ticker":                 ticker,
+        "sector":                 sector   or "Unknown",
+        "industry":               industry or "Unknown",
+        "bucket":                 bucket,
+        "bucket_label":           BUCKET_LABELS.get(bucket, bucket),
+        "why_these_models":       BUCKET_EXPLANATIONS.get(bucket, ""),
+        "models_run":             models_run,
         **blend,
-        "warnings":         all_warnings,
+        "confidence_explanation": confidence_explanation,
+        "warnings":               all_warnings,
     }
 
     cache.set(cache_key, result, ttl)
