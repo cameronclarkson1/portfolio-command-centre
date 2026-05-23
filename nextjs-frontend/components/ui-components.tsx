@@ -427,7 +427,7 @@ export function MarketRegimeBanner({
         {/* Middle: key stats */}
         <div className="flex flex-wrap gap-4 lg:gap-6">
           {[
-            { label: 'VIX',       value: vix.toFixed(1)    },
+            { label: 'VIX',       value: vix.toFixed(2)    },
             { label: 'S&P 500',   value: sp500Trend        },
             { label: 'Nasdaq',    value: nasdaqStatus       },
             { label: 'Rate Note', value: rateMacroNote, wide: true },
@@ -457,7 +457,7 @@ export function MarketRegimeBanner({
 export function formatCurrency(value: number, compact?: boolean): string {
   if (compact && Math.abs(value) >= 1_000_000) {
     return new Intl.NumberFormat('en-US', {
-      style: 'currency', currency: 'USD', notation: 'compact', maximumFractionDigits: 1,
+      style: 'currency', currency: 'USD', notation: 'compact', maximumFractionDigits: 2,
     }).format(value)
   }
   return new Intl.NumberFormat('en-US', {

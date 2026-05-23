@@ -106,7 +106,7 @@ export function ResearchPage() {
     const val    = research?.valuation
     const scores = research?.scores
     const fv     = val?.fair_value_base ?? 0
-    const upside = fv > 0 ? +((fv - price) / price * 100).toFixed(1) : 0
+    const upside = fv > 0 ? +((fv - price) / price * 100).toFixed(2) : 0
     const rating = scores?.rating ?? (val ? ratingFromValuation(val.valuation_rating) : 'Hold / Watchlist')
 
     const added = addToWatchlist({
@@ -237,7 +237,7 @@ export function ResearchPage() {
                       research.valuation.upside_pct >= 0 ? 'text-success' : 'text-destructive'
                     )}>
                       {research.valuation.upside_pct >= 0 ? '+' : ''}
-                      {(research.valuation.upside_pct * 100).toFixed(1)}% upside
+                      {(research.valuation.upside_pct * 100).toFixed(2)}% upside
                     </p>
                   </div>
                 )}
@@ -381,7 +381,7 @@ function ValuationTab({ research }: { research: ResearchData }) {
             <p className="text-xs text-muted-foreground">Base (Blended)</p>
             <p className="text-xl font-bold text-foreground">{formatCurrency(val.fair_value_base)}</p>
             <p className={cn('text-xs font-medium mt-1', isUp ? 'text-success' : 'text-destructive')}>
-              {isUp ? '+' : ''}{upside.toFixed(1)}% from current
+              {isUp ? '+' : ''}{upside.toFixed(2)}% from current
             </p>
           </div>
           <div className="rounded-lg bg-success/5 border border-success/20 p-3">
@@ -444,7 +444,7 @@ function ValuationTab({ research }: { research: ResearchData }) {
                   {price > 0 && (
                     <p className={cn('text-xs font-medium', model.fair_value > price ? 'text-success' : 'text-destructive')}>
                       {model.fair_value > price ? '+' : ''}
-                      {((model.fair_value - price) / price * 100).toFixed(1)}%
+                      {((model.fair_value - price) / price * 100).toFixed(2)}%
                     </p>
                   )}
                 </div>
@@ -832,7 +832,7 @@ function FinancialsTab({ research }: { research: ResearchData }) {
                 <div key={key}>
                   <div className="flex justify-between mb-1">
                     <span className="text-xs text-muted-foreground capitalize">{key} Margin</span>
-                    <span className="text-xs font-medium text-foreground">{value.toFixed(1)}%</span>
+                    <span className="text-xs font-medium text-foreground">{value.toFixed(2)}%</span>
                   </div>
                   <div className="h-2 bg-muted rounded-full overflow-hidden">
                     <div className="h-full bg-primary rounded-full" style={{ width: `${Math.max(value, 0)}%` }} />
@@ -911,7 +911,7 @@ function AnalystTab({ research }: { research: ResearchData }) {
               {research.price != null && (
                 <DataRow
                   label="Implied Upside"
-                  value={`${((summary.avg_target - research.price) / research.price * 100).toFixed(1)}%`}
+                  value={`${((summary.avg_target - research.price) / research.price * 100).toFixed(2)}%`}
                   change={(summary.avg_target - research.price) / research.price * 100}
                 />
               )}
@@ -966,7 +966,7 @@ function AnalystTab({ research }: { research: ResearchData }) {
                 </div>
                 <div className="text-right text-xs text-muted-foreground space-y-0.5">
                   {e.eps_estimate != null && <p>EPS est. ${e.eps_estimate.toFixed(2)}</p>}
-                  {e.revenue_est  != null && <p>Rev est. ${(e.revenue_est / 1e9).toFixed(1)}B</p>}
+                  {e.revenue_est  != null && <p>Rev est. ${(e.revenue_est / 1e9).toFixed(2)}B</p>}
                 </div>
               </div>
             ))}

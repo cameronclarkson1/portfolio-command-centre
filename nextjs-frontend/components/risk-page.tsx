@@ -211,7 +211,7 @@ export function RiskPage({ apiData }: { apiData: PortfolioRiskData | null }) {
                       <span className="text-sm text-foreground">{name}</span>
                       <div className="flex items-center gap-2">
                         <span className={cn('text-sm font-medium', isRisky ? 'text-destructive' : 'text-foreground')}>
-                          {pct.toFixed(1)}%
+                          {pct.toFixed(2)}%
                         </span>
                         {isRisky && <AlertTriangle className="h-3 w-3 text-destructive" />}
                       </div>
@@ -316,7 +316,7 @@ export function RiskPage({ apiData }: { apiData: PortfolioRiskData | null }) {
               <DataRow label="Sortino Ratio"     value={riskMetrics.sortinoRatio > 0 ? riskMetrics.sortinoRatio.toFixed(2) : '—'} />
               <DataRow label="VaR (95%)"         value={riskMetrics.var95 !== 0 ? formatCurrency(riskMetrics.var95) : '—'} />
               <DataRow label="Corr. to SPY"      value={riskMetrics.correlationToSPY > 0 ? riskMetrics.correlationToSPY.toFixed(2) : '—'} />
-              <DataRow label="Cash"              value={apiData ? `${apiData.metrics.cash_pct.toFixed(1)}%` : '—'} />
+              <DataRow label="Cash"              value={apiData ? `${apiData.metrics.cash_pct.toFixed(2)}%` : '—'} />
               <DataRow label="Holdings"          value={apiData ? `${apiData.metrics.num_holdings}` : '—'} />
             </div>
           </div>

@@ -143,7 +143,7 @@ function fromMock(): ReturnType<typeof fromApi> {
     sw[h.sector] = (sw[h.sector] ?? 0) + h.weight
   }
   const sectorChart = Object.entries(sw).map(([name, value]) => ({
-    name, value: +value.toFixed(1), color: sectorColour(name),
+    name, value: +value.toFixed(2), color: sectorColour(name),
   }))
 
   return {
@@ -357,7 +357,7 @@ export function PortfolioPage({ apiData }: { apiData?: PortfolioApiData | null }
                 tickLine={false}
                 axisLine={false}
                 tick={{ fontSize: 10, fill: 'var(--muted-foreground)' }}
-                tickFormatter={(v: number) => `$${(v / 1000).toFixed(1)}k`}
+                tickFormatter={(v: number) => `$${(v / 1000).toFixed(2)}k`}
                 width={52}
               />
               <Tooltip
@@ -438,7 +438,7 @@ export function PortfolioPage({ apiData }: { apiData?: PortfolioApiData | null }
                             <span className="rounded px-1 py-0.5 text-[9px] font-bold uppercase tracking-wide bg-primary/10 text-primary">ETF</span>
                           )}
                         </div>
-                        <p className="text-xs text-muted-foreground">{h.shares.toFixed(4)} sh</p>
+                        <p className="text-xs text-muted-foreground">{h.shares.toFixed(2)} sh</p>
                       </div>
                     </div>
                     <div className="text-right">
@@ -473,7 +473,7 @@ export function PortfolioPage({ apiData }: { apiData?: PortfolioApiData | null }
                   </div>
                   <div className="col-span-2 text-right">
                     <p className="text-sm font-medium text-foreground">{formatCurrency(h.currentPrice)}</p>
-                    <p className="text-xs text-muted-foreground">{h.shares.toFixed(4)} sh</p>
+                    <p className="text-xs text-muted-foreground">{h.shares.toFixed(2)} sh</p>
                   </div>
                   <div className="col-span-2 text-right">
                     <p className="text-sm font-medium text-foreground">{formatCurrency(h.value)}</p>
@@ -482,7 +482,7 @@ export function PortfolioPage({ apiData }: { apiData?: PortfolioApiData | null }
                       h.unrealisedPnl >= 0 ? 'text-success' : 'text-destructive'
                     )}>
                       {h.unrealisedPnl >= 0 ? '+' : ''}{formatCurrency(h.unrealisedPnl)}
-                      {' '}({h.unrealisedPct >= 0 ? '+' : ''}{h.unrealisedPct.toFixed(1)}%)
+                      {' '}({h.unrealisedPct >= 0 ? '+' : ''}{h.unrealisedPct.toFixed(2)}%)
                     </p>
                   </div>
                   <div className="col-span-2 text-right">
@@ -548,7 +548,7 @@ export function PortfolioPage({ apiData }: { apiData?: PortfolioApiData | null }
                       <div className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: s.color }} />
                       <span className="text-xs text-muted-foreground">{s.name}</span>
                     </div>
-                    <span className="text-xs font-medium text-foreground">{s.value.toFixed(1)}%</span>
+                    <span className="text-xs font-medium text-foreground">{s.value.toFixed(2)}%</span>
                   </div>
                 ))}
             </div>

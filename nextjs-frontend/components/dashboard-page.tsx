@@ -211,7 +211,7 @@ export function DashboardPage({ liveData }: DashboardPageProps) {
               <span className="text-muted-foreground">S&P 500</span>
             </div>
             <div className="ml-auto flex gap-4 text-muted-foreground">
-              <span>YTD: <span className="text-success font-medium">+{portfolioData.yearlyChangePercent.toFixed(1)}%</span></span>
+              <span>YTD: <span className="text-success font-medium">+{portfolioData.yearlyChangePercent.toFixed(2)}%</span></span>
               <span>Sharpe: <span className="text-foreground font-medium">{portfolioData.sharpeRatio}</span></span>
             </div>
           </div>
@@ -299,7 +299,7 @@ export function DashboardPage({ liveData }: DashboardPageProps) {
                     <div className="flex items-center justify-between gap-2">
                       <span className="text-sm font-semibold text-foreground">{o.ticker}</span>
                       <span className={cn('text-xs font-semibold', o.upside >= 0 ? 'text-success' : 'text-destructive')}>
-                        {o.upside >= 0 ? '+' : ''}{o.upside.toFixed(1)}% upside
+                        {o.upside >= 0 ? '+' : ''}{o.upside.toFixed(2)}% upside
                       </span>
                     </div>
                     <div className="flex items-center gap-2 mt-0.5">
@@ -387,7 +387,7 @@ export function DashboardPage({ liveData }: DashboardPageProps) {
                     <div className="h-2 w-2 rounded-full flex-shrink-0" style={{ backgroundColor: s.color }} />
                     <span className="text-xs text-muted-foreground truncate max-w-[90px]">{s.name}</span>
                   </div>
-                  <span className="text-xs font-medium text-foreground">{Number(s.value).toFixed(1)}%</span>
+                  <span className="text-xs font-medium text-foreground">{Number(s.value).toFixed(2)}%</span>
                 </div>
               ))}
             </div>
@@ -413,7 +413,7 @@ export function DashboardPage({ liveData }: DashboardPageProps) {
                   </div>
                   <div>
                     <p className="text-xs font-semibold text-foreground">{h.symbol}</p>
-                    <p className="text-[10px] text-muted-foreground">{h.weight.toFixed(1)}% weight</p>
+                    <p className="text-[10px] text-muted-foreground">{h.weight.toFixed(2)}% weight</p>
                   </div>
                 </div>
                 <div className="text-right">
@@ -646,15 +646,15 @@ export function DashboardPage({ liveData }: DashboardPageProps) {
                 return (
                   <tr key={row.sector} className="border-b border-border last:border-0">
                     <td className="py-3 font-medium text-foreground">{row.sector}</td>
-                    <td className="py-3 text-right text-foreground">{row.current.toFixed(1)}%</td>
-                    <td className="py-3 text-right text-muted-foreground">{row.target.toFixed(1)}%</td>
+                    <td className="py-3 text-right text-foreground">{row.current.toFixed(2)}%</td>
+                    <td className="py-3 text-right text-muted-foreground">{row.target.toFixed(2)}%</td>
                     <td className={cn(
                       'py-3 text-right font-semibold',
                       row.drift >  1  && 'text-destructive',
                       row.drift < -1  && 'text-gold',
                       Math.abs(row.drift) <= 1 && 'text-success',
                     )}>
-                      {row.drift > 0 ? '+' : ''}{row.drift.toFixed(1)}%
+                      {row.drift > 0 ? '+' : ''}{row.drift.toFixed(2)}%
                     </td>
                     <td className="hidden sm:table-cell py-3 px-6">
                       <div className="flex items-center justify-center">
