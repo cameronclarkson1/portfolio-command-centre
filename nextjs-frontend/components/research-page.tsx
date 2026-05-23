@@ -357,7 +357,7 @@ function ValuationTab({ research }: { research: ResearchData }) {
       ? 'text-destructive border-destructive/30 bg-destructive/10'
       : 'text-gold-foreground border-gold/30 bg-gold/10'
 
-  const modelEntries = Object.entries(val.models_run)
+  const modelEntries = Object.entries(val.models_run).filter(([, m]) => m.fair_value != null)
   const price        = research.price ?? 0
 
   return (
@@ -445,11 +445,11 @@ function ValuationTab({ research }: { research: ResearchData }) {
                   </div>
                 </div>
                 <div className="text-right">
-                  <p className="text-sm font-semibold text-foreground">{formatCurrency(model.fair_value)}</p>
+                  <p className="text-sm font-semibold text-foreground">{formatCurrency(model.fair_value!)}</p>
                   {price > 0 && (
-                    <p className={cn('text-xs font-medium', model.fair_value > price ? 'text-success' : 'text-destructive')}>
-                      {model.fair_value > price ? '+' : ''}
-                      {((model.fair_value - price) / price * 100).toFixed(2)}%
+                    <p className={cn('text-xs font-medium', model.fair_value! > price ? 'text-success' : 'text-destructive')}>
+                      {model.fair_value! > price ? '+' : ''}
+                      {((model.fair_value! - price) / price * 100).toFixed(2)}%
                     </p>
                   )}
                 </div>

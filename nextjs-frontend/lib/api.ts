@@ -632,15 +632,20 @@ export interface ValuationResult {
   ticker:             string
   sector:             string
   bucket:             string
-  models_run:         Record<string, { fair_value: number; confidence: number }>
+  models_run:         Record<string, {
+    fair_value:  number | null
+    confidence:  number
+    name?:       string
+    warnings?:   string[]
+  }>
   fair_value_low:     number
   fair_value_base:    number
   fair_value_high:    number
   upside_pct:         number
   valuation_rating:   string
-  overall_confidence:     number
-  confidence_explanation: string
-  warnings:               string[]
+  overall_confidence:      number
+  confidence_explanation?: string   // optional — absent in old cached responses
+  warnings:                string[]
 }
 
 export async function fetchValuation(ticker: string, price?: number): Promise<ValuationResult | null> {
