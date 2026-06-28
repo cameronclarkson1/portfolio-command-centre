@@ -174,15 +174,16 @@ def _refresh_one(ticker: str) -> dict:
 def refresh_watchlist(body: RefreshRequest):
     """
     Refresh scores and prices for a list of watchlist tickers.
-    Processes up to 5 tickers in parallel (each with its own sub-pool).
+    Processes up to 10 tickers in parallel (each with its own sub-pool).
+    With 33 stocks at ~15-20 s each, 10 workers completes in ~60-70 s total.
     """
-    tickers = [t.strip().upper() for t in body.tickers if t.strip()][:20]
+    tickers = [t.strip().upper() for t in body.tickers if t.strip()][:40]
 
     items   = [None] * len(tickers)
 
-    with ThreadPoolExecutor(max_workers=5) as pool:
+    with ThreadPoolExecutor(max_workers=10) as pool:
         future_map = {pool.submit(_refresh_one, t): i for i, t in enumerate(tickers)}
-        for future in as_completed(future_map, timeout=60):
+        for future in as_completed(future_map, timeout=150):
             idx = future_map[future]
             try:
                 items[idx] = future.result()
