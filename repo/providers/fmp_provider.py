@@ -120,7 +120,7 @@ def get_balance_sheet(ticker: str, limit: int = 4) -> list[dict]:
             "total_equity":         stmt.get("totalStockholdersEquity"),
             "total_debt":           stmt.get("totalDebt"),
             "net_debt":             stmt.get("netDebt"),
-            "shares_outstanding":   stmt.get("commonStock"),
+            "shares_outstanding":   stmt.get("commonStockSharesOutstanding") or stmt.get("commonStock"),
         })
     return results
 

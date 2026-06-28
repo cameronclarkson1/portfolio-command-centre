@@ -87,20 +87,25 @@ def _run_test(provider: dict) -> dict:
         }
 
     start = time.monotonic()
+    error_detail = None
     try:
         result = test_fn()
         latency_ms = int((time.monotonic() - start) * 1000)
         status = "connected" if result else "error"
-    except Exception:
+        if not result:
+            error_detail = "Provider returned empty response"
+    except Exception as e:
         latency_ms = int((time.monotonic() - start) * 1000)
         status = "error"
+        error_detail = str(e)
 
     return {
-        "id":          provider["id"],
-        "name":        provider["name"],
-        "description": provider["description"],
-        "status":      status,
-        "latency_ms":  latency_ms if status == "connected" else None,
+        "id":           provider["id"],
+        "name":         provider["name"],
+        "description":  provider["description"],
+        "status":       status,
+        "latency_ms":   latency_ms if status == "connected" else None,
+        "error_detail": error_detail,
     }
 
 
@@ -119,7 +124,7 @@ def get_provider_health():
             pool.submit(_run_test, p): i
             for i, p in enumerate(_PROVIDERS)
         }
-        for future in as_completed(future_to_idx, timeout=6):
+        for future in as_completed(future_to_idx, timeout=15):
             idx = future_to_idx[future]
             try:
                 results[idx] = future.result()
