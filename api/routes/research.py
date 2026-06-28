@@ -189,7 +189,7 @@ def get_research(ticker: str, price: float = Query(None)):
             "buy":        buy_count,
             "hold":       hold_count,
             "sell":       sell_count,
-            "total":      len(analyst_actions),
+            "total":      buy_count + hold_count + sell_count,
             "avg_target": avg_target,
         },
         "analyst_actions": [],   # individual analyst actions no longer available from FMP stable API
