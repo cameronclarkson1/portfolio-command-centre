@@ -97,7 +97,9 @@ def _run_test(provider: dict) -> dict:
     except Exception as e:
         latency_ms = int((time.monotonic() - start) * 1000)
         status = "error"
-        error_detail = str(e)
+        # Redact API keys from URLs in error messages (keys appear after apikey= or apiKey=)
+        import re
+        error_detail = re.sub(r'(apikey|apiKey)=[^&\s]+', r'\1=***', str(e))
 
     return {
         "id":           provider["id"],
