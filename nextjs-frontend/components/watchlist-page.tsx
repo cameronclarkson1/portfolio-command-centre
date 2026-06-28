@@ -90,10 +90,9 @@ const filterOptions = [
 // ── Component ─────────────────────────────────────────────────────────────────
 
 export function WatchlistPage({ livePrices }: { livePrices?: LivePriceData | null }) {
-  const [items, setItems]           = useState<WatchlistItem[]>(() => {
-    const stored = getStoredWatchlist()
-    return stored ?? buildInitialList(livePrices)
-  })
+  // Always start with the full 33-stock list from mock-data so it's visible immediately.
+  // The server load below will overlay saved scores and any user-added stocks on top.
+  const [items, setItems]           = useState<WatchlistItem[]>(() => buildInitialList(livePrices))
 
   const [serverLoaded, setServerLoaded] = useState(false)
 
