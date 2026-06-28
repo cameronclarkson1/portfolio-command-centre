@@ -301,9 +301,18 @@ def get_valuation_inputs(ticker: str) -> dict:
     inputs["free_cash_flow"] = fcf
 
     # ── Balance sheet items ───────────────────────────────────────────────────
-    latest_bal = balance[0] if balance else {}
-    net_debt     = latest_bal.get("net_debt")
-    shares_out   = latest_bal.get("shares_outstanding")
+    latest_bal    = balance[0]  if balance  else {}
+    latest_income = income[0]   if income   else {}
+    net_debt      = latest_bal.get("net_debt")
+
+    # FMP stable API removed commonStockSharesOutstanding from the balance sheet.
+    # Use the income statement's weighted-average diluted share count instead,
+    # which is the standard basis for per-share valuation metrics.
+    shares_out = (
+        latest_income.get("shares_diluted")
+        or latest_income.get("shares_basic")
+        or latest_bal.get("shares_outstanding")   # legacy fallback
+    )
 
     if net_debt is None:
         warnings.append("Net debt not available — assumed zero for DCF")

@@ -12,6 +12,7 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 from services.valuation_engine import run_valuation
 from services import market_data_service, fundamentals_service, news_service
 from services.scoring_service import build_scoring_inputs, compute_scores, generate_investment_thesis
+import providers.fmp_provider as fmp
 
 router = APIRouter()
 
@@ -107,12 +108,12 @@ def get_research(ticker: str, price: float = Query(None)):
     results: dict = {}
 
     tasks = {
-        "valuation":       lambda: run_valuation(ticker, price=price),
-        "ratios":          lambda: fundamentals_service.get_key_ratios(ticker),
-        "statements":      lambda: fundamentals_service.get_financial_statements(ticker),
-        "analyst_actions": lambda: news_service.get_analyst_actions(ticker),
-        "recent_news":     lambda: news_service.get_stock_news(ticker, days_back=30),
-        "earnings":        lambda: news_service.get_earnings_events(ticker),
+        "valuation":          lambda: run_valuation(ticker, price=price),
+        "ratios":             lambda: fundamentals_service.get_key_ratios(ticker),
+        "statements":         lambda: fundamentals_service.get_financial_statements(ticker),
+        "analyst_consensus":  lambda: fmp.get_analyst_grades(ticker, limit=1),
+        "recent_news":        lambda: news_service.get_stock_news(ticker, days_back=30),
+        "earnings":           lambda: news_service.get_earnings_events(ticker),
     }
 
     with ThreadPoolExecutor(max_workers=6) as executor:
@@ -124,15 +125,13 @@ def get_research(ticker: str, price: float = Query(None)):
             except Exception:
                 results[key] = None
 
-    # ── Post-process analyst actions ──────────────────────────────────────────
-    analyst_actions = results.get("analyst_actions") or []
-    buy_count  = sum(1 for a in analyst_actions if _classify_rating(a.get("rating", "")) == "buy")
-    hold_count = sum(1 for a in analyst_actions if _classify_rating(a.get("rating", "")) == "hold")
-    sell_count = sum(1 for a in analyst_actions if _classify_rating(a.get("rating", "")) == "sell")
-
-    # Average price target from actions that have one
-    targets = [a["price_target"] for a in analyst_actions if a.get("price_target")]
-    avg_target = round(sum(targets) / len(targets), 2) if targets else None
+    # ── Post-process analyst consensus (FMP now returns monthly aggregates) ──────
+    consensus_list = results.get("analyst_consensus") or []
+    latest = consensus_list[0] if consensus_list else {}
+    buy_count  = latest.get("buy",  0)
+    hold_count = latest.get("hold", 0)
+    sell_count = latest.get("sell", 0)
+    avg_target = None   # price targets no longer available from FMP stable API
 
     # ── Post-process financial statements ────────────────────────────────────
     statements   = results.get("statements")
@@ -193,19 +192,7 @@ def get_research(ticker: str, price: float = Query(None)):
             "total":      len(analyst_actions),
             "avg_target": avg_target,
         },
-        "analyst_actions": [
-            {
-                "analyst_firm":       a.get("analyst_firm", ""),
-                "action":             a.get("action", ""),
-                "rating":             a.get("rating", ""),
-                "rating_prior":       a.get("rating_prior"),
-                "price_target":       a.get("price_target"),
-                "price_target_prior": a.get("price_target_prior"),
-                "published_at":       a.get("published_at", ""),
-                "bucket":             _classify_rating(a.get("rating", "")),
-            }
-            for a in analyst_actions[:20]  # cap at 20 most recent
-        ],
+        "analyst_actions": [],   # individual analyst actions no longer available from FMP stable API
 
         # Recent news for this ticker
         "recent_news": [

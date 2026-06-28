@@ -29,7 +29,7 @@ CACHE_TTL = {
 # ─── Provider Base URLs ───────────────────────────────────────────────────────
 
 POLYGON_BASE   = "https://api.polygon.io"
-FMP_BASE       = "https://financialmodelingprep.com/api/v3"
+FMP_BASE       = "https://financialmodelingprep.com/stable"
 FINNHUB_BASE   = "https://finnhub.io/api/v1"
 FRED_BASE      = "https://api.stlouisfed.org/fred"
 GDELT_BASE     = "https://api.gdeltproject.org/api/v2"
