@@ -47,18 +47,38 @@ def _default_watchlist() -> list:
 
 def _read_watchlist() -> list:
     """
-    Read saved watchlist from disk. Falls back to the coded default list
-    from sample_data.WATCHLIST if the file is missing or empty.
+    Read saved watchlist from disk and merge with the coded defaults.
+
+    The defaults list is always the floor: every ticker in DEFAULT_WATCHLIST
+    will appear in the response even if it was missing from the saved file.
+    Saved items overlay defaults (preserving refreshed scores/prices).
+    User-added tickers (not in defaults) are appended at the end.
+
+    This makes the list resilient to stale saves from old browser code that
+    only knew about 2 tickers — those saves are merged into the full 33.
     """
+    defaults = _default_watchlist()
+
     try:
         if os.path.exists(_WATCHLIST_FILE):
             with open(_WATCHLIST_FILE) as f:
                 data = json.load(f)
-                if data:  # non-empty list — use it
-                    return data
+            if data:
+                saved_map = {item["symbol"]: item for item in data}
+                default_symbols = {d["symbol"] for d in defaults}
+
+                # Start with defaults, overlay any saved data (scores, prices) on top
+                merged = [
+                    saved_map.get(d["symbol"], d)
+                    for d in defaults
+                ]
+                # Append user-added tickers not in defaults
+                extras = [item for item in data if item["symbol"] not in default_symbols]
+                return merged + extras
     except Exception:
         pass
-    return _default_watchlist()
+
+    return defaults
 
 def _write_watchlist(items: list) -> None:
     os.makedirs(os.path.dirname(_WATCHLIST_FILE), exist_ok=True)

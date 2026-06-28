@@ -59,7 +59,8 @@ export async function loadWatchlist(): Promise<WatchlistItem[]> {
     if (res.ok) {
       const data = await res.json()
       if (Array.isArray(data.items) && data.items.length > 0) {
-        saveWatchlist(data.items) // keep localStorage in sync
+        // Sync to localStorage only — do NOT POST back to server (circular write).
+        try { localStorage.setItem('ai_hedgefund_watchlist', JSON.stringify(data.items)) } catch {}
         return data.items as WatchlistItem[]
       }
     }
