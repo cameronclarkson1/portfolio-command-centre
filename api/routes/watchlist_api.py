@@ -11,18 +11,54 @@ import os
 from fastapi import APIRouter
 from pydantic import BaseModel
 from concurrent.futures import ThreadPoolExecutor, as_completed
+from utils.sample_data import WATCHLIST as DEFAULT_WATCHLIST
 
 _WATCHLIST_FILE = os.path.join(os.path.dirname(__file__), "..", "..", "data", "watchlist.json")
 
+
+def _default_watchlist() -> list:
+    """
+    Convert sample_data.WATCHLIST into the WatchlistItem shape the frontend expects.
+    Used as the permanent fallback when watchlist.json doesn't exist or is empty.
+    Railway's filesystem is ephemeral (wiped on every deploy), so defaults must
+    live in code, not in a file.
+    """
+    items = []
+    for w in DEFAULT_WATCHLIST:
+        upside_pct = w.get("upside_pct", 0.0) or 0.0
+        items.append({
+            "symbol":         w["ticker"],
+            "name":           w.get("name", w["ticker"]),
+            "price":          w.get("price", 0.0),
+            "change":         0.0,
+            "changePercent":  0.0,
+            "fairValue":      w.get("fair_value", 0.0),
+            "rating":         w.get("action", "Watch"),
+            "upside":         round(upside_pct * 100, 1),
+            "safetyScore":    w.get("risk", 0),
+            "sparkline":      [],
+            "finalScore":     w.get("final_score") or None,
+            "qualityScore":   w.get("quality")     or None,
+            "growthScore":    w.get("growth")      or None,
+            "valuationScore": w.get("valuation")   or None,
+        })
+    return items
+
+
 def _read_watchlist() -> list:
+    """
+    Read saved watchlist from disk. Falls back to the coded default list
+    from sample_data.WATCHLIST if the file is missing or empty.
+    """
     try:
-        os.makedirs(os.path.dirname(_WATCHLIST_FILE), exist_ok=True)
         if os.path.exists(_WATCHLIST_FILE):
             with open(_WATCHLIST_FILE) as f:
-                return json.load(f)
+                data = json.load(f)
+                if data:  # non-empty list — use it
+                    return data
     except Exception:
         pass
-    return []
+    return _default_watchlist()
 
 def _write_watchlist(items: list) -> None:
     os.makedirs(os.path.dirname(_WATCHLIST_FILE), exist_ok=True)
