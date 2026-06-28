@@ -122,20 +122,52 @@ export const holdings = [
 ]
 
 // ── Watchlist ─────────────────────────────────────────────────────────────────
-// Only PG and HD have been fully researched (real scores and fair values).
-// Use the Stock Research page to score additional tickers.
+// Mirrors sample_data.py WATCHLIST — keeps frontend initial state in sync with backend defaults.
+// PG + HD have real scores; all others show live data after "Refresh Scores".
+
+const _w = { price: 0, change: 0, changePercent: 0, fairValue: 0, rating: 'Watch', upside: 0, safetyScore: 0, sparkline: [] as number[] }
 
 export const watchlist = [
-  {
-    symbol: 'PG',   name: 'Procter & Gamble', price: 158.90, change: 0, changePercent: 0,
-    fairValue: 175.00, rating: 'Watch', upside: 10.1, riskScore: 14,
-    sparkline: [157, 158, 159, 158, 157, 159, 158],
-  },
-  {
-    symbol: 'HD',   name: 'Home Depot',       price: 342.10, change: 0, changePercent: 0,
-    fairValue: 360.00, rating: 'Watch', upside:  5.2, riskScore: 24,
-    sparkline: [340, 342, 341, 344, 342, 343, 342],
-  },
+  // ── Researched ────────────────────────────────────────────────────────────
+  { symbol: 'PG',    name: 'Procter & Gamble',       price: 158.90, change: 0, changePercent: 0, fairValue: 175.00, rating: 'Watch', upside: 10.1, safetyScore: 86, sparkline: [] as number[] },
+  { symbol: 'HD',    name: 'Home Depot',              price: 342.10, change: 0, changePercent: 0, fairValue: 360.00, rating: 'Watch', upside:  5.2, safetyScore: 76, sparkline: [] as number[] },
+  // ── Technology ───────────────────────────────────────────────────────────
+  { ..._w, symbol: 'AAPL',  name: 'Apple'                  },
+  { ..._w, symbol: 'MSFT',  name: 'Microsoft'              },
+  { ..._w, symbol: 'NVDA',  name: 'NVIDIA'                 },
+  { ..._w, symbol: 'AVGO',  name: 'Broadcom'               },
+  { ..._w, symbol: 'AMD',   name: 'Advanced Micro Devices' },
+  { ..._w, symbol: 'TSM',   name: 'Taiwan Semiconductor'   },
+  { ..._w, symbol: 'ASML',  name: 'ASML Holding'           },
+  { ..._w, symbol: 'AMAT',  name: 'Applied Materials'      },
+  { ..._w, symbol: 'MU',    name: 'Micron Technology'      },
+  // ── Consumer ─────────────────────────────────────────────────────────────
+  { ..._w, symbol: 'AMZN',  name: 'Amazon'                 },
+  { ..._w, symbol: 'MCD',   name: "McDonald's"             },
+  { ..._w, symbol: 'NKE',   name: 'Nike'                   },
+  { ..._w, symbol: 'LOW',   name: "Lowe's"                 },
+  { ..._w, symbol: 'BABA',  name: 'Alibaba'                },
+  { ..._w, symbol: 'COST',  name: 'Costco'                 },
+  { ..._w, symbol: 'PEP',   name: 'PepsiCo'                },
+  { ..._w, symbol: 'WMT',   name: 'Walmart'                },
+  { ..._w, symbol: 'KO',    name: 'Coca-Cola'              },
+  // ── Financials ───────────────────────────────────────────────────────────
+  { ..._w, symbol: 'MA',    name: 'Mastercard'             },
+  { ..._w, symbol: 'V',     name: 'Visa'                   },
+  { ..._w, symbol: 'JPM',   name: 'JPMorgan Chase'         },
+  { ..._w, symbol: 'BRK.B', name: 'Berkshire Hathaway'     },
+  { ..._w, symbol: 'BAC',   name: 'Bank of America'        },
+  { ..._w, symbol: 'WFC',   name: 'Wells Fargo'            },
+  // ── Healthcare ───────────────────────────────────────────────────────────
+  { ..._w, symbol: 'JNJ',   name: 'Johnson & Johnson'      },
+  // ── Real Estate ──────────────────────────────────────────────────────────
+  { ..._w, symbol: 'O',     name: 'Realty Income'          },
+  { ..._w, symbol: 'VICI',  name: 'VICI Properties'        },
+  { ..._w, symbol: 'PLD',   name: 'Prologis'               },
+  { ..._w, symbol: 'AMT',   name: 'American Tower'         },
+  // ── Communication Services ────────────────────────────────────────────────
+  { ..._w, symbol: 'DIS',   name: 'Walt Disney'            },
+  { ..._w, symbol: 'VZ',    name: 'Verizon'                },
 ]
 
 // ── Sector allocation ─────────────────────────────────────────────────────────

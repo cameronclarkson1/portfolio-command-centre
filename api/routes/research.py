@@ -68,13 +68,13 @@ def _extract_margins(statements: dict | None) -> dict | None:
         return None
 
     latest = statements["income"][0]  # most recent period first
-    revenue = latest.get("revenue") or latest.get("totalRevenue") or 0
+    revenue = latest.get("revenue") or 0
     if not revenue:
         return None
 
-    gross_profit = latest.get("grossProfit") or 0
-    operating    = latest.get("operatingIncome") or latest.get("ebit") or 0
-    net_income   = latest.get("netIncome") or 0
+    gross_profit = latest.get("gross_profit") or 0
+    operating    = latest.get("operating_income") or 0
+    net_income   = latest.get("net_income") or 0
 
     return {
         "gross":     round(gross_profit / revenue * 100, 1) if gross_profit else None,

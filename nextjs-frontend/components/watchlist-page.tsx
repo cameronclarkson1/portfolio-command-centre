@@ -95,10 +95,13 @@ export function WatchlistPage({ livePrices }: { livePrices?: LivePriceData | nul
     return stored ?? buildInitialList(livePrices)
   })
 
+  const [serverLoaded, setServerLoaded] = useState(false)
+
   // On mount: load from server (cross-device persistence)
   useEffect(() => {
     loadWatchlist().then((serverItems) => {
       if (serverItems.length > 0) setItems(serverItems)
+      setServerLoaded(true)
     })
   }, [])
   const [searchQuery,  setSearchQuery]  = useState('')
@@ -112,8 +115,12 @@ export function WatchlistPage({ livePrices }: { livePrices?: LivePriceData | nul
   const [addError,     setAddError]     = useState('')
   const inputRef = useRef<HTMLInputElement>(null)
 
-  // Persist to localStorage whenever the list changes
-  useEffect(() => { saveWatchlist(items) }, [items])
+  // Persist to localStorage/server whenever the list changes — but only after server has loaded,
+  // so we don't overwrite the server's defaults with stale localStorage data on first render.
+  useEffect(() => {
+    if (!serverLoaded) return
+    saveWatchlist(items)
+  }, [items, serverLoaded])
 
   // On mount: refresh live prices for all items
   useEffect(() => {

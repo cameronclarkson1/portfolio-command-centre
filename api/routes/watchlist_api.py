@@ -116,11 +116,11 @@ def _refresh_one(ticker: str) -> dict:
     income  = (statements.get("income") or [])
     if income:
         latest  = income[0] or {}
-        revenue = latest.get("revenue") or latest.get("totalRevenue") or 0
+        revenue = latest.get("revenue") or 0
         if revenue:
-            gross   = latest.get("grossProfit") or 0
-            op      = latest.get("operatingIncome") or latest.get("ebit") or 0
-            net_i   = latest.get("netIncome") or 0
+            gross   = latest.get("gross_profit") or 0
+            op      = latest.get("operating_income") or 0
+            net_i   = latest.get("net_income") or 0
             margins = {
                 "gross":     round(gross / revenue * 100, 1) if gross else None,
                 "operating": round(op    / revenue * 100, 1) if op    else None,

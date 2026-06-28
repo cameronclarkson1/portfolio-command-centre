@@ -173,6 +173,8 @@ SECTOR_EXPOSURE = {
 # ─── Watchlist ─────────────────────────────────────────────────────────────────
 # Stocks under active review with manually-researched scores and fair values.
 # These are NOT current portfolio holdings.
+_W = {"price": 0.0, "quality": 0, "valuation": 0, "growth": 0, "momentum": 0, "risk": 0, "data_quality": 0, "final_score": 0, "action": "Watch"}
+
 WATCHLIST = [
     # ── Researched (scores + fair values set) ─────────────────────────────────
     {
@@ -187,45 +189,43 @@ WATCHLIST = [
         "quality": 86, "valuation": 52, "growth": 60, "momentum": 62, "risk": 76, "data_quality": 91,
         "final_score": 68, "action": "Watch",
     },
-    # ── Research pending (use Stock Research page to score these) ─────────────
-    {"ticker": "AAPL",  "name": "Apple",                  "sector": "Technology",
-     "price": 0.0, "quality": 0, "valuation": 0, "growth": 0, "momentum": 0, "risk": 0, "data_quality": 0, "final_score": 0, "action": "Watch"},
-    {"ticker": "MSFT",  "name": "Microsoft",              "sector": "Technology",
-     "price": 0.0, "quality": 0, "valuation": 0, "growth": 0, "momentum": 0, "risk": 0, "data_quality": 0, "final_score": 0, "action": "Watch"},
-    {"ticker": "AMZN",  "name": "Amazon",                 "sector": "Consumer Discretionary",
-     "price": 0.0, "quality": 0, "valuation": 0, "growth": 0, "momentum": 0, "risk": 0, "data_quality": 0, "final_score": 0, "action": "Watch"},
-    {"ticker": "AMD",   "name": "Advanced Micro Devices", "sector": "Technology",
-     "price": 0.0, "quality": 0, "valuation": 0, "growth": 0, "momentum": 0, "risk": 0, "data_quality": 0, "final_score": 0, "action": "Watch"},
-    {"ticker": "TSM",   "name": "Taiwan Semiconductor",   "sector": "Technology",
-     "price": 0.0, "quality": 0, "valuation": 0, "growth": 0, "momentum": 0, "risk": 0, "data_quality": 0, "final_score": 0, "action": "Watch"},
-    {"ticker": "ASML",  "name": "ASML Holding",           "sector": "Technology",
-     "price": 0.0, "quality": 0, "valuation": 0, "growth": 0, "momentum": 0, "risk": 0, "data_quality": 0, "final_score": 0, "action": "Watch"},
-    {"ticker": "AMAT",  "name": "Applied Materials",      "sector": "Technology",
-     "price": 0.0, "quality": 0, "valuation": 0, "growth": 0, "momentum": 0, "risk": 0, "data_quality": 0, "final_score": 0, "action": "Watch"},
-    {"ticker": "MA",    "name": "Mastercard",             "sector": "Financials",
-     "price": 0.0, "quality": 0, "valuation": 0, "growth": 0, "momentum": 0, "risk": 0, "data_quality": 0, "final_score": 0, "action": "Watch"},
-    {"ticker": "COST",  "name": "Costco",                 "sector": "Consumer Staples",
-     "price": 0.0, "quality": 0, "valuation": 0, "growth": 0, "momentum": 0, "risk": 0, "data_quality": 0, "final_score": 0, "action": "Watch"},
-    {"ticker": "JPM",   "name": "JPMorgan Chase",         "sector": "Financials",
-     "price": 0.0, "quality": 0, "valuation": 0, "growth": 0, "momentum": 0, "risk": 0, "data_quality": 0, "final_score": 0, "action": "Watch"},
-    {"ticker": "BRK.B", "name": "Berkshire Hathaway",     "sector": "Financials",
-     "price": 0.0, "quality": 0, "valuation": 0, "growth": 0, "momentum": 0, "risk": 0, "data_quality": 0, "final_score": 0, "action": "Watch"},
-    {"ticker": "PEP",   "name": "PepsiCo",                "sector": "Consumer Staples",
-     "price": 0.0, "quality": 0, "valuation": 0, "growth": 0, "momentum": 0, "risk": 0, "data_quality": 0, "final_score": 0, "action": "Watch"},
-    {"ticker": "WMT",   "name": "Walmart",                "sector": "Consumer Staples",
-     "price": 0.0, "quality": 0, "valuation": 0, "growth": 0, "momentum": 0, "risk": 0, "data_quality": 0, "final_score": 0, "action": "Watch"},
-    {"ticker": "LOW",   "name": "Lowe's",                 "sector": "Consumer Discretionary",
-     "price": 0.0, "quality": 0, "valuation": 0, "growth": 0, "momentum": 0, "risk": 0, "data_quality": 0, "final_score": 0, "action": "Watch"},
-    {"ticker": "VICI",  "name": "VICI Properties",        "sector": "Real Estate",
-     "price": 0.0, "quality": 0, "valuation": 0, "growth": 0, "momentum": 0, "risk": 0, "data_quality": 0, "final_score": 0, "action": "Watch"},
-    {"ticker": "PLD",   "name": "Prologis",               "sector": "Real Estate",
-     "price": 0.0, "quality": 0, "valuation": 0, "growth": 0, "momentum": 0, "risk": 0, "data_quality": 0, "final_score": 0, "action": "Watch"},
-    {"ticker": "AMT",   "name": "American Tower",         "sector": "Real Estate",
-     "price": 0.0, "quality": 0, "valuation": 0, "growth": 0, "momentum": 0, "risk": 0, "data_quality": 0, "final_score": 0, "action": "Watch"},
-    {"ticker": "DIS",   "name": "Walt Disney",            "sector": "Communication Services",
-     "price": 0.0, "quality": 0, "valuation": 0, "growth": 0, "momentum": 0, "risk": 0, "data_quality": 0, "final_score": 0, "action": "Watch"},
-    {"ticker": "NKE",   "name": "Nike",                   "sector": "Consumer Discretionary",
-     "price": 0.0, "quality": 0, "valuation": 0, "growth": 0, "momentum": 0, "risk": 0, "data_quality": 0, "final_score": 0, "action": "Watch"},
+    # ── Technology ────────────────────────────────────────────────────────────
+    {**_W, "ticker": "AAPL",  "name": "Apple",                  "sector": "Technology"},
+    {**_W, "ticker": "MSFT",  "name": "Microsoft",              "sector": "Technology"},
+    {**_W, "ticker": "NVDA",  "name": "NVIDIA",                 "sector": "Technology"},
+    {**_W, "ticker": "AVGO",  "name": "Broadcom",               "sector": "Technology"},
+    {**_W, "ticker": "AMD",   "name": "Advanced Micro Devices", "sector": "Technology"},
+    {**_W, "ticker": "TSM",   "name": "Taiwan Semiconductor",   "sector": "Technology"},
+    {**_W, "ticker": "ASML",  "name": "ASML Holding",           "sector": "Technology"},
+    {**_W, "ticker": "AMAT",  "name": "Applied Materials",      "sector": "Technology"},
+    {**_W, "ticker": "MU",    "name": "Micron Technology",      "sector": "Technology"},
+    # ── Consumer ─────────────────────────────────────────────────────────────
+    {**_W, "ticker": "AMZN",  "name": "Amazon",                 "sector": "Consumer Discretionary"},
+    {**_W, "ticker": "MCD",   "name": "McDonald's",             "sector": "Consumer Discretionary"},
+    {**_W, "ticker": "NKE",   "name": "Nike",                   "sector": "Consumer Discretionary"},
+    {**_W, "ticker": "LOW",   "name": "Lowe's",                 "sector": "Consumer Discretionary"},
+    {**_W, "ticker": "BABA",  "name": "Alibaba",                "sector": "Consumer Discretionary"},
+    {**_W, "ticker": "COST",  "name": "Costco",                 "sector": "Consumer Staples"},
+    {**_W, "ticker": "PEP",   "name": "PepsiCo",                "sector": "Consumer Staples"},
+    {**_W, "ticker": "WMT",   "name": "Walmart",                "sector": "Consumer Staples"},
+    {**_W, "ticker": "KO",    "name": "Coca-Cola",              "sector": "Consumer Staples"},
+    # ── Financials ───────────────────────────────────────────────────────────
+    {**_W, "ticker": "MA",    "name": "Mastercard",             "sector": "Financials"},
+    {**_W, "ticker": "V",     "name": "Visa",                   "sector": "Financials"},
+    {**_W, "ticker": "JPM",   "name": "JPMorgan Chase",         "sector": "Financials"},
+    {**_W, "ticker": "BRK.B", "name": "Berkshire Hathaway",     "sector": "Financials"},
+    {**_W, "ticker": "BAC",   "name": "Bank of America",        "sector": "Financials"},
+    {**_W, "ticker": "WFC",   "name": "Wells Fargo",            "sector": "Financials"},
+    # ── Healthcare ───────────────────────────────────────────────────────────
+    {**_W, "ticker": "JNJ",   "name": "Johnson & Johnson",      "sector": "Healthcare"},
+    # ── Real Estate ──────────────────────────────────────────────────────────
+    {**_W, "ticker": "O",     "name": "Realty Income",          "sector": "Real Estate"},
+    {**_W, "ticker": "VICI",  "name": "VICI Properties",        "sector": "Real Estate"},
+    {**_W, "ticker": "PLD",   "name": "Prologis",               "sector": "Real Estate"},
+    {**_W, "ticker": "AMT",   "name": "American Tower",         "sector": "Real Estate"},
+    # ── Communication Services ────────────────────────────────────────────────
+    {**_W, "ticker": "DIS",   "name": "Walt Disney",            "sector": "Communication Services"},
+    {**_W, "ticker": "VZ",    "name": "Verizon",                "sector": "Communication Services"},
 ]
 
 # ─── Research Watchlist / Potential Buys ───────────────────────────────────────
