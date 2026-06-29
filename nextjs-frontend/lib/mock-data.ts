@@ -129,8 +129,8 @@ const _w = { price: 0, change: 0, changePercent: 0, fairValue: 0, rating: 'Watch
 
 export const watchlist = [
   // ── Researched ────────────────────────────────────────────────────────────
-  { symbol: 'PG',    name: 'Procter & Gamble',       price: 158.90, change: 0, changePercent: 0, fairValue: 175.00, rating: 'Watch', upside: 10.1, safetyScore: 86, sparkline: [] as number[] },
-  { symbol: 'HD',    name: 'Home Depot',              price: 342.10, change: 0, changePercent: 0, fairValue: 360.00, rating: 'Watch', upside:  5.2, safetyScore: 76, sparkline: [] as number[] },
+  { symbol: 'PG',    name: 'Procter & Gamble',       price: 158.90, change: 0, changePercent: 0, fairValue: 175.00, buyBelow: 140.00, rating: 'Watch', upside: 10.1, safetyScore: 86, sparkline: [] as number[] },
+  { symbol: 'HD',    name: 'Home Depot',              price: 342.10, change: 0, changePercent: 0, fairValue: 360.00, buyBelow: 288.00, rating: 'Watch', upside:  5.2, safetyScore: 76, sparkline: [] as number[] },
   // ── Technology ───────────────────────────────────────────────────────────
   { ..._w, symbol: 'AAPL',  name: 'Apple'                  },
   { ..._w, symbol: 'MSFT',  name: 'Microsoft'              },

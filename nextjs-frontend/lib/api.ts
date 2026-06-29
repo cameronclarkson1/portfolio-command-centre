@@ -662,6 +662,7 @@ export interface WatchlistRefreshItem {
   price:      number | null
   change_pct: number | null
   fair_value: number | null
+  buy_below:  number | null
   upside_pct: number | null
   scores:     ScoreData | null
   error:      string | null

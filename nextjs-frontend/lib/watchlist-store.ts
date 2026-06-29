@@ -15,6 +15,8 @@ export type WatchlistItem = {
   safetyScore:   number    // 0-100, higher = safer (business/financial risk)
   sparkline:     number[]
 
+  buyBelow?:       number | null   // manual target or fair_value_low from valuation
+
   // Optional score fields populated by /api/watchlist/refresh
   finalScore?:     number | null
   qualityScore?:   number | null

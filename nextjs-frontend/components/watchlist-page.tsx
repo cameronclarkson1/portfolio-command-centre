@@ -161,6 +161,7 @@ export function WatchlistPage({ livePrices }: { livePrices?: LivePriceData | nul
         }
         const scores     = refreshed.scores
         const fairValue  = refreshed.fair_value ?? stock.fairValue
+        const buyBelow   = refreshed.buy_below  ?? stock.buyBelow ?? null
         const price      = refreshed.price      ?? stock.price
         const upsidePct  = refreshed.upside_pct
         const upside     = upsidePct != null ? Math.round(upsidePct * 100) : stock.upside
@@ -173,10 +174,10 @@ export function WatchlistPage({ livePrices }: { livePrices?: LivePriceData | nul
             ? +(refreshed.price - refreshed.price / (1 + (refreshed.change_pct ?? 0) / 100)).toFixed(2)
             : stock.change,
           fairValue,
+          buyBelow,
           upside,
-          rating:      scores?.rating       ?? stock.rating,
-          safetyScore: scores?.safety_score ?? stock.safetyScore,
-          finalScore:     scores?.final_score ?? null,
+          rating:         scores?.rating         ?? stock.rating,
+          finalScore:     scores?.final_score     ?? null,
           qualityScore:   scores?.quality_score   ?? null,
           growthScore:    scores?.growth_score    ?? null,
           valuationScore: scores?.valuation_score ?? null,
@@ -492,6 +493,27 @@ export function WatchlistPage({ livePrices }: { livePrices?: LivePriceData | nul
                   </p>
                 </div>
               </div>
+
+              {/* Buy Below row — shown when a target price is available */}
+              {(stock.buyBelow ?? 0) > 0 && (() => {
+                const atTarget = stock.price > 0 && stock.price <= (stock.buyBelow ?? 0)
+                return (
+                  <div className={cn(
+                    'mt-2 flex items-center justify-between rounded-lg px-3 py-1.5',
+                    atTarget ? 'bg-success/10' : 'bg-muted/40'
+                  )}>
+                    <span className="text-[10px] uppercase tracking-wide text-muted-foreground font-medium">Buy Below</span>
+                    <div className="flex items-center gap-1.5">
+                      <span className={cn('text-xs font-semibold', atTarget ? 'text-success' : 'text-foreground')}>
+                        {formatCurrency(stock.buyBelow!)}
+                      </span>
+                      {atTarget && (
+                        <span className="text-[10px] font-semibold text-success">✓ At Target</span>
+                      )}
+                    </div>
+                  </div>
+                )
+              })()}
 
               {/* Score bars (shown only after Refresh Scores) */}
               {hasScores && (
