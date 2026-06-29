@@ -109,9 +109,11 @@ export function WatchlistPage({ livePrices }: { livePrices?: LivePriceData | nul
   const [favorites,    setFavorites]    = useState<string[]>(['AMD', 'COST'])
   const [showAdd,      setShowAdd]      = useState(false)
   const [addInput,     setAddInput]     = useState('')
-  const [isAdding,     setIsAdding]     = useState(false)
-  const [isRefreshing, setIsRefreshing] = useState(false)
-  const [addError,     setAddError]     = useState('')
+  const [isAdding,          setIsAdding]          = useState(false)
+  const [isRefreshing,      setIsRefreshing]      = useState(false)
+  const [refreshingSymbols, setRefreshingSymbols] = useState<Set<string>>(new Set())
+  const [refreshedCount,    setRefreshedCount]    = useState(0)
+  const [addError,          setAddError]          = useState('')
   const inputRef = useRef<HTMLInputElement>(null)
 
   // Persist to localStorage/server whenever the list changes — but only after server has loaded,
@@ -144,52 +146,79 @@ export function WatchlistPage({ livePrices }: { livePrices?: LivePriceData | nul
     })
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
-  // ── Refresh all scores ────────────────────────────────────────────────────────
+  // ── Refresh all scores (progressive — each card updates as it finishes) ──────
 
   async function refreshAllScores() {
     if (isRefreshing || items.length === 0) return
     setIsRefreshing(true)
-    try {
-      const result = await fetchWatchlistRefresh(items.map((s) => s.symbol))
-      if (!result) return
+    setRefreshedCount(0)
 
-      const now = new Date().toISOString()
-      setItems((prev) => prev.map((stock) => {
-        const refreshed = result.find((r) => r.ticker === stock.symbol)
-        if (!refreshed || refreshed.error) {
-          return { ...stock, dataError: refreshed?.error ?? 'timeout', lastUpdated: now }
-        }
-        const scores     = refreshed.scores
-        const fairValue  = refreshed.fair_value ?? stock.fairValue
-        const buyBelow   = refreshed.buy_below  ?? stock.buyBelow ?? null
-        const price      = refreshed.price      ?? stock.price
-        const upsidePct  = refreshed.upside_pct
-        const upside     = upsidePct != null ? Math.round(upsidePct * 100) : stock.upside
+    const symbols = items.map((s) => s.symbol)
+    setRefreshingSymbols(new Set(symbols))
 
-        return {
-          ...stock,
-          price,
-          changePercent:  refreshed.change_pct ?? stock.changePercent,
-          change:         refreshed.price != null
-            ? +(refreshed.price - refreshed.price / (1 + (refreshed.change_pct ?? 0) / 100)).toFixed(2)
-            : stock.change,
-          fairValue,
-          buyBelow,
-          upside,
-          rating:         scores?.rating         ?? stock.rating,
-          finalScore:     scores?.final_score     ?? null,
-          qualityScore:   scores?.quality_score   ?? null,
-          growthScore:    scores?.growth_score    ?? null,
-          valuationScore: scores?.valuation_score ?? null,
-          safetyScore:    scores?.safety_score    ?? null,
-          confidence:     scores?.confidence      ?? null,
-          dataError:      null,
-          lastUpdated:    now,
-        }
-      }))
-    } finally {
-      setIsRefreshing(false)
+    const now   = new Date().toISOString()
+    const queue = [...symbols]
+
+    async function processOne(symbol: string) {
+      try {
+        const result    = await fetchWatchlistRefresh([symbol])
+        const refreshed = result?.[0]
+
+        setItems((prev) => prev.map((stock) => {
+          if (stock.symbol !== symbol) return stock
+          if (!refreshed || refreshed.error) {
+            return { ...stock, dataError: refreshed?.error ?? 'timeout', lastUpdated: now }
+          }
+          const scores    = refreshed.scores
+          const fairValue = refreshed.fair_value ?? stock.fairValue
+          const buyBelow  = refreshed.buy_below  ?? stock.buyBelow ?? null
+          const price     = refreshed.price      ?? stock.price
+          const upsidePct = refreshed.upside_pct
+          const upside    = upsidePct != null ? Math.round(upsidePct * 100) : stock.upside
+          return {
+            ...stock,
+            price,
+            changePercent:  refreshed.change_pct ?? stock.changePercent,
+            change:         refreshed.price != null
+              ? +(refreshed.price - refreshed.price / (1 + (refreshed.change_pct ?? 0) / 100)).toFixed(2)
+              : stock.change,
+            fairValue,
+            buyBelow,
+            upside,
+            rating:         scores?.rating         ?? stock.rating,
+            finalScore:     scores?.final_score     ?? null,
+            qualityScore:   scores?.quality_score   ?? null,
+            growthScore:    scores?.growth_score    ?? null,
+            valuationScore: scores?.valuation_score ?? null,
+            safetyScore:    scores?.safety_score    ?? null,
+            confidence:     scores?.confidence      ?? null,
+            dataError:      null,
+            lastUpdated:    now,
+          }
+        }))
+      } catch {
+        setItems((prev) => prev.map((s) =>
+          s.symbol === symbol ? { ...s, dataError: 'timeout', lastUpdated: now } : s
+        ))
+      } finally {
+        setRefreshingSymbols((prev) => { const n = new Set(prev); n.delete(symbol); return n })
+        setRefreshedCount((c) => c + 1)
+      }
     }
+
+    // Run up to 8 stocks in parallel — each worker picks the next from the queue
+    async function worker() {
+      while (queue.length > 0) {
+        const symbol = queue.shift()
+        if (symbol) await processOne(symbol)
+      }
+    }
+    await Promise.allSettled(
+      Array.from({ length: Math.min(8, symbols.length) }, worker)
+    )
+
+    setIsRefreshing(false)
+    setRefreshingSymbols(new Set())
   }
 
   // ── Add security ──────────────────────────────────────────────────────────────
@@ -300,7 +329,10 @@ export function WatchlistPage({ livePrices }: { livePrices?: LivePriceData | nul
             className="flex items-center gap-2 rounded-lg border border-border bg-card px-4 py-2.5 text-sm font-medium text-foreground hover:bg-accent disabled:opacity-40 transition-colors"
           >
             <RefreshCw className={cn('h-4 w-4', isRefreshing && 'animate-spin')} />
-            {isRefreshing ? 'Refreshing…' : 'Refresh Scores'}
+            {isRefreshing
+              ? `${refreshedCount} / ${items.length} done…`
+              : 'Refresh Scores'
+            }
           </button>
 
           {/* Add security control */}
@@ -403,17 +435,24 @@ export function WatchlistPage({ livePrices }: { livePrices?: LivePriceData | nul
       {/* Watchlist Grid */}
       <div className="grid gap-4 lg:grid-cols-2 xl:grid-cols-3">
         {filtered.map((stock) => {
-          const hasScores = stock.finalScore != null
+          const hasScores   = stock.finalScore != null
+          const isLoading   = refreshingSymbols.has(stock.symbol)
           return (
             <div
               key={stock.symbol}
-              className="rounded-xl border border-border bg-card p-4 shadow-sm hover:shadow-md transition-all group"
+              className={cn(
+                'rounded-xl border border-border bg-card p-4 shadow-sm hover:shadow-md transition-all group',
+                isLoading && 'opacity-60'
+              )}
             >
               {/* Card header */}
               <div className="flex items-start justify-between">
                 <div className="flex items-center gap-3">
                   <div className="flex h-11 w-11 items-center justify-center rounded-lg bg-accent text-sm font-semibold text-foreground">
-                    {stock.symbol.slice(0, 2)}
+                    {isLoading
+                      ? <Loader2 className="h-4 w-4 animate-spin text-primary" />
+                      : stock.symbol.slice(0, 2)
+                    }
                   </div>
                   <div>
                     <p className="text-sm font-semibold text-foreground">{stock.symbol}</p>
