@@ -12,6 +12,7 @@ from fastapi import APIRouter
 from pydantic import BaseModel
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from utils.sample_data import WATCHLIST as DEFAULT_WATCHLIST
+import providers.yfinance_provider as yf_provider
 
 _WATCHLIST_FILE = os.path.join(os.path.dirname(__file__), "..", "..", "data", "watchlist.json")
 
@@ -227,3 +228,37 @@ def get_watchlist_items():
 def save_watchlist_items(body: WatchlistSaveRequest):
     _write_watchlist(body.items)
     return {"ok": True, "count": len(body.items)}
+
+
+class SparklineRequest(BaseModel):
+    tickers: list[str]
+
+
+@router.post("/sparklines")
+def get_sparklines(body: SparklineRequest):
+    """
+    Return 7 daily closing prices for each ticker (last 7 trading days).
+    Uses yfinance — free, no rate limits. Results are returned as a map
+    of { symbol: [close, close, ...] } for the Sparkline component.
+    """
+    tickers = [t.strip().upper() for t in body.tickers if t.strip()][:40]
+
+    def _fetch_one(ticker: str) -> tuple[str, list[float]]:
+        try:
+            candles = yf_provider.get_candles(ticker, period="10d", interval="1d")
+            closes  = [c["close"] for c in candles if c.get("close")][-7:]
+            return ticker, closes
+        except Exception:
+            return ticker, []
+
+    results: dict[str, list[float]] = {}
+    with ThreadPoolExecutor(max_workers=10) as pool:
+        future_map = {pool.submit(_fetch_one, t): t for t in tickers}
+        for future in as_completed(future_map, timeout=30):
+            try:
+                symbol, closes = future.result()
+                results[symbol] = closes
+            except Exception:
+                results[future_map[future]] = []
+
+    return {"sparklines": results}

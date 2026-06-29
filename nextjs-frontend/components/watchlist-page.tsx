@@ -19,7 +19,7 @@ import {
   formatCurrency,
 } from '@/components/ui-components'
 import { watchlist as mockWatchlist } from '@/lib/mock-data'
-import { fetchWatchlistPrices, fetchValuation, fetchWatchlistRefresh, type LivePriceData } from '@/lib/api'
+import { fetchWatchlistPrices, fetchValuation, fetchWatchlistRefresh, fetchSparklines, type LivePriceData } from '@/lib/api'
 import {
   type WatchlistItem,
   getStoredWatchlist,
@@ -128,6 +128,19 @@ export function WatchlistPage({ livePrices }: { livePrices?: LivePriceData | nul
     fetchWatchlistPrices(symbols).then((prices) => {
       if (!prices) return
       setItems((prev) => prev.map((s) => mergeWithLive(s, prices[s.symbol])))
+    })
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
+
+  // On mount: load 7-day sparklines for all items
+  useEffect(() => {
+    const symbols = items.map((s) => s.symbol)
+    if (!symbols.length) return
+    fetchSparklines(symbols).then((sparklines) => {
+      if (!sparklines) return
+      setItems((prev) => prev.map((s) => {
+        const data = sparklines[s.symbol]
+        return data && data.length >= 2 ? { ...s, sparkline: data } : s
+      }))
     })
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
 

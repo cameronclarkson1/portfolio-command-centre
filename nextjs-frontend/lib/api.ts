@@ -678,6 +678,17 @@ export async function fetchWatchlistRefresh(tickers: string[]): Promise<Watchlis
   return raw.items
 }
 
+/** Fetch 7-day daily close prices for sparkline charts. Returns { AAPL: [182, 183, ...], ... } */
+export async function fetchSparklines(tickers: string[]): Promise<Record<string, number[]> | null> {
+  if (tickers.length === 0) return null
+  const raw = await apiFetch('/api/watchlist/sparklines', 35_000, {
+    method:  'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body:    JSON.stringify({ tickers }),
+  }) as { sparklines: Record<string, number[]> } | null
+  return raw?.sparklines ?? null
+}
+
 async function fetchAlternatives(): Promise<{ commodities: CommodityData[]; crypto: CryptoData[] } | null> {
   const raw = await apiFetch('/api/market/alternatives') as { commodities: CommodityData[]; crypto: CryptoData[] } | null
   if (!raw || !Array.isArray(raw.commodities)) return null
