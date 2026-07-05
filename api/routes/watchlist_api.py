@@ -30,6 +30,7 @@ def _default_watchlist() -> list:
         items.append({
             "symbol":         w["ticker"],
             "name":           w.get("name", w["ticker"]),
+            "sector":         w.get("sector", ""),
             "price":          w.get("price", 0.0),
             "change":         0.0,
             "changePercent":  0.0,

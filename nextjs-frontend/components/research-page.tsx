@@ -106,20 +106,27 @@ export function ResearchPage() {
     const val    = research?.valuation
     const scores = research?.scores
     const fv     = val?.fair_value_base ?? 0
-    const upside = fv > 0 ? +((fv - price) / price * 100).toFixed(2) : 0
+    const upside = fv > 0 && price > 0 ? Math.round((fv - price) / price * 100) : 0
     const rating = scores?.rating ?? (val ? ratingFromValuation(val.valuation_rating) : 'Hold / Watchlist')
 
     const added = addToWatchlist({
-      symbol:        searchedTicker,
-      name:          val?.sector ? `${searchedTicker} · ${val.sector}` : searchedTicker,
+      symbol:         searchedTicker,
+      name:           research?.company_name ?? searchedTicker,
+      sector:         val?.sector ?? null,
       price,
-      change:        +(price - price / (1 + pct / 100)).toFixed(2),
-      changePercent: pct,
-      fairValue:     fv,
+      change:         +(price - price / (1 + pct / 100)).toFixed(2),
+      changePercent:  pct,
+      fairValue:      fv,
+      buyBelow:       val?.fair_value_low ?? null,
       rating,
       upside,
-      safetyScore:   scores?.safety_score ?? Math.round(val?.overall_confidence ?? 50),
-      sparkline:     Array(7).fill(price),
+      safetyScore:    scores?.safety_score ?? Math.round(val?.overall_confidence ?? 50),
+      sparkline:      Array(7).fill(price),
+      finalScore:     scores?.final_score     ?? null,
+      qualityScore:   scores?.quality_score   ?? null,
+      growthScore:    scores?.growth_score    ?? null,
+      valuationScore: scores?.valuation_score ?? null,
+      confidence:     scores?.confidence      ?? null,
     })
 
     setAddedMsg(added ? `${searchedTicker} added to watchlist` : `${searchedTicker} already on watchlist`)
@@ -213,6 +220,9 @@ export function ResearchPage() {
                       <RatingBadge rating={ratingFromValuation(research.valuation.valuation_rating)} />
                     )}
                   </div>
+                  {research?.company_name && (
+                    <p className="text-sm font-medium text-foreground/70">{research.company_name}</p>
+                  )}
                   <p className="text-sm text-muted-foreground">
                     {research?.valuation
                       ? `${research.valuation.sector} · ${research.valuation.valuation_rating}`
@@ -269,6 +279,18 @@ export function ResearchPage() {
                   {addedMsg && <p className="text-xs text-muted-foreground">{addedMsg}</p>}
                 </div>
               </div>
+            </div>
+
+            {/* Mobile Add to Watchlist — shown below price on small screens */}
+            <div className="flex items-center gap-2 mt-3 lg:hidden">
+              <button
+                onClick={addCurrentToWatchlist}
+                disabled={!price}
+                className="flex-1 flex items-center justify-center gap-2 rounded-lg bg-primary px-4 py-2.5 text-sm font-medium text-primary-foreground hover:bg-primary/90 disabled:opacity-40 transition-colors"
+              >
+                Add to Watchlist
+              </button>
+              {addedMsg && <p className="text-xs text-muted-foreground">{addedMsg}</p>}
             </div>
 
             {/* Tab navigation */}

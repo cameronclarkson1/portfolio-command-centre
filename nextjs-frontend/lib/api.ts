@@ -482,17 +482,19 @@ export interface RiskCategory {
 }
 
 export interface PerformancePoint {
-  date:  string   // "YYYY-MM-DD"
-  value: number
+  date:       string   // "YYYY-MM-DD"
+  value:      number
+  benchmark?: number | null   // SPY normalised to portfolio start value
 }
 
 export interface PortfolioPerformanceData {
-  series:         PerformancePoint[]
-  period:         string
-  start_value:    number
-  end_value:      number
-  change_pct:     number
-  change_dollars: number
+  series:                PerformancePoint[]
+  period:                string
+  start_value:           number
+  end_value:             number
+  change_pct:            number
+  change_dollars:        number
+  benchmark_change_pct?: number | null   // SPY % change over same period
 }
 
 export async function fetchPortfolioPerformance(period: string): Promise<PortfolioPerformanceData | null> {
@@ -529,6 +531,40 @@ export async function fetchPortfolioRisk(): Promise<PortfolioRiskData | null> {
   return raw
 }
 
+// ── Portfolio Decisions ───────────────────────────────────────────────────────
+
+export interface DecisionSignal {
+  ticker:  string
+  action:  'ADD' | 'HOLD' | 'MONITOR' | 'TRIM'
+  reason:  string
+  urgency: 'high' | 'medium' | 'low'
+}
+
+export async function fetchDecisions(): Promise<{ decisions: DecisionSignal[]; prices_live: boolean } | null> {
+  const raw = await apiFetch('/api/portfolio/decisions') as { decisions: DecisionSignal[]; prices_live: boolean } | null
+  if (!raw || !Array.isArray(raw.decisions)) return null
+  return raw
+}
+
+// ── Dividend Calendar ─────────────────────────────────────────────────────────
+
+export interface DividendEntry {
+  ticker:        string
+  name:          string
+  ex_div_date:   string | null   // "YYYY-MM-DD"
+  pay_date:      string | null
+  annual_div:    number
+  quarterly_div: number
+  yield_pct:     number | null
+  in_portfolio:  boolean
+}
+
+export async function fetchDividends(): Promise<{ upcoming: DividendEntry[]; recent: DividendEntry[] } | null> {
+  const raw = await apiFetch('/api/portfolio/dividends', 55_000) as { upcoming: DividendEntry[]; recent: DividendEntry[] } | null
+  if (!raw || !Array.isArray(raw.upcoming)) return null
+  return raw
+}
+
 // ── Research ──────────────────────────────────────────────────────────────────
 //
 // Calls /api/research/{ticker} which runs valuation + ratios + statements +
@@ -560,9 +596,10 @@ export interface InvestmentThesis {
 }
 
 export interface ResearchData {
-  ticker:     string
-  price:      number | null
-  change_pct: number
+  ticker:       string
+  company_name: string | null
+  price:        number | null
+  change_pct:   number
 
   // Valuation engine (9-model sector-aware)
   valuation: ValuationResult | null
@@ -677,6 +714,61 @@ export async function fetchWatchlistRefresh(tickers: string[]): Promise<Watchlis
   }) as { items: WatchlistRefreshItem[] } | null
   if (!raw || !Array.isArray(raw.items)) return null
   return raw.items
+}
+
+// ── Scanner (Daily Opportunities) ────────────────────────────────────────────
+
+export interface ScannerOpportunity {
+  ticker:       string
+  name:         string
+  sector:       string
+  price:        number | null
+  change_pct:   number | null
+  market_cap:   number | null
+  pe_ratio:     number | null
+  ev_ebitda:    number | null
+  roic:         number | null      // percent, e.g. 18.5 means 18.5%
+  net_margin:   number | null      // percent
+  rev_growth:   number | null      // percent
+  fcf_positive: boolean
+  year_high:    number | null
+  year_low:     number | null
+  score:        number             // 0–100 composite score
+}
+
+export interface ScannerResults {
+  scanned_at:       string | null
+  duration_seconds: number | null
+  universe_size:    number | null
+  stocks_quoted:    number | null
+  opportunities:    ScannerOpportunity[]
+  message?:         string
+}
+
+export interface ScannerStatus {
+  running:             boolean
+  last_run:            string | null
+  last_run_duration_s: number | null
+  stocks_scanned:      number
+  error:               string | null
+  results_available:   boolean
+}
+
+export async function fetchScannerResults(): Promise<ScannerResults | null> {
+  const raw = await apiFetch('/api/scanner/results', 15_000) as ScannerResults | null
+  if (!raw || typeof raw !== 'object') return null
+  return raw
+}
+
+export async function fetchScannerStatus(): Promise<ScannerStatus | null> {
+  const raw = await apiFetch('/api/scanner/status', 5_000) as ScannerStatus | null
+  if (!raw || typeof raw !== 'object') return null
+  return raw
+}
+
+export async function triggerScan(): Promise<{ message: string; running: boolean } | null> {
+  const raw = await apiFetch('/api/scanner/trigger', 10_000) as { message: string; running: boolean } | null
+  return raw
 }
 
 /** Fetch 7-day daily close prices for sparkline charts. Returns { AAPL: [182, 183, ...], ... } */

@@ -6,7 +6,7 @@ import {
 } from 'recharts'
 import {
   Wallet, TrendingUp, TrendingDown, DollarSign, Activity, ShieldCheck,
-  BarChart2, ChevronRight, Newspaper,
+  BarChart2, ChevronRight, Newspaper, Zap,
 } from 'lucide-react'
 import {
   MetricCard, SectionHeader, ProgressRing, AlertCard,
@@ -19,7 +19,7 @@ import {
   marketIndices as mockIndices, newsEvents as mockNews, upcomingEvents, topMovers, allocationDrift,
 } from '@/lib/mock-data'
 import type { LiveDashboardData, DashboardDecision, DashboardOpportunity, DashboardHolding, DashboardSectorEntry } from '@/lib/api'
-import { fetchPortfolioPerformance } from '@/lib/api'
+import { fetchPortfolioPerformance, triggerScan, fetchScannerStatus } from '@/lib/api'
 import { cn } from '@/lib/utils'
 import Link from 'next/link'
 
@@ -29,13 +29,21 @@ interface DashboardPageProps {
 
 export function DashboardPage({ liveData }: DashboardPageProps) {
   const [livePerf, setLivePerf] = useState<{ date: string; value: number }[] | null>(null)
+  const [scanning, setScanning] = useState(false)
 
   useEffect(() => {
     fetchPortfolioPerformance('1y').then((d) => {
       if (d && d.series.length > 0)
         setLivePerf(d.series.map((s: { date: string; value: number }) => ({ date: s.date, portfolio: s.value })))
     })
+    // Check if a scan is already running
+    fetchScannerStatus().then((s) => { if (s?.running) setScanning(true) })
   }, [])
+
+  const handleRunScan = async () => {
+    setScanning(true)
+    await triggerScan()
+  }
 
   // Use live data from FastAPI where available, fall back to mock data
   const marketRegime  = liveData?.marketRegime  ?? mockRegime
@@ -281,9 +289,24 @@ export function DashboardPage({ liveData }: DashboardPageProps) {
           <SectionHeader
             title="Best Opportunities"
             action={
-              <Link href="/watchlist" className="text-xs text-primary hover:underline flex items-center gap-0.5">
-                View all <ChevronRight className="h-3 w-3" />
-              </Link>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={handleRunScan}
+                  disabled={scanning}
+                  className={cn(
+                    'flex items-center gap-1 rounded-md px-2 py-1 text-[11px] font-medium transition-colors',
+                    scanning
+                      ? 'text-muted-foreground cursor-not-allowed'
+                      : 'bg-amber-500/15 text-amber-400 hover:bg-amber-500/25'
+                  )}
+                >
+                  <Zap className={cn('h-3 w-3', scanning && 'animate-pulse')} />
+                  {scanning ? 'Scanning…' : 'Run Scan'}
+                </button>
+                <Link href="/opportunities" className="text-xs text-primary hover:underline flex items-center gap-0.5">
+                  View all <ChevronRight className="h-3 w-3" />
+                </Link>
+              </div>
             }
           />
           <div className="mt-3 divide-y divide-border">

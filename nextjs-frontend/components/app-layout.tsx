@@ -20,6 +20,7 @@ import {
   Briefcase,
   Shield,
   Settings,
+  Zap,
 } from 'lucide-react'
 
 // ── Navigation definition ────────────────────────────────────────────────────
@@ -32,9 +33,10 @@ const NAV_GROUPS = [
   {
     label: 'Research',
     items: [
-      { href: '/watchlist',    label: 'Watchlist',      icon: Star },
-      { href: '/research',     label: 'Stock Research',  icon: FlaskConical },
-      { href: '/intelligence', label: 'Intelligence',    icon: Brain },
+      { href: '/watchlist',      label: 'Watchlist',      icon: Star },
+      { href: '/research',       label: 'Stock Research',  icon: FlaskConical },
+      { href: '/intelligence',   label: 'Intelligence',    icon: Brain },
+      { href: '/opportunities',  label: 'Opportunities',   icon: Zap },
     ],
   },
   {

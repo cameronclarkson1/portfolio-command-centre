@@ -442,12 +442,13 @@ def get_performance(period: str = Query("3m", regex="^(1m|3m|6m|1y)$")):
     ]
     cash_balance = PORTFOLIO_SUMMARY.get("cash", 0.0)
 
-    # Fetch candles for all holdings in parallel
+    # Fetch candles for all holdings + SPY benchmark in parallel
+    all_fetch = {h["ticker"] for h in holdings_meta} | {"SPY"}
     candle_map: dict[str, list[dict]] = {}
-    with ThreadPoolExecutor(max_workers=8) as pool:
+    with ThreadPoolExecutor(max_workers=9) as pool:
         futures = {
-            pool.submit(market_data_service.get_candles, h["ticker"], period): h["ticker"]
-            for h in holdings_meta
+            pool.submit(market_data_service.get_candles, ticker, period): ticker
+            for ticker in all_fetch
         }
         for future in as_completed(futures, timeout=30):
             ticker = futures[future]
@@ -455,6 +456,12 @@ def get_performance(period: str = Query("3m", regex="^(1m|3m|6m|1y)$")):
                 candle_map[ticker] = future.result() or []
             except Exception:
                 candle_map[ticker] = []
+
+    # Separate SPY before building portfolio price lookup
+    spy_candles = candle_map.pop("SPY", [])
+    spy_by_date: dict[str, float] = {
+        c["date"]: c["close"] for c in spy_candles if c.get("date") and c.get("close")
+    }
 
     # Build per-ticker price lookup: {ticker: {date: close}}
     ticker_prices: dict[str, dict[str, float]] = {}
@@ -466,7 +473,8 @@ def get_performance(period: str = Query("3m", regex="^(1m|3m|6m|1y)$")):
 
     sorted_dates = sorted(all_dates)
     if not sorted_dates:
-        return {"series": [], "period": period, "change_pct": 0.0, "change_dollars": 0.0}
+        return {"series": [], "period": period, "change_pct": 0.0, "change_dollars": 0.0,
+                "benchmark_change_pct": None}
 
     # Pre-populate with each ticker's earliest price so all holdings contribute from day one
     last_known: dict[str, float] = {}
@@ -476,6 +484,12 @@ def get_performance(period: str = Query("3m", regex="^(1m|3m|6m|1y)$")):
         if dates:
             last_known[t] = ticker_prices[t][dates[0]]
 
+    # SPY: carry-forward like portfolio holdings
+    last_spy: float | None = None
+    if spy_by_date:
+        first_spy_date = min(spy_by_date.keys())
+        last_spy = spy_by_date.get(first_spy_date)
+
     series: list[dict] = []
 
     for date in sorted_dates:
@@ -483,6 +497,8 @@ def get_performance(period: str = Query("3m", regex="^(1m|3m|6m|1y)$")):
             t = h["ticker"]
             if date in ticker_prices.get(t, {}):
                 last_known[t] = ticker_prices[t][date]
+        if date in spy_by_date:
+            last_spy = spy_by_date[date]
 
         day_value = cash_balance
         for h in holdings_meta:
@@ -490,20 +506,41 @@ def get_performance(period: str = Query("3m", regex="^(1m|3m|6m|1y)$")):
             if price:
                 day_value += price * h["shares"]
 
-        series.append({"date": date, "value": round(day_value, 2)})
+        series.append({
+            "date":      date,
+            "value":     round(day_value, 2),
+            "spy_close": round(last_spy, 4) if last_spy else None,
+        })
 
     start  = series[0]["value"]
     end    = series[-1]["value"]
     change_dollars = round(end - start, 2)
     change_pct     = round((end - start) / start * 100, 2) if start else 0.0
 
+    # Normalise SPY to portfolio starting value for direct overlay comparison
+    spy_start_close = series[0].get("spy_close")
+    spy_end_close   = series[-1].get("spy_close")
+    if spy_start_close and spy_end_close and spy_start_close > 0:
+        scale = start / spy_start_close
+        for pt in series:
+            if pt["spy_close"] is not None:
+                pt["benchmark"] = round(pt["spy_close"] * scale, 2)
+            else:
+                pt["benchmark"] = None
+        benchmark_change_pct = round((spy_end_close - spy_start_close) / spy_start_close * 100, 2)
+    else:
+        for pt in series:
+            pt["benchmark"] = None
+        benchmark_change_pct = None
+
     return {
-        "series":         series,
-        "period":         period,
-        "start_value":    round(start, 2),
-        "end_value":      round(end, 2),
-        "change_pct":     change_pct,
-        "change_dollars": change_dollars,
+        "series":                series,
+        "period":                period,
+        "start_value":           round(start, 2),
+        "end_value":             round(end, 2),
+        "change_pct":            change_pct,
+        "change_dollars":        change_dollars,
+        "benchmark_change_pct":  benchmark_change_pct,
     }
 
 
@@ -640,3 +677,83 @@ def get_opportunities():
 
     opps.sort(key=lambda o: -o["upside"])
     return {"opportunities": opps[:5]}
+
+
+@router.get("/dividends")
+def get_dividends():
+    """
+    Return upcoming ex-dividend and payment dates for portfolio holdings.
+    Uses yfinance .info (has exDividendDate / dividendDate Unix timestamps).
+    Runs all tickers in parallel; skips non-dividend-paying stocks.
+    """
+    import yfinance as yf
+    from datetime import datetime, timezone, date
+
+    base_holdings  = _get_base_holdings()
+    holding_map    = {h["ticker"]: h.get("name", h["ticker"]) for h in base_holdings}
+
+    # Also include dividend-paying watchlist stocks not already in the portfolio
+    from utils.sample_data import WATCHLIST
+    extra_tickers = [
+        w["ticker"] for w in WATCHLIST
+        if w["ticker"] not in holding_map
+        and w.get("sector") in ("Consumer Staples", "Real Estate", "Financials", "Healthcare", "Utilities")
+    ]
+    all_tickers = list(holding_map.keys()) + extra_tickers[:15]
+
+    def _fetch_one(ticker: str) -> dict | None:
+        try:
+            info = yf.Ticker(ticker).info
+            div_rate  = info.get("dividendRate") or info.get("trailingAnnualDividendRate") or 0
+            div_yield = info.get("dividendYield") or info.get("trailingAnnualDividendYield") or 0
+            if not div_rate:
+                return None
+
+            def _ts(val) -> str | None:
+                if not val:
+                    return None
+                try:
+                    return datetime.fromtimestamp(int(val), tz=timezone.utc).strftime("%Y-%m-%d")
+                except Exception:
+                    return None
+
+            ex_div  = _ts(info.get("exDividendDate"))
+            pay_day = _ts(info.get("dividendDate"))
+            name    = info.get("longName") or info.get("shortName") or holding_map.get(ticker, ticker)
+
+            return {
+                "ticker":        ticker,
+                "name":          name,
+                "ex_div_date":   ex_div,
+                "pay_date":      pay_day,
+                "annual_div":    round(div_rate, 4),
+                "quarterly_div": round(div_rate / 4, 4),
+                "yield_pct":     round(div_yield * 100, 2) if div_yield else None,
+                "in_portfolio":  ticker in holding_map,
+            }
+        except Exception:
+            return None
+
+    results = []
+    with ThreadPoolExecutor(max_workers=10) as pool:
+        future_map = {pool.submit(_fetch_one, t): t for t in all_tickers}
+        for future in as_completed(future_map, timeout=45):
+            try:
+                r = future.result()
+                if r:
+                    results.append(r)
+            except Exception:
+                pass
+
+    today = date.today().isoformat()
+    upcoming = sorted(
+        [r for r in results if r.get("ex_div_date") and r["ex_div_date"] >= today],
+        key=lambda r: r["ex_div_date"],
+    )
+    recent = sorted(
+        [r for r in results if not r.get("ex_div_date") or r["ex_div_date"] < today],
+        key=lambda r: r.get("ex_div_date") or "0000",
+        reverse=True,
+    )
+
+    return {"upcoming": upcoming[:15], "recent": recent[:10]}

@@ -62,6 +62,16 @@ def _extract_income_series(statements: dict | None) -> list[dict]:
     return unique[-5:]
 
 
+def _get_company_name(ticker: str) -> str | None:
+    """Fast yfinance lookup for company display name."""
+    try:
+        import yfinance as yf
+        fi = yf.Ticker(ticker).fast_info
+        return getattr(fi, 'short_name', None) or getattr(fi, 'long_name', None)
+    except Exception:
+        return None
+
+
 def _extract_margins(statements: dict | None) -> dict | None:
     """Extract latest gross / operating / net margin from income statement."""
     if not statements or not statements.get("income"):
@@ -114,9 +124,10 @@ def get_research(ticker: str, price: float = Query(None)):
         "analyst_consensus":  lambda: fmp.get_analyst_grades(ticker, limit=1),
         "recent_news":        lambda: news_service.get_stock_news(ticker, days_back=30),
         "earnings":           lambda: news_service.get_earnings_events(ticker),
+        "company_name":       lambda: _get_company_name(ticker),
     }
 
-    with ThreadPoolExecutor(max_workers=6) as executor:
+    with ThreadPoolExecutor(max_workers=7) as executor:
         future_map = {executor.submit(fn): key for key, fn in tasks.items()}
         for future in as_completed(future_map, timeout=45):
             key = future_map[future]
@@ -161,10 +172,13 @@ def get_research(ticker: str, price: float = Query(None)):
         margins   = margins,
     )
 
+    company_name = results.get("company_name") or None
+
     return {
-        "ticker":     ticker,
-        "price":      price,
-        "change_pct": change_pct,
+        "ticker":       ticker,
+        "company_name": company_name,
+        "price":        price,
+        "change_pct":   change_pct,
 
         # Valuation engine result (fair value low/base/high, models, confidence)
         "valuation": valuation_result,

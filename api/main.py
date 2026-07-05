@@ -10,6 +10,7 @@ Start with:
 
 import sys
 import os
+from contextlib import asynccontextmanager
 
 # ── Add repo/ to Python path so we can import services, providers, config ──────
 REPO_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'repo'))
@@ -32,8 +33,43 @@ from routes.settings     import router as settings_router
 from routes.health       import router as health_router
 from routes.watchlist_api    import router as watchlist_router
 from routes.sharesight_auth  import router as sharesight_auth_router
+from routes.scanner          import router as scanner_router
 
-app = FastAPI(title="AI HedgeFund API", version="1.0.0")
+# ── APScheduler — daily market-close scan ────────────────────────────────────
+
+def _start_scheduler(app: FastAPI) -> None:
+    try:
+        import pytz
+        from apscheduler.schedulers.background import BackgroundScheduler
+        from apscheduler.triggers.cron import CronTrigger
+        from routes.scanner import run_daily_scan
+
+        et = pytz.timezone("America/New_York")
+        scheduler = BackgroundScheduler(timezone=pytz.utc)
+        scheduler.add_job(
+            run_daily_scan,
+            trigger=CronTrigger(day_of_week="mon-fri", hour=16, minute=15, timezone=et),
+            id="daily_scan",
+            replace_existing=True,
+            misfire_grace_time=300,  # allow up to 5 min late start
+        )
+        scheduler.start()
+        app.state.scheduler = scheduler
+        print("[scheduler] Daily scan scheduled: Mon-Fri at 4:15 PM ET")
+    except Exception as e:
+        print(f"[scheduler] Failed to start: {e}")
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    _start_scheduler(app)
+    yield
+    scheduler = getattr(app.state, "scheduler", None)
+    if scheduler:
+        scheduler.shutdown(wait=False)
+
+
+app = FastAPI(title="AI HedgeFund API", version="1.0.0", lifespan=lifespan)
 
 app.add_middleware(
     CORSMiddleware,
@@ -52,6 +88,7 @@ app.include_router(settings_router,   prefix="/api/settings",   tags=["settings"
 app.include_router(health_router,     prefix="/api/health",     tags=["health"])
 app.include_router(watchlist_router,      prefix="/api/watchlist",        tags=["watchlist"])
 app.include_router(sharesight_auth_router, prefix="/auth/sharesight",     tags=["auth"])
+app.include_router(scanner_router,         prefix="/api/scanner",          tags=["scanner"])
 
 
 @app.get("/api/health")

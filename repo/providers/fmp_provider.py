@@ -280,6 +280,50 @@ def get_analyst_grades(ticker: str, limit: int = 3) -> list[dict]:
     return results
 
 
+# ── Constituent + batch quote endpoints (stable API) ─────────────────────────
+
+def get_sp500_constituents() -> list[dict]:
+    """S&P 500 constituent list. Each item has symbol, name, sector."""
+    return _get("/sp500-constituents") or []
+
+
+def get_dow_constituents() -> list[dict]:
+    """Dow Jones Industrial Average constituent list."""
+    return _get("/dowjones-constituents") or []
+
+
+def get_nasdaq_constituents() -> list[dict]:
+    """NASDAQ-100 constituent list."""
+    return _get("/nasdaq-constituents") or []
+
+
+def get_batch_quotes(tickers: list[str]) -> list[dict]:
+    """
+    Batch quote for up to 50 tickers in one API call using stable /quote endpoint.
+    Returns same fields as get_quote() for each ticker.
+    """
+    if not tickers:
+        return []
+    symbols = ",".join(t.upper() for t in tickers[:50])
+    data = _get("/quote", params={"symbol": symbols})
+    results = []
+    for q in (data or []):
+        change_pct = (q.get("changePercentage") or 0.0) / 100
+        results.append({
+            "ticker":    (q.get("symbol") or "").upper(),
+            "name":      q.get("name"),
+            "price":     q.get("price"),
+            "change_pct": change_pct,
+            "market_cap": q.get("marketCap"),
+            "volume":    q.get("volume"),
+            "pe_ratio":  q.get("pe"),
+            "eps":       q.get("eps"),
+            "year_high": q.get("yearHigh"),
+            "year_low":  q.get("yearLow"),
+        })
+    return results
+
+
 def get_company_profile(ticker: str) -> dict:
     """
     Get company profile: name, sector, industry, description, market cap.

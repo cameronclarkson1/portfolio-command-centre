@@ -2,7 +2,7 @@
 
 import {
   PieChart, Pie, Cell, ResponsiveContainer,
-  AreaChart, Area, XAxis, YAxis, Tooltip,
+  AreaChart, Area, Line, XAxis, YAxis, Tooltip, Legend,
 } from 'recharts'
 import {
   TrendingUp,
@@ -13,6 +13,7 @@ import {
   RefreshCw,
   DollarSign,
   BarChart3,
+  CalendarDays,
 } from 'lucide-react'
 import {
   MetricCard,
@@ -24,7 +25,7 @@ import {
   portfolioData as mockSummary,
   holdings      as mockHoldings,
 } from '@/lib/mock-data'
-import { type PortfolioApiData, type PortfolioPerformanceData, fetchPortfolio, fetchPortfolioPerformance } from '@/lib/api'
+import { type PortfolioApiData, type PortfolioPerformanceData, type DecisionSignal, type DividendEntry, fetchPortfolio, fetchPortfolioPerformance, fetchDecisions, fetchDividends } from '@/lib/api'
 import { cn } from '@/lib/utils'
 import { useState, useEffect } from 'react'
 
@@ -50,18 +51,19 @@ function sectorColour(name: string) {
 
 // ── Internal holding shape used throughout the component ──────────────────────
 interface Holding {
-  symbol:        string
-  name:          string
-  sector:        string
-  shares:        number
-  avgCost:       number
-  currentPrice:  number
-  value:         number
-  costBasis:     number
-  unrealisedPnl: number
-  unrealisedPct: number
-  change:        number   // daily change %
-  weight:        number
+  symbol:            string
+  name:              string
+  sector:            string
+  shares:            number
+  avgCost:           number
+  currentPrice:      number
+  value:             number
+  costBasis:         number
+  unrealisedPnl:     number
+  unrealisedPct:     number
+  change:            number   // daily change %
+  dailyChangeDollars: number  // daily change $
+  weight:            number
 }
 
 // ── Normalise API data into internal shape ────────────────────────────────────
@@ -77,18 +79,19 @@ function fromApi(apiData: PortfolioApiData): {
   sectorChart: { name: string; value: number; color: string }[]
 } {
   const holdings: Holding[] = apiData.holdings.map((h) => ({
-    symbol:        h.ticker,
-    name:          h.name,
-    sector:        h.sector,
-    shares:        h.shares,
-    avgCost:       h.avg_cost,
-    currentPrice:  h.current_price,
-    value:         h.market_value,
-    costBasis:     h.cost_basis,
-    unrealisedPnl: h.unrealised_pnl,
-    unrealisedPct: h.unrealised_pct,
-    change:        h.daily_change_pct,
-    weight:        h.weight,
+    symbol:             h.ticker,
+    name:               h.name,
+    sector:             h.sector,
+    shares:             h.shares,
+    avgCost:            h.avg_cost,
+    currentPrice:       h.current_price,
+    value:              h.market_value,
+    costBasis:          h.cost_basis,
+    unrealisedPnl:      h.unrealised_pnl,
+    unrealisedPct:      h.unrealised_pct,
+    change:             h.daily_change_pct,
+    dailyChangeDollars: h.daily_change_dollars,
+    weight:             h.weight,
   }))
 
   const sectorWeights = apiData.sector_weights
@@ -127,9 +130,10 @@ function fromMock(): ReturnType<typeof fromApi> {
     value:         h.value,
     costBasis:     h.avgCost * h.shares,
     unrealisedPnl: h.unrealisedPnl,
-    unrealisedPct: h.shares > 0 ? (h.unrealisedPnl / (h.avgCost * h.shares)) * 100 : 0,
-    change:        h.change,
-    weight:        h.weight,
+    unrealisedPct:      h.shares > 0 ? (h.unrealisedPnl / (h.avgCost * h.shares)) * 100 : 0,
+    change:             h.change,
+    dailyChangeDollars: h.value * h.change / 100,
+    weight:             h.weight,
   }))
 
   const totalValue  = holdings.reduce((s, h) => s + h.value, 0) + mockSummary.cashBalance
@@ -168,8 +172,23 @@ export function PortfolioPage({ apiData }: { apiData?: PortfolioApiData | null }
   const [sortBy,      setSortBy]      = useState<'value' | 'change' | 'weight'>('value')
   const [sortDir,     setSortDir]     = useState<'asc' | 'desc'>('desc')
   const [period,      setPeriod]      = useState<'1m' | '3m' | '6m' | '1y'>('3m')
-  const [perfData,    setPerfData]    = useState<PortfolioPerformanceData | null>(null)
-  const [perfLoading, setPerfLoading] = useState(true)
+  const [perfData,      setPerfData]      = useState<PortfolioPerformanceData | null>(null)
+  const [perfLoading,   setPerfLoading]   = useState(true)
+  const [decisions,     setDecisions]     = useState<DecisionSignal[]>([])
+  const [decisionsLive, setDecisionsLive] = useState(false)
+  const [dividends,     setDividends]     = useState<DividendEntry[]>([])
+  const [divLoading,    setDivLoading]    = useState(true)
+
+  // Auto-refresh prices on mount — SSR data can be seconds old by the time
+  // the browser renders, so fetch fresh numbers immediately in the background.
+  useEffect(() => {
+    fetchPortfolio().then((fresh) => {
+      if (fresh) {
+        setLiveData(fresh)
+        setLastUpdated(new Date())
+      }
+    })
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     setPerfLoading(true)
@@ -178,6 +197,22 @@ export function PortfolioPage({ apiData }: { apiData?: PortfolioApiData | null }
       setPerfLoading(false)
     })
   }, [period])
+
+  useEffect(() => {
+    fetchDecisions().then((d) => {
+      if (d) {
+        setDecisions(d.decisions)
+        setDecisionsLive(d.prices_live)
+      }
+    })
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
+
+  useEffect(() => {
+    fetchDividends().then((d) => {
+      if (d) setDividends(d.upcoming)
+      setDivLoading(false)
+    })
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   async function handleRefresh() {
     setRefreshing(true)
@@ -299,14 +334,31 @@ export function PortfolioPage({ apiData }: { apiData?: PortfolioApiData | null }
           <div>
             <p className="text-sm font-semibold text-foreground">Portfolio Performance</p>
             {perfData && (
-              <p className={cn(
-                'text-xs mt-0.5 font-medium',
-                perfData.change_pct >= 0 ? 'text-success' : 'text-destructive'
-              )}>
-                {perfData.change_pct >= 0 ? '+' : ''}{perfData.change_pct.toFixed(2)}%
-                {' '}({perfData.change_dollars >= 0 ? '+' : ''}{formatCurrency(perfData.change_dollars)})
-                {' '}this period
-              </p>
+              <div className="flex items-center gap-3 mt-0.5 flex-wrap">
+                <p className={cn(
+                  'text-xs font-medium',
+                  perfData.change_pct >= 0 ? 'text-success' : 'text-destructive'
+                )}>
+                  Portfolio: {perfData.change_pct >= 0 ? '+' : ''}{perfData.change_pct.toFixed(2)}%
+                  {' '}({perfData.change_dollars >= 0 ? '+' : ''}{formatCurrency(perfData.change_dollars)})
+                </p>
+                {perfData.benchmark_change_pct != null && (
+                  <p className={cn(
+                    'text-xs font-medium',
+                    perfData.benchmark_change_pct >= 0 ? 'text-muted-foreground' : 'text-destructive/70'
+                  )}>
+                    S&amp;P 500: {perfData.benchmark_change_pct >= 0 ? '+' : ''}{perfData.benchmark_change_pct.toFixed(2)}%
+                  </p>
+                )}
+                {perfData.benchmark_change_pct != null && (() => {
+                  const alpha = perfData.change_pct - perfData.benchmark_change_pct
+                  return (
+                    <p className={cn('text-xs font-semibold', alpha >= 0 ? 'text-success' : 'text-destructive')}>
+                      {alpha >= 0 ? '▲' : '▼'} {Math.abs(alpha).toFixed(2)}% vs market
+                    </p>
+                  )
+                })()}
+              </div>
             )}
           </div>
           <div className="flex items-center gap-1">
@@ -328,17 +380,17 @@ export function PortfolioPage({ apiData }: { apiData?: PortfolioApiData | null }
         </div>
 
         {perfLoading ? (
-          <div className="h-40 flex items-center justify-center">
+          <div className="h-48 flex items-center justify-center">
             <div className="h-1.5 w-32 rounded-full bg-muted overflow-hidden">
               <div className="h-full w-1/2 bg-primary/40 rounded-full animate-pulse" />
             </div>
           </div>
         ) : perfData && perfData.series.length > 0 ? (
-          <ResponsiveContainer width="100%" height={160}>
+          <ResponsiveContainer width="100%" height={180}>
             <AreaChart data={perfData.series} margin={{ top: 4, right: 4, left: 0, bottom: 0 }}>
               <defs>
                 <linearGradient id="perfGrad" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%"  stopColor="var(--primary)" stopOpacity={0.25} />
+                  <stop offset="5%"  stopColor="var(--primary)" stopOpacity={0.20} />
                   <stop offset="95%" stopColor="var(--primary)" stopOpacity={0}    />
                 </linearGradient>
               </defs>
@@ -357,8 +409,8 @@ export function PortfolioPage({ apiData }: { apiData?: PortfolioApiData | null }
                 tickLine={false}
                 axisLine={false}
                 tick={{ fontSize: 10, fill: 'var(--muted-foreground)' }}
-                tickFormatter={(v: number) => `$${(v / 1000).toFixed(2)}k`}
-                width={52}
+                tickFormatter={(v: number) => `$${(v / 1000).toFixed(1)}k`}
+                width={48}
               />
               <Tooltip
                 contentStyle={{
@@ -368,9 +420,13 @@ export function PortfolioPage({ apiData }: { apiData?: PortfolioApiData | null }
                   fontSize: '12px',
                   color: 'var(--foreground)',
                 }}
-                formatter={(v: number) => [formatCurrency(v), 'Portfolio Value']}
+                formatter={(v: number, name: string) => [
+                  formatCurrency(v),
+                  name === 'value' ? 'Portfolio' : 'S&P 500 (scaled)',
+                ]}
                 labelFormatter={(d: string) => new Date(d).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
               />
+              {/* Portfolio area */}
               <Area
                 type="monotone"
                 dataKey="value"
@@ -379,12 +435,40 @@ export function PortfolioPage({ apiData }: { apiData?: PortfolioApiData | null }
                 fill="url(#perfGrad)"
                 dot={false}
                 activeDot={{ r: 4, strokeWidth: 0 }}
+                connectNulls
               />
+              {/* S&P 500 benchmark line */}
+              {perfData.series.some((pt) => pt.benchmark != null) && (
+                <Line
+                  type="monotone"
+                  dataKey="benchmark"
+                  stroke="var(--muted-foreground)"
+                  strokeWidth={1.5}
+                  strokeDasharray="4 3"
+                  dot={false}
+                  activeDot={{ r: 3, strokeWidth: 0 }}
+                  connectNulls
+                />
+              )}
             </AreaChart>
           </ResponsiveContainer>
         ) : (
-          <div className="h-40 flex items-center justify-center text-sm text-muted-foreground">
+          <div className="h-48 flex items-center justify-center text-sm text-muted-foreground">
             Performance data unavailable — start the API to load historical NAV.
+          </div>
+        )}
+
+        {/* Legend */}
+        {perfData && perfData.series.some((pt) => pt.benchmark != null) && (
+          <div className="flex items-center gap-4 mt-2 px-1">
+            <div className="flex items-center gap-1.5">
+              <div className="h-0.5 w-6 bg-primary rounded-full" />
+              <span className="text-[10px] text-muted-foreground">Your portfolio</span>
+            </div>
+            <div className="flex items-center gap-1.5">
+              <div className="h-0.5 w-6 rounded-full border-t-2 border-dashed border-muted-foreground" />
+              <span className="text-[10px] text-muted-foreground">S&amp;P 500 (SPY)</span>
+            </div>
           </div>
         )}
       </div>
@@ -496,7 +580,9 @@ export function PortfolioPage({ apiData }: { apiData?: PortfolioApiData | null }
                       }
                       {h.change >= 0 ? '+' : ''}{h.change.toFixed(2)}%
                     </p>
-                    <p className="text-xs text-muted-foreground">{h.sector}</p>
+                    <p className={cn('text-xs', h.change >= 0 ? 'text-success/70' : 'text-destructive/70')}>
+                      {h.dailyChangeDollars >= 0 ? '+' : ''}{formatCurrency(h.dailyChangeDollars)}
+                    </p>
                   </div>
                   <div className="col-span-2 text-right">
                     <div className="flex items-center justify-end gap-2">
@@ -621,6 +707,153 @@ export function PortfolioPage({ apiData }: { apiData?: PortfolioApiData | null }
           </div>
         </div>
       </div>
+      {/* Dividend Calendar */}
+      <div className="rounded-xl border border-border bg-card p-4 shadow-sm">
+        <div className="flex items-center gap-2 mb-4">
+          <CalendarDays className="h-4 w-4 text-muted-foreground" />
+          <p className="text-sm font-semibold text-foreground">Dividend Calendar</p>
+          <span className="text-xs text-muted-foreground">— upcoming ex-dividend dates</span>
+        </div>
+
+        {divLoading ? (
+          <div className="flex items-center gap-2 py-4">
+            <div className="h-1.5 w-32 rounded-full bg-muted overflow-hidden">
+              <div className="h-full w-1/2 bg-primary/40 rounded-full animate-pulse" />
+            </div>
+            <span className="text-xs text-muted-foreground">Loading dividend data…</span>
+          </div>
+        ) : dividends.length === 0 ? (
+          <p className="text-sm text-muted-foreground py-4">
+            No upcoming ex-dividend dates found — API may need a moment to load.
+          </p>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b border-border">
+                  <th className="pb-2 text-left text-xs font-medium text-muted-foreground">Stock</th>
+                  <th className="pb-2 text-center text-xs font-medium text-muted-foreground">Ex-Div Date</th>
+                  <th className="pb-2 text-center text-xs font-medium text-muted-foreground">Pay Date</th>
+                  <th className="pb-2 text-right text-xs font-medium text-muted-foreground">Per Share</th>
+                  <th className="pb-2 text-right text-xs font-medium text-muted-foreground">Yield</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-border">
+                {dividends.map((d) => {
+                  const daysUntil = d.ex_div_date
+                    ? Math.ceil((new Date(d.ex_div_date).getTime() - Date.now()) / 86_400_000)
+                    : null
+                  const isClose = daysUntil != null && daysUntil <= 7
+                  return (
+                    <tr key={d.ticker} className="hover:bg-accent/30 transition-colors">
+                      <td className="py-2.5 pr-4">
+                        <div className="flex items-center gap-2">
+                          <div className={cn(
+                            'flex h-7 w-7 items-center justify-center rounded-md text-[10px] font-bold',
+                            d.in_portfolio ? 'bg-primary/10 text-primary' : 'bg-accent text-foreground'
+                          )}>
+                            {d.ticker.slice(0, 2)}
+                          </div>
+                          <div>
+                            <p className="text-xs font-semibold text-foreground">{d.ticker}</p>
+                            <p className="text-[10px] text-muted-foreground truncate max-w-[120px]">{d.name}</p>
+                          </div>
+                          {d.in_portfolio && (
+                            <span className="text-[9px] font-bold uppercase tracking-wide px-1.5 py-0.5 rounded bg-primary/10 text-primary">
+                              held
+                            </span>
+                          )}
+                        </div>
+                      </td>
+                      <td className="py-2.5 text-center">
+                        <div>
+                          <p className={cn('text-xs font-medium', isClose ? 'text-gold-foreground' : 'text-foreground')}>
+                            {d.ex_div_date
+                              ? new Date(d.ex_div_date + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+                              : '—'
+                            }
+                          </p>
+                          {daysUntil != null && (
+                            <p className={cn('text-[10px]', isClose ? 'text-gold-foreground font-medium' : 'text-muted-foreground')}>
+                              {daysUntil === 0 ? 'Today' : daysUntil === 1 ? 'Tomorrow' : `${daysUntil}d`}
+                            </p>
+                          )}
+                        </div>
+                      </td>
+                      <td className="py-2.5 text-center text-xs text-muted-foreground">
+                        {d.pay_date
+                          ? new Date(d.pay_date + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+                          : '—'
+                        }
+                      </td>
+                      <td className="py-2.5 text-right">
+                        <p className="text-xs font-medium text-foreground">${d.quarterly_div.toFixed(4)}</p>
+                        <p className="text-[10px] text-muted-foreground">${d.annual_div.toFixed(2)}/yr</p>
+                      </td>
+                      <td className="py-2.5 text-right">
+                        <p className={cn('text-xs font-medium', (d.yield_pct ?? 0) >= 3 ? 'text-success' : 'text-foreground')}>
+                          {d.yield_pct != null ? `${d.yield_pct.toFixed(2)}%` : '—'}
+                        </p>
+                      </td>
+                    </tr>
+                  )
+                })}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
+
+      {/* Daily Decisions Feed */}
+      {decisions.length > 0 && (
+        <div className="rounded-xl border border-border bg-card p-4 shadow-sm">
+          <div className="flex items-center justify-between mb-4">
+            <div>
+              <p className="text-sm font-semibold text-foreground">Daily Decisions</p>
+              <p className="text-xs text-muted-foreground mt-0.5">
+                Rule-based signals from live portfolio metrics
+                {decisionsLive
+                  ? <span className="ml-2 text-success font-medium">● Live</span>
+                  : <span className="ml-2 text-muted-foreground">● Snapshot</span>
+                }
+              </p>
+            </div>
+          </div>
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+            {decisions.map((d, i) => {
+              const actionStyles: Record<string, string> = {
+                ADD:     'bg-success/10 text-success border-success/30',
+                TRIM:    'bg-destructive/10 text-destructive border-destructive/30',
+                MONITOR: 'bg-gold/10 text-gold-foreground border-gold/30',
+                HOLD:    'bg-muted/60 text-muted-foreground border-border',
+              }
+              const urgencyDot: Record<string, string> = {
+                high:   'bg-destructive',
+                medium: 'bg-gold',
+                low:    'bg-muted-foreground',
+              }
+              const style = actionStyles[d.action] ?? actionStyles.HOLD
+              return (
+                <div key={i} className="rounded-lg border border-border bg-card/50 p-3 flex flex-col gap-2">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm font-semibold text-foreground">{d.ticker}</span>
+                      <span className={cn('text-[10px] font-bold px-2 py-0.5 rounded-md border uppercase tracking-wide', style)}>
+                        {d.action}
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-1.5">
+                      <div className={cn('h-1.5 w-1.5 rounded-full', urgencyDot[d.urgency] ?? 'bg-muted-foreground')} />
+                      <span className="text-[10px] text-muted-foreground capitalize">{d.urgency}</span>
+                    </div>
+                  </div>
+                  <p className="text-xs text-muted-foreground leading-relaxed">{d.reason}</p>
+                </div>
+              )
+            })}
+          </div>
+        </div>
+      )}
     </div>
   )
 }

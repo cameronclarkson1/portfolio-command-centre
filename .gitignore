@@ -33,6 +33,9 @@ env/
 repo/storage/*.db
 *.db
 
+# Scanner results — local cache, regenerated at runtime
+api/data/
+
 # Node / Next.js
 node_modules/
 nextjs-frontend/.next/

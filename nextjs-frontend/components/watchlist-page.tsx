@@ -12,6 +12,10 @@ import {
   ChevronDown,
   Loader2,
   RefreshCw,
+  LayoutGrid,
+  List,
+  Bell,
+  ChevronUp,
 } from 'lucide-react'
 import {
   SectionHeader,
@@ -68,6 +72,16 @@ function ratingStyle(rating: string): string {
 
 const POPULAR = ['TSLA', 'AAPL', 'GOOGL', 'AMZN', 'META', 'MSFT', 'NVDA', 'AMD']
 
+const SECTOR_ORDER = [
+  'Technology',
+  'Communication Services',
+  'Consumer Discretionary',
+  'Consumer Staples',
+  'Financials',
+  'Healthcare',
+  'Real Estate',
+]
+
 const sortOptions = [
   { value: 'change',      label: 'Price Change' },
   { value: 'upside',      label: 'Upside Potential' },
@@ -103,10 +117,11 @@ export function WatchlistPage({ livePrices }: { livePrices?: LivePriceData | nul
       setServerLoaded(true)
     })
   }, [])
-  const [searchQuery,  setSearchQuery]  = useState('')
-  const [activeFilter, setActiveFilter] = useState('all')
-  const [sortBy,       setSortBy]       = useState('change')
-  const [favorites,    setFavorites]    = useState<string[]>(['AMD', 'COST'])
+  const [searchQuery,    setSearchQuery]    = useState('')
+  const [activeFilter,   setActiveFilter]   = useState('all')
+  const [sortBy,         setSortBy]         = useState('change')
+  const [groupBySector,  setGroupBySector]  = useState(true)
+  const [favorites,      setFavorites]      = useState<string[]>(['AMD', 'COST'])
   const [showAdd,      setShowAdd]      = useState(false)
   const [addInput,     setAddInput]     = useState('')
   const [isAdding,          setIsAdding]          = useState(false)
@@ -114,6 +129,7 @@ export function WatchlistPage({ livePrices }: { livePrices?: LivePriceData | nul
   const [refreshingSymbols, setRefreshingSymbols] = useState<Set<string>>(new Set())
   const [refreshedCount,    setRefreshedCount]    = useState(0)
   const [addError,          setAddError]          = useState('')
+  const [alertsOpen,        setAlertsOpen]        = useState(true)
   const inputRef = useRef<HTMLInputElement>(null)
 
   // Persist to localStorage/server whenever the list changes — but only after server has loaded,
@@ -309,6 +325,190 @@ export function WatchlistPage({ livePrices }: { livePrices?: LivePriceData | nul
 
   const alreadyAdded = (symbol: string) => items.some((s) => s.symbol === symbol)
 
+  // ── Card renderer ─────────────────────────────────────────────────────────────
+
+  function renderCard(stock: WatchlistItem) {
+    const hasScores = stock.finalScore != null
+    const isLoading = refreshingSymbols.has(stock.symbol)
+    return (
+      <div
+        key={stock.symbol}
+        className={cn(
+          'rounded-xl border border-border bg-card p-4 shadow-sm hover:shadow-md transition-all group',
+          isLoading && 'opacity-60'
+        )}
+      >
+        {/* Card header */}
+        <div className="flex items-start justify-between">
+          <div className="flex items-center gap-3">
+            <div className="flex h-11 w-11 items-center justify-center rounded-lg bg-accent text-sm font-semibold text-foreground">
+              {isLoading
+                ? <Loader2 className="h-4 w-4 animate-spin text-primary" />
+                : stock.symbol.slice(0, 2)
+              }
+            </div>
+            <div>
+              <p className="text-sm font-semibold text-foreground">{stock.symbol}</p>
+              <p className="text-xs text-muted-foreground truncate max-w-[140px]">{stock.name}</p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-1.5">
+            {stock.rating && (
+              <span className={cn('text-[10px] font-semibold px-2 py-0.5 rounded-md border', ratingStyle(stock.rating))}>
+                {stock.rating}
+              </span>
+            )}
+            <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+              <button onClick={() => toggleFavorite(stock.symbol)}>
+                {favorites.includes(stock.symbol)
+                  ? <Star    className="h-4 w-4 text-gold fill-gold" />
+                  : <StarOff className="h-4 w-4 text-muted-foreground hover:text-gold" />
+                }
+              </button>
+              <button onClick={() => removeSecurity(stock.symbol)} title="Remove">
+                <X className="h-4 w-4 text-muted-foreground hover:text-destructive" />
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {/* Price & change */}
+        <div className="mt-4 flex items-end justify-between">
+          <div>
+            <p className="text-xl font-semibold text-foreground">
+              {stock.price > 0 ? formatCurrency(stock.price) : '—'}
+            </p>
+            <div className="flex items-center gap-1 mt-0.5">
+              {stock.change >= 0
+                ? <TrendingUp   className="h-3 w-3 text-success" />
+                : <TrendingDown className="h-3 w-3 text-destructive" />
+              }
+              <span className={cn('text-xs font-medium', stock.change >= 0 ? 'text-success' : 'text-destructive')}>
+                {stock.price > 0
+                  ? `${stock.change >= 0 ? '+' : ''}${formatCurrency(stock.change)} (${stock.changePercent.toFixed(2)}%)`
+                  : 'Price unavailable'
+                }
+              </span>
+            </div>
+          </div>
+          <Sparkline data={stock.sparkline} width={70} height={28} positive={stock.change >= 0} />
+        </div>
+
+        <div className="my-3 border-t border-border" />
+
+        {/* Fair value + upside */}
+        <div className="grid grid-cols-3 gap-3">
+          <div className="text-center">
+            <p className="text-[10px] uppercase tracking-wide text-muted-foreground">Fair Value</p>
+            <p className="text-sm font-medium text-foreground mt-0.5">
+              {stock.fairValue > 0 ? formatCurrency(stock.fairValue) : '—'}
+            </p>
+          </div>
+          <div className="text-center">
+            <p className="text-[10px] uppercase tracking-wide text-muted-foreground">Upside</p>
+            <p className={cn('text-sm font-medium mt-0.5', stock.upside >= 0 ? 'text-success' : 'text-destructive')}>
+              {stock.fairValue > 0 ? `${stock.upside >= 0 ? '+' : ''}${stock.upside}%` : '—'}
+            </p>
+          </div>
+          <div className="text-center">
+            <p className="text-[10px] uppercase tracking-wide text-muted-foreground">Safety</p>
+            <p className={cn(
+              'text-sm font-medium mt-0.5',
+              stock.safetyScore >= 75 ? 'text-success' :
+              stock.safetyScore >= 55 ? 'text-gold-foreground' :
+              stock.safetyScore >= 40 ? 'text-orange-400' : 'text-destructive'
+            )}>
+              {stock.safetyScore != null ? stock.safetyScore : '—'}
+            </p>
+          </div>
+        </div>
+
+        {/* Buy Below row */}
+        {(stock.buyBelow ?? 0) > 0 && (() => {
+          const atTarget = stock.price > 0 && stock.price <= (stock.buyBelow ?? 0)
+          return (
+            <div className={cn(
+              'mt-2 flex items-center justify-between rounded-lg px-3 py-1.5',
+              atTarget ? 'bg-success/10' : 'bg-muted/40'
+            )}>
+              <span className="text-[10px] uppercase tracking-wide text-muted-foreground font-medium">Buy Below</span>
+              <div className="flex items-center gap-1.5">
+                <span className={cn('text-xs font-semibold', atTarget ? 'text-success' : 'text-foreground')}>
+                  {formatCurrency(stock.buyBelow!)}
+                </span>
+                {atTarget && (
+                  <span className="text-[10px] font-semibold text-success">✓ At Target</span>
+                )}
+              </div>
+            </div>
+          )
+        })()}
+
+        {/* Score bars */}
+        {hasScores && (
+          <>
+            <div className="my-3 border-t border-border" />
+            <div className="space-y-2">
+              {[
+                { label: 'Quality',   score: stock.qualityScore },
+                { label: 'Valuation', score: stock.valuationScore },
+                { label: 'Growth',    score: stock.growthScore },
+              ].map(({ label, score }) => (
+                <div key={label} className="flex items-center gap-2">
+                  <span className="text-[10px] text-muted-foreground w-14 shrink-0">{label}</span>
+                  <div className="flex-1 h-1.5 bg-muted rounded-full overflow-hidden">
+                    <div
+                      className={cn(
+                        'h-full rounded-full',
+                        score != null && score >= 75 ? 'bg-success' :
+                        score != null && score >= 55 ? 'bg-gold' :
+                        score != null && score >= 40 ? 'bg-orange-400' : 'bg-destructive'
+                      )}
+                      style={{ width: `${score ?? 0}%` }}
+                    />
+                  </div>
+                  <span className={cn('text-[10px] font-medium w-6 text-right', scoreColor(score))}>
+                    {score != null ? Math.round(score) : '—'}
+                  </span>
+                </div>
+              ))}
+
+              <div className="flex items-center justify-between pt-1">
+                <div className="flex items-center gap-1.5">
+                  <span className="text-[10px] text-muted-foreground">Final</span>
+                  <span className={cn('text-sm font-bold', scoreColor(stock.finalScore))}>
+                    {stock.finalScore != null ? Math.round(stock.finalScore) : '—'}
+                  </span>
+                  <span className="text-[10px] text-muted-foreground">/100</span>
+                </div>
+                {stock.confidence != null && (
+                  <span className="text-[10px] text-muted-foreground">
+                    {Math.round(stock.confidence)}% confidence
+                  </span>
+                )}
+              </div>
+            </div>
+          </>
+        )}
+
+        {/* Data error */}
+        {stock.dataError && (
+          <p className="mt-2 text-[10px] text-destructive">
+            Score data unavailable — {stock.dataError === 'timeout' ? 'request timed out' : 'refresh failed'}
+          </p>
+        )}
+
+        {/* Last updated */}
+        {stock.lastUpdated && !stock.dataError && (
+          <p className="mt-2 text-[10px] text-muted-foreground">
+            Updated {new Date(stock.lastUpdated).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+          </p>
+        )}
+      </div>
+    )
+  }
+
   // ── Render ─────────────────────────────────────────────────────────────────────
 
   return (
@@ -377,6 +577,60 @@ export function WatchlistPage({ livePrices }: { livePrices?: LivePriceData | nul
       {/* Inline error */}
       {addError && <p className="text-xs text-destructive">{addError}</p>}
 
+      {/* Buy Zone Alerts */}
+      {(() => {
+        const alerts = items.filter(
+          (s) => (s.buyBelow ?? 0) > 0 && s.price > 0 && s.price <= (s.buyBelow ?? 0)
+        )
+        if (alerts.length === 0) return null
+        return (
+          <div className="rounded-xl border border-success/30 bg-success/5 overflow-hidden">
+            <button
+              onClick={() => setAlertsOpen((v) => !v)}
+              className="w-full flex items-center justify-between px-4 py-3 text-left"
+            >
+              <div className="flex items-center gap-2">
+                <Bell className="h-4 w-4 text-success" />
+                <span className="text-sm font-semibold text-success">
+                  {alerts.length} stock{alerts.length > 1 ? 's' : ''} in buy zone
+                </span>
+                <span className="text-xs text-success/70">— at or below buy-below price</span>
+              </div>
+              {alertsOpen
+                ? <ChevronUp   className="h-4 w-4 text-success/60" />
+                : <ChevronDown className="h-4 w-4 text-success/60" />
+              }
+            </button>
+            {alertsOpen && (
+              <div className="px-4 pb-4 flex flex-wrap gap-2">
+                {alerts.map((s) => {
+                  const discount = s.buyBelow! > 0
+                    ? Math.round((s.buyBelow! - s.price) / s.buyBelow! * 100)
+                    : 0
+                  return (
+                    <div
+                      key={s.symbol}
+                      className="flex items-center gap-2 rounded-lg bg-success/10 border border-success/25 px-3 py-2"
+                    >
+                      <div className="flex h-7 w-7 items-center justify-center rounded-md bg-success/20 text-[10px] font-bold text-success">
+                        {s.symbol.slice(0, 2)}
+                      </div>
+                      <div>
+                        <p className="text-xs font-semibold text-foreground">{s.symbol}</p>
+                        <p className="text-[10px] text-success">
+                          {formatCurrency(s.price)} / target {formatCurrency(s.buyBelow!)}
+                          {discount > 0 && <span className="ml-1 font-medium">{discount}% below</span>}
+                        </p>
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+            )}
+          </div>
+        )
+      })()}
+
       {/* Search & Filters */}
       <div className="space-y-4">
         <div className="relative">
@@ -429,196 +683,66 @@ export function WatchlistPage({ livePrices }: { livePrices?: LivePriceData | nul
             </select>
             <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 h-3 w-3 text-muted-foreground pointer-events-none" />
           </div>
+
+          {/* Sector grouping toggle */}
+          <button
+            onClick={() => setGroupBySector((v) => !v)}
+            title={groupBySector ? 'Show flat list' : 'Group by sector'}
+            className={cn(
+              'flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-xs font-medium transition-colors shrink-0',
+              groupBySector
+                ? 'border-primary/40 bg-primary/10 text-primary'
+                : 'border-border bg-card text-muted-foreground hover:bg-accent'
+            )}
+          >
+            {groupBySector ? <List className="h-3.5 w-3.5" /> : <LayoutGrid className="h-3.5 w-3.5" />}
+            {groupBySector ? 'Flat' : 'By Sector'}
+          </button>
         </div>
       </div>
 
       {/* Watchlist Grid */}
-      <div className="grid gap-4 lg:grid-cols-2 xl:grid-cols-3">
-        {filtered.map((stock) => {
-          const hasScores   = stock.finalScore != null
-          const isLoading   = refreshingSymbols.has(stock.symbol)
-          return (
-            <div
-              key={stock.symbol}
-              className={cn(
-                'rounded-xl border border-border bg-card p-4 shadow-sm hover:shadow-md transition-all group',
-                isLoading && 'opacity-60'
-              )}
-            >
-              {/* Card header */}
-              <div className="flex items-start justify-between">
-                <div className="flex items-center gap-3">
-                  <div className="flex h-11 w-11 items-center justify-center rounded-lg bg-accent text-sm font-semibold text-foreground">
-                    {isLoading
-                      ? <Loader2 className="h-4 w-4 animate-spin text-primary" />
-                      : stock.symbol.slice(0, 2)
-                    }
-                  </div>
-                  <div>
-                    <p className="text-sm font-semibold text-foreground">{stock.symbol}</p>
-                    <p className="text-xs text-muted-foreground truncate max-w-[140px]">{stock.name}</p>
-                  </div>
+      {groupBySector ? (
+        <div className="space-y-8">
+          {SECTOR_ORDER.map((sector) => {
+            const sectorStocks = filtered.filter((s) => (s.sector ?? 'Other') === sector)
+            if (sectorStocks.length === 0) return null
+            return (
+              <div key={sector}>
+                <div className="flex items-center gap-3 mb-3">
+                  <h2 className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">{sector}</h2>
+                  <div className="flex-1 h-px bg-border" />
+                  <span className="text-xs text-muted-foreground">{sectorStocks.length}</span>
                 </div>
-
-                <div className="flex items-center gap-1.5">
-                  {/* 5-level rating badge */}
-                  {stock.rating && (
-                    <span className={cn('text-[10px] font-semibold px-2 py-0.5 rounded-md border', ratingStyle(stock.rating))}>
-                      {stock.rating}
-                    </span>
-                  )}
-                  {/* Hover actions */}
-                  <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                    <button onClick={() => toggleFavorite(stock.symbol)}>
-                      {favorites.includes(stock.symbol)
-                        ? <Star    className="h-4 w-4 text-gold fill-gold" />
-                        : <StarOff className="h-4 w-4 text-muted-foreground hover:text-gold" />
-                      }
-                    </button>
-                    <button onClick={() => removeSecurity(stock.symbol)} title="Remove">
-                      <X className="h-4 w-4 text-muted-foreground hover:text-destructive" />
-                    </button>
-                  </div>
+                <div className="grid gap-4 lg:grid-cols-2 xl:grid-cols-3">
+                  {sectorStocks.map(renderCard)}
                 </div>
               </div>
-
-              {/* Price & change */}
-              <div className="mt-4 flex items-end justify-between">
-                <div>
-                  <p className="text-xl font-semibold text-foreground">
-                    {stock.price > 0 ? formatCurrency(stock.price) : '—'}
-                  </p>
-                  <div className="flex items-center gap-1 mt-0.5">
-                    {stock.change >= 0
-                      ? <TrendingUp   className="h-3 w-3 text-success" />
-                      : <TrendingDown className="h-3 w-3 text-destructive" />
-                    }
-                    <span className={cn('text-xs font-medium', stock.change >= 0 ? 'text-success' : 'text-destructive')}>
-                      {stock.price > 0
-                        ? `${stock.change >= 0 ? '+' : ''}${formatCurrency(stock.change)} (${stock.changePercent.toFixed(2)}%)`
-                        : 'Price unavailable'
-                      }
-                    </span>
-                  </div>
+            )
+          })}
+          {/* Uncategorised stocks (user-added without a sector) */}
+          {(() => {
+            const other = filtered.filter((s) => !s.sector || !SECTOR_ORDER.includes(s.sector))
+            if (other.length === 0) return null
+            return (
+              <div>
+                <div className="flex items-center gap-3 mb-3">
+                  <h2 className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Other</h2>
+                  <div className="flex-1 h-px bg-border" />
+                  <span className="text-xs text-muted-foreground">{other.length}</span>
                 </div>
-                <Sparkline data={stock.sparkline} width={70} height={28} positive={stock.change >= 0} />
-              </div>
-
-              <div className="my-3 border-t border-border" />
-
-              {/* Fair value + upside */}
-              <div className="grid grid-cols-3 gap-3">
-                <div className="text-center">
-                  <p className="text-[10px] uppercase tracking-wide text-muted-foreground">Fair Value</p>
-                  <p className="text-sm font-medium text-foreground mt-0.5">
-                    {stock.fairValue > 0 ? formatCurrency(stock.fairValue) : '—'}
-                  </p>
-                </div>
-                <div className="text-center">
-                  <p className="text-[10px] uppercase tracking-wide text-muted-foreground">Upside</p>
-                  <p className={cn('text-sm font-medium mt-0.5', stock.upside >= 0 ? 'text-success' : 'text-destructive')}>
-                    {stock.fairValue > 0 ? `${stock.upside >= 0 ? '+' : ''}${stock.upside}%` : '—'}
-                  </p>
-                </div>
-                <div className="text-center">
-                  <p className="text-[10px] uppercase tracking-wide text-muted-foreground">Safety</p>
-                  <p className={cn(
-                    'text-sm font-medium mt-0.5',
-                    stock.safetyScore >= 75 ? 'text-success' :
-                    stock.safetyScore >= 55 ? 'text-gold-foreground' :
-                    stock.safetyScore >= 40 ? 'text-orange-400' : 'text-destructive'
-                  )}>
-                    {stock.safetyScore != null ? stock.safetyScore : '—'}
-                  </p>
+                <div className="grid gap-4 lg:grid-cols-2 xl:grid-cols-3">
+                  {other.map(renderCard)}
                 </div>
               </div>
-
-              {/* Buy Below row — shown when a target price is available */}
-              {(stock.buyBelow ?? 0) > 0 && (() => {
-                const atTarget = stock.price > 0 && stock.price <= (stock.buyBelow ?? 0)
-                return (
-                  <div className={cn(
-                    'mt-2 flex items-center justify-between rounded-lg px-3 py-1.5',
-                    atTarget ? 'bg-success/10' : 'bg-muted/40'
-                  )}>
-                    <span className="text-[10px] uppercase tracking-wide text-muted-foreground font-medium">Buy Below</span>
-                    <div className="flex items-center gap-1.5">
-                      <span className={cn('text-xs font-semibold', atTarget ? 'text-success' : 'text-foreground')}>
-                        {formatCurrency(stock.buyBelow!)}
-                      </span>
-                      {atTarget && (
-                        <span className="text-[10px] font-semibold text-success">✓ At Target</span>
-                      )}
-                    </div>
-                  </div>
-                )
-              })()}
-
-              {/* Score bars (shown only after Refresh Scores) */}
-              {hasScores && (
-                <>
-                  <div className="my-3 border-t border-border" />
-                  <div className="space-y-2">
-                    {[
-                      { label: 'Quality',   score: stock.qualityScore },
-                      { label: 'Valuation', score: stock.valuationScore },
-                      { label: 'Growth',    score: stock.growthScore },
-                    ].map(({ label, score }) => (
-                      <div key={label} className="flex items-center gap-2">
-                        <span className="text-[10px] text-muted-foreground w-14 shrink-0">{label}</span>
-                        <div className="flex-1 h-1.5 bg-muted rounded-full overflow-hidden">
-                          <div
-                            className={cn(
-                              'h-full rounded-full',
-                              score != null && score >= 75 ? 'bg-success' :
-                              score != null && score >= 55 ? 'bg-gold' :
-                              score != null && score >= 40 ? 'bg-orange-400' : 'bg-destructive'
-                            )}
-                            style={{ width: `${score ?? 0}%` }}
-                          />
-                        </div>
-                        <span className={cn('text-[10px] font-medium w-6 text-right', scoreColor(score))}>
-                          {score != null ? Math.round(score) : '—'}
-                        </span>
-                      </div>
-                    ))}
-
-                    {/* Final score + confidence */}
-                    <div className="flex items-center justify-between pt-1">
-                      <div className="flex items-center gap-1.5">
-                        <span className="text-[10px] text-muted-foreground">Final</span>
-                        <span className={cn('text-sm font-bold', scoreColor(stock.finalScore))}>
-                          {stock.finalScore != null ? Math.round(stock.finalScore) : '—'}
-                        </span>
-                        <span className="text-[10px] text-muted-foreground">/100</span>
-                      </div>
-                      {stock.confidence != null && (
-                        <span className="text-[10px] text-muted-foreground">
-                          {Math.round(stock.confidence)}% confidence
-                        </span>
-                      )}
-                    </div>
-                  </div>
-                </>
-              )}
-
-              {/* Data error state */}
-              {stock.dataError && (
-                <p className="mt-2 text-[10px] text-destructive">
-                  Score data unavailable — {stock.dataError === 'timeout' ? 'request timed out' : 'refresh failed'}
-                </p>
-              )}
-
-              {/* Last updated */}
-              {stock.lastUpdated && !stock.dataError && (
-                <p className="mt-2 text-[10px] text-muted-foreground">
-                  Updated {new Date(stock.lastUpdated).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                </p>
-              )}
-            </div>
-          )
-        })}
-      </div>
+            )
+          })()}
+        </div>
+      ) : (
+        <div className="grid gap-4 lg:grid-cols-2 xl:grid-cols-3">
+          {filtered.map(renderCard)}
+        </div>
+      )}
 
       {/* Empty state */}
       {filtered.length === 0 && (
