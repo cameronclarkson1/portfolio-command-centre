@@ -18,8 +18,8 @@ import {
   dailyDecisions, opportunities, riskAlerts, sectorAllocation, holdings,
   marketIndices as mockIndices, newsEvents as mockNews, upcomingEvents, topMovers, allocationDrift,
 } from '@/lib/mock-data'
-import type { LiveDashboardData, DashboardDecision, DashboardOpportunity, DashboardHolding, DashboardSectorEntry, ScannerOpportunity } from '@/lib/api'
-import { fetchPortfolioPerformance, triggerScan, fetchScannerStatus, fetchScannerResults } from '@/lib/api'
+import type { LiveDashboardData, DashboardDecision, DashboardOpportunity, DashboardHolding, DashboardSectorEntry, ScannerOpportunity, EarningsItem } from '@/lib/api'
+import { fetchPortfolioPerformance, triggerScan, fetchScannerStatus, fetchScannerResults, fetchPortfolioEarnings } from '@/lib/api'
 import { cn } from '@/lib/utils'
 import Link from 'next/link'
 
@@ -31,6 +31,7 @@ export function DashboardPage({ liveData }: DashboardPageProps) {
   const [livePerf, setLivePerf] = useState<{ date: string; value: number }[] | null>(null)
   const [scanning, setScanning] = useState(false)
   const [scannerOpps, setScannerOpps] = useState<ScannerOpportunity[] | null>(null)
+  const [earnings, setEarnings] = useState<EarningsItem[] | null>(null)
 
   useEffect(() => {
     fetchPortfolioPerformance('1y').then((d) => {
@@ -41,6 +42,7 @@ export function DashboardPage({ liveData }: DashboardPageProps) {
     fetchScannerResults().then((r) => {
       if (r?.opportunities?.length) setScannerOpps(r.opportunities.slice(0, 5))
     })
+    fetchPortfolioEarnings().then((e) => { if (e?.length) setEarnings(e) })
   }, [])
 
   const handleRunScan = async () => {
@@ -538,17 +540,6 @@ export function DashboardPage({ liveData }: DashboardPageProps) {
                     )}
                   </div>
                 </div>
-                <div className="flex flex-col items-end gap-1.5 flex-shrink-0">
-                  <span className={cn(
-                    'inline-flex text-[10px] font-semibold rounded px-1.5 py-0.5',
-                    n.sentiment === 'positive' && 'bg-success/10 text-success',
-                    n.sentiment === 'negative' && 'bg-destructive/10 text-destructive',
-                    n.sentiment === 'neutral'  && 'bg-muted text-muted-foreground',
-                  )}>
-                    {n.sentiment}
-                  </span>
-                  <ScoreBadge score={n.aiScore} />
-                </div>
               </div>
             ))}
           </div>
@@ -565,27 +556,57 @@ export function DashboardPage({ liveData }: DashboardPageProps) {
             }
           />
           <div className="mt-3 divide-y divide-border">
-            {upcomingEvents.map((e, i) => (
-              <div key={i} className="flex items-start gap-3 py-2.5 first:pt-0">
-                <div className="flex flex-col items-center justify-center rounded-md bg-accent px-2 py-1.5 min-w-[40px] text-center flex-shrink-0">
-                  <span className="text-[11px] font-bold text-foreground leading-tight">{e.date.split(' ')[1]}</span>
-                  <span className="text-[9px] text-muted-foreground">{e.date.split(' ')[0]}</span>
-                </div>
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2 mb-0.5 flex-wrap">
-                    <EventTypeBadge type={e.type} />
-                    {e.inPortfolio && (
-                      <span className="text-[10px] font-semibold text-primary">In Portfolio</span>
-                    )}
+            {(earnings ?? upcomingEvents).map((e, i) => {
+              // Live earnings from API
+              if (earnings) {
+                const item = e as EarningsItem
+                const d = new Date(item.date + 'T00:00:00')
+                const month = d.toLocaleString('en-US', { month: 'short' })
+                const day   = String(d.getDate())
+                const timing = item.hour === 'amc' ? 'After Close' : item.hour === 'bmo' ? 'Before Open' : 'TBD'
+                return (
+                  <div key={i} className="flex items-start gap-3 py-2.5 first:pt-0">
+                    <div className="flex flex-col items-center justify-center rounded-md bg-accent px-2 py-1.5 min-w-[40px] text-center flex-shrink-0">
+                      <span className="text-[11px] font-bold text-foreground leading-tight">{day}</span>
+                      <span className="text-[9px] text-muted-foreground">{month}</span>
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 mb-0.5">
+                        <EventTypeBadge type="earnings" />
+                        <span className="text-[10px] font-semibold text-primary">In Portfolio</span>
+                      </div>
+                      <p className="text-xs font-medium text-foreground">
+                        <span className="font-bold">{item.ticker}</span> — Earnings
+                      </p>
+                      <p className="text-[10px] text-muted-foreground mt-0.5">
+                        {timing}{item.eps_estimate != null ? ` · EPS est. $${item.eps_estimate.toFixed(2)}` : ''}
+                      </p>
+                    </div>
                   </div>
-                  <p className="text-xs font-medium text-foreground">
-                    {e.ticker && <span className="font-bold">{e.ticker} — </span>}
-                    {e.description}
-                  </p>
-                  <p className="text-[10px] text-muted-foreground mt-0.5">{e.timing}</p>
+                )
+              }
+              // Mock data fallback
+              const mock = e as typeof upcomingEvents[number]
+              return (
+                <div key={i} className="flex items-start gap-3 py-2.5 first:pt-0">
+                  <div className="flex flex-col items-center justify-center rounded-md bg-accent px-2 py-1.5 min-w-[40px] text-center flex-shrink-0">
+                    <span className="text-[11px] font-bold text-foreground leading-tight">{mock.date.split(' ')[1]}</span>
+                    <span className="text-[9px] text-muted-foreground">{mock.date.split(' ')[0]}</span>
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 mb-0.5 flex-wrap">
+                      <EventTypeBadge type={mock.type} />
+                      {mock.inPortfolio && <span className="text-[10px] font-semibold text-primary">In Portfolio</span>}
+                    </div>
+                    <p className="text-xs font-medium text-foreground">
+                      {mock.ticker && <span className="font-bold">{mock.ticker} — </span>}
+                      {mock.description}
+                    </p>
+                    <p className="text-[10px] text-muted-foreground mt-0.5">{mock.timing}</p>
+                  </div>
                 </div>
-              </div>
-            ))}
+              )
+            })}
           </div>
         </div>
 
