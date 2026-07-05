@@ -401,52 +401,49 @@ interface MarketRegimeBannerProps {
 export function MarketRegimeBanner({
   regime, label, vix, sp500Trend, nasdaqStatus, rateMacroNote, aiConviction, summary,
 }: MarketRegimeBannerProps) {
-  const styles = {
-    'risk-on':  { bg: '#f0fdf4', border: '#bbf7d0', text: '#166534', pill: 'bg-green-100 text-green-800'  },
-    'neutral':  { bg: '#fefce8', border: '#fef08a', text: '#854d0e', pill: 'bg-yellow-100 text-yellow-800' },
-    'risk-off': { bg: '#fff7ed', border: '#fed7aa', text: '#9a3412', pill: 'bg-orange-100 text-orange-800' },
-    'crisis':   { bg: '#fef2f2', border: '#fecaca', text: '#991b1b', pill: 'bg-red-100 text-red-800'       },
-  }
-  const s = styles[regime]
+  const pill = {
+    'risk-on':  'bg-success/15 text-success border-success/30',
+    'neutral':  'bg-gold/15 text-gold-foreground border-gold/30',
+    'risk-off': 'bg-orange-500/15 text-orange-400 border-orange-500/30',
+    'crisis':   'bg-destructive/15 text-destructive border-destructive/30',
+  }[regime]
 
   return (
-    <div
-      className="rounded-xl border p-4"
-      style={{ background: s.bg, borderColor: s.border }}
-    >
-      <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-        {/* Left: regime label + summary */}
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2 mb-1.5">
-            <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Market Regime</span>
-            <span className={cn('rounded-full px-2.5 py-0.5 text-xs font-bold', s.pill)}>{label}</span>
-          </div>
-          <p className="text-sm text-foreground/80 leading-relaxed">{summary}</p>
+    <div className="rounded-xl border border-border bg-card p-4 shadow-sm">
+      {/* Top row: regime badge + stats */}
+      <div className="flex flex-wrap items-center gap-x-6 gap-y-3">
+        <div className="flex items-center gap-2">
+          <span className="text-[10px] font-semibold text-muted-foreground uppercase tracking-widest">Market Regime</span>
+          <span className={cn('rounded-full border px-2.5 py-0.5 text-xs font-bold', pill)}>{label}</span>
         </div>
 
-        {/* Middle: key stats */}
-        <div className="flex flex-wrap gap-4 lg:gap-6">
-          {[
-            { label: 'VIX',       value: vix.toFixed(2)    },
-            { label: 'S&P 500',   value: sp500Trend        },
-            { label: 'Nasdaq',    value: nasdaqStatus       },
-            { label: 'Rate Note', value: rateMacroNote, wide: true },
-          ].map(({ label: l, value: v, wide }) => (
-            <div key={l} className={cn('flex-shrink-0', wide && 'hidden xl:block max-w-[220px]')}>
+        <div className="flex flex-wrap gap-5 ml-auto">
+          {([
+            { label: 'VIX',     value: vix.toFixed(2) },
+            { label: 'S&P 500', value: sp500Trend      },
+            { label: 'Nasdaq',  value: nasdaqStatus    },
+          ] as { label: string; value: string }[]).map(({ label: l, value: v }) => (
+            <div key={l} className="text-center">
               <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">{l}</p>
-              <p className="text-sm font-medium text-foreground truncate" style={{ color: s.text }}>{v}</p>
+              <p className="text-sm font-semibold text-foreground mt-0.5">{v}</p>
             </div>
           ))}
-        </div>
-
-        {/* Right: conviction ring */}
-        <div className="flex items-center gap-3">
-          <div className="text-right">
-            <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">AI Conviction</p>
-            <p className="text-sm font-semibold" style={{ color: s.text }}>{aiConviction}%</p>
+          <div className="flex items-center gap-2.5">
+            <div className="text-center">
+              <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">AI Conviction</p>
+              <p className="text-sm font-semibold text-foreground mt-0.5">{aiConviction}%</p>
+            </div>
+            <ProgressRing value={aiConviction} size={40} strokeWidth={3} />
           </div>
-          <ProgressRing value={aiConviction} size={52} strokeWidth={4} />
         </div>
+      </div>
+
+      {/* Bottom row: summary + rate note */}
+      <div className="mt-3 pt-3 border-t border-border flex flex-col gap-1 lg:flex-row lg:gap-6">
+        <p className="text-sm text-muted-foreground leading-relaxed flex-1">{summary}</p>
+        {rateMacroNote && (
+          <p className="text-sm text-muted-foreground leading-relaxed lg:text-right lg:max-w-xs">{rateMacroNote}</p>
+        )}
       </div>
     </div>
   )
