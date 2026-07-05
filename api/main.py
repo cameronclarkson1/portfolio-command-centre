@@ -63,6 +63,15 @@ def _start_scheduler(app: FastAPI) -> None:
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     _start_scheduler(app)
+    # Auto-scan on startup if no cached results exist (e.g. fresh Railway deploy)
+    try:
+        import threading
+        from routes.scanner import RESULTS_FILE, run_daily_scan
+        if not RESULTS_FILE.exists():
+            print("[startup] No scan results found — triggering background scan")
+            threading.Thread(target=run_daily_scan, daemon=True).start()
+    except Exception as e:
+        print(f"[startup] Auto-scan skipped: {e}")
     yield
     scheduler = getattr(app.state, "scheduler", None)
     if scheduler:

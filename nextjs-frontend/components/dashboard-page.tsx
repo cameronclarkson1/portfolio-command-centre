@@ -18,8 +18,8 @@ import {
   dailyDecisions, opportunities, riskAlerts, sectorAllocation, holdings,
   marketIndices as mockIndices, newsEvents as mockNews, upcomingEvents, topMovers, allocationDrift,
 } from '@/lib/mock-data'
-import type { LiveDashboardData, DashboardDecision, DashboardOpportunity, DashboardHolding, DashboardSectorEntry } from '@/lib/api'
-import { fetchPortfolioPerformance, triggerScan, fetchScannerStatus } from '@/lib/api'
+import type { LiveDashboardData, DashboardDecision, DashboardOpportunity, DashboardHolding, DashboardSectorEntry, ScannerOpportunity } from '@/lib/api'
+import { fetchPortfolioPerformance, triggerScan, fetchScannerStatus, fetchScannerResults } from '@/lib/api'
 import { cn } from '@/lib/utils'
 import Link from 'next/link'
 
@@ -30,14 +30,17 @@ interface DashboardPageProps {
 export function DashboardPage({ liveData }: DashboardPageProps) {
   const [livePerf, setLivePerf] = useState<{ date: string; value: number }[] | null>(null)
   const [scanning, setScanning] = useState(false)
+  const [scannerOpps, setScannerOpps] = useState<ScannerOpportunity[] | null>(null)
 
   useEffect(() => {
     fetchPortfolioPerformance('1y').then((d) => {
       if (d && d.series.length > 0)
         setLivePerf(d.series.map((s: { date: string; value: number }) => ({ date: s.date, portfolio: s.value })))
     })
-    // Check if a scan is already running
     fetchScannerStatus().then((s) => { if (s?.running) setScanning(true) })
+    fetchScannerResults().then((r) => {
+      if (r?.opportunities?.length) setScannerOpps(r.opportunities.slice(0, 5))
+    })
   }, [])
 
   const handleRunScan = async () => {
@@ -310,8 +313,33 @@ export function DashboardPage({ liveData }: DashboardPageProps) {
             }
           />
           <div className="mt-3 divide-y divide-border">
-            {(liveOpportunities ?? opportunities).length === 0 ? (
-              <p className="py-4 text-center text-xs text-muted-foreground">No researched opportunities yet — run Stock Research to score watchlist tickers.</p>
+            {scannerOpps ? (
+              scannerOpps.map((o) => {
+                const changeUp = (o.change_pct ?? 0) >= 0
+                return (
+                  <div key={o.ticker} className="flex items-center gap-3 py-2.5">
+                    <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-accent text-[11px] font-bold text-foreground flex-shrink-0">
+                      {o.ticker.slice(0, 3)}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center justify-between gap-2">
+                        <span className="text-sm font-semibold text-foreground">{o.ticker}</span>
+                        <span className={cn('text-xs font-semibold', changeUp ? 'text-success' : 'text-destructive')}>
+                          {changeUp ? '+' : ''}{((o.change_pct ?? 0) * 100).toFixed(2)}%
+                        </span>
+                      </div>
+                      <p className="text-[11px] text-muted-foreground truncate">{o.name}</p>
+                      <div className="flex items-center gap-2 mt-0.5">
+                        <span className="text-[10px] text-muted-foreground">{o.price != null ? formatCurrency(o.price) : '—'}</span>
+                        {o.sector && <span className="text-[10px] px-1.5 py-0.5 bg-muted rounded-md text-muted-foreground font-medium">{o.sector}</span>}
+                      </div>
+                    </div>
+                    <ScoreBadge score={o.score} />
+                  </div>
+                )
+              })
+            ) : (liveOpportunities ?? opportunities).length === 0 ? (
+              <p className="py-4 text-center text-xs text-muted-foreground">No scan results yet — click Run Scan to generate opportunities.</p>
             ) : (
               (liveOpportunities ?? opportunities).map((o: DashboardOpportunity) => (
                 <div key={o.ticker} className="flex items-center gap-3 py-2.5">
@@ -325,10 +353,8 @@ export function DashboardPage({ liveData }: DashboardPageProps) {
                         {o.upside >= 0 ? '+' : ''}{o.upside.toFixed(2)}% upside
                       </span>
                     </div>
+                    <p className="text-[11px] text-muted-foreground">{o.company}</p>
                     <div className="flex items-center gap-2 mt-0.5">
-                      <span className="text-[11px] text-muted-foreground">{o.company}</span>
-                    </div>
-                    <div className="flex items-center gap-2 mt-1">
                       <span className="text-[10px] text-muted-foreground">{formatCurrency(o.price)}</span>
                       <span className="text-[10px] px-1.5 py-0.5 bg-muted rounded-md text-muted-foreground font-medium">{o.tag}</span>
                     </div>
