@@ -712,11 +712,13 @@ function ScoresTab({ research }: { research: ResearchData }) {
                 <div
                   className={cn(
                     'h-full rounded-full transition-all',
-                    score != null && score >= 75 ? 'bg-success' :
-                    score != null && score >= 55 ? 'bg-gold' :
-                    score != null && score >= 40 ? 'bg-orange-400' : 'bg-destructive'
+                    score == null            ? 'bg-muted-foreground/30' :
+                    score >= 75              ? 'bg-success' :
+                    score >= 55              ? 'bg-gold' :
+                    score >= 40              ? 'bg-orange-400' :
+                                               'bg-destructive'
                   )}
-                  style={{ width: `${score ?? 0}%` }}
+                  style={{ width: score != null ? `${score}%` : '100%' }}
                 />
               </div>
             </div>
