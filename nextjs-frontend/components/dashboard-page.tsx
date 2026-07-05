@@ -527,7 +527,16 @@ export function DashboardPage({ liveData }: DashboardPageProps) {
           />
           <div className="mt-3 divide-y divide-border">
             {newsEvents.map((n, i) => (
-              <div key={i} className="flex items-start gap-3 py-3 first:pt-0 last:pb-0">
+              <a
+                key={i}
+                href={n.url ?? undefined}
+                target="_blank"
+                rel="noopener noreferrer"
+                className={cn(
+                  'flex items-start gap-3 py-3 first:pt-0 last:pb-0',
+                  n.url && 'hover:bg-accent/40 -mx-1 px-1 rounded-lg transition-colors cursor-pointer'
+                )}
+              >
                 <Newspaper className="h-3.5 w-3.5 flex-shrink-0 mt-0.5 text-muted-foreground" />
                 <div className="flex-1 min-w-0">
                   <p className="text-xs font-medium text-foreground leading-relaxed">{n.title}</p>
@@ -540,7 +549,7 @@ export function DashboardPage({ liveData }: DashboardPageProps) {
                     )}
                   </div>
                 </div>
-              </div>
+              </a>
             ))}
           </div>
         </div>

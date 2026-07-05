@@ -231,9 +231,10 @@ async function fetchMarketNews(): Promise<NewsEventData[] | null> {
     time:      toRelativeTime(String(item.published_at ?? '')),
     title:     String(item.headline ?? ''),
     source:    String(item.source   ?? ''),
-    sentiment: 'neutral' as const,   // sentiment scoring not yet in the backend
+    sentiment: 'neutral' as const,
     ticker:    item.ticker ? String(item.ticker) : null,
-    aiScore:   65,                   // placeholder until AI scoring is added
+    aiScore:   65,
+    url:       item.url ? String(item.url) : null,
   }))
 }
 

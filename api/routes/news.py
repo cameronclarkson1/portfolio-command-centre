@@ -26,7 +26,9 @@ def get_market_news(limit: int = 8):
                 headline = item.get("headline", "")
                 if headline and headline not in seen:
                     seen.add(headline)
-                    all_news.append(item)
+                    # Only tag the ticker if it actually appears in the headline
+                    tagged = ticker.upper() in headline.upper()
+                    all_news.append({**item, "ticker": ticker if tagged else None})
 
         all_news.sort(key=lambda x: x.get("published_at", ""), reverse=True)
         return all_news[:limit]

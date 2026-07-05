@@ -216,10 +216,10 @@ export const aiInsights = [
 ]
 
 export const newsEvents = [
-  { time: '1h ago',  title: 'Fed holds rates steady — NIM pressure eases for banks',           source: 'WSJ',       sentiment: 'neutral'  as const, ticker: null,   aiScore: 62 },
-  { time: '2h ago',  title: 'Alphabet Q1: Cloud revenue beats estimates by 8%',                source: 'Bloomberg', sentiment: 'positive' as const, ticker: 'GOOG', aiScore: 83 },
-  { time: '4h ago',  title: 'Verizon misses subscriber targets for third consecutive quarter', source: 'FT',        sentiment: 'negative' as const, ticker: 'VZ',   aiScore: 42 },
-  { time: '1d ago',  title: 'NVIDIA data centre revenue surges 400% YoY — valuation stretched', source: 'CNBC',    sentiment: 'neutral'  as const, ticker: 'NVDA', aiScore: 55 },
+  { time: '1h ago',  title: 'Fed holds rates steady — NIM pressure eases for banks',           source: 'WSJ',       sentiment: 'neutral'  as const, ticker: null,   aiScore: 62, url: null },
+  { time: '2h ago',  title: 'Alphabet Q1: Cloud revenue beats estimates by 8%',                source: 'Bloomberg', sentiment: 'positive' as const, ticker: 'GOOG', aiScore: 83, url: null },
+  { time: '4h ago',  title: 'Verizon misses subscriber targets for third consecutive quarter', source: 'FT',        sentiment: 'negative' as const, ticker: 'VZ',   aiScore: 42, url: null },
+  { time: '1d ago',  title: 'NVIDIA data centre revenue surges 400% YoY — valuation stretched', source: 'CNBC',    sentiment: 'neutral'  as const, ticker: 'NVDA', aiScore: 55, url: null },
 ]
 
 // ── Risk alerts ───────────────────────────────────────────────────────────────
