@@ -481,6 +481,95 @@ function ValuationTab({ research }: { research: ResearchData }) {
         </div>
       )}
 
+      {/* Market Consensus — analyst price targets shown separately, not blended */}
+      {val.analyst_consensus?.has_data && (
+        <div className="rounded-xl border border-border bg-card p-4 shadow-sm">
+          <div className="flex items-center justify-between">
+            <SectionHeader title="Market Consensus" />
+            {(val.analyst_consensus.analyst_count ?? 0) > 0 && (
+              <span className="text-xs text-muted-foreground">
+                {val.analyst_consensus.analyst_count} analysts
+              </span>
+            )}
+          </div>
+          <p className="mt-0.5 text-xs text-muted-foreground">
+            Analyst price targets — reference only, not blended into the fair value above
+          </p>
+
+          {/* PT range: low / median / high */}
+          <div className="mt-3 grid grid-cols-3 gap-2">
+            <div className="rounded-lg bg-muted/30 p-3 text-center">
+              <p className="text-xs text-muted-foreground mb-1">Low Target</p>
+              <p className="text-sm font-semibold text-foreground">
+                {val.analyst_consensus.target_low != null
+                  ? formatCurrency(val.analyst_consensus.target_low)
+                  : '—'}
+              </p>
+            </div>
+            <div className="rounded-lg bg-primary/10 border border-primary/20 p-3 text-center">
+              <p className="text-xs text-muted-foreground mb-1">Median Target</p>
+              <p className="text-base font-bold text-foreground">
+                {formatCurrency(
+                  (val.analyst_consensus.target_median ?? val.analyst_consensus.target_consensus) ?? 0
+                )}
+              </p>
+            </div>
+            <div className="rounded-lg bg-muted/30 p-3 text-center">
+              <p className="text-xs text-muted-foreground mb-1">High Target</p>
+              <p className="text-sm font-semibold text-foreground">
+                {val.analyst_consensus.target_high != null
+                  ? formatCurrency(val.analyst_consensus.target_high)
+                  : '—'}
+              </p>
+            </div>
+          </div>
+
+          {/* Street vs our models comparison */}
+          <div className="mt-3 flex items-center justify-between rounded-lg bg-muted/20 px-3 py-2">
+            <div className="text-sm">
+              <span className="text-muted-foreground">Street implies </span>
+              <span className={cn(
+                'font-semibold',
+                (val.analyst_consensus.pt_upside_pct ?? 0) > 0 ? 'text-success' : 'text-destructive'
+              )}>
+                {val.analyst_consensus.pt_upside_pct != null
+                  ? `${val.analyst_consensus.pt_upside_pct > 0 ? '+' : ''}${(val.analyst_consensus.pt_upside_pct * 100).toFixed(1)}%`
+                  : '—'}
+              </span>
+              <span className="text-muted-foreground"> from current</span>
+            </div>
+            <div className="text-xs text-muted-foreground">
+              Our models:{' '}
+              <span className={cn(
+                'font-medium',
+                (val.upside_pct ?? 0) > 0 ? 'text-success' : 'text-destructive'
+              )}>
+                {val.upside_pct != null
+                  ? `${val.upside_pct > 0 ? '+' : ''}${(val.upside_pct * 100).toFixed(1)}%`
+                  : '—'}
+              </span>
+            </div>
+          </div>
+
+          {/* Buy / Hold / Sell from analyst_summary if available */}
+          {research.analyst_summary && research.analyst_summary.total > 0 && (
+            <div className="mt-2 flex items-center gap-3 text-xs text-muted-foreground">
+              <span className="text-success font-medium">
+                Buy {research.analyst_summary.buy}
+              </span>
+              <span>·</span>
+              <span className="text-gold-foreground font-medium">
+                Hold {research.analyst_summary.hold}
+              </span>
+              <span>·</span>
+              <span className="text-destructive font-medium">
+                Sell {research.analyst_summary.sell}
+              </span>
+            </div>
+          )}
+        </div>
+      )}
+
       {/* Warnings */}
       {val.warnings.length > 0 && (
         <div className="rounded-xl border border-border bg-card p-4 shadow-sm">

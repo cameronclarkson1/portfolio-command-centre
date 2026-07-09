@@ -272,6 +272,23 @@ def run_valuation(ticker: str, price: float | None = None) -> dict:
     except Exception as e:
         log.warning(f"confidence_service failed for {ticker}: {e}")
 
+    # Analyst consensus — separate reference signal, not blended into fair value.
+    # Kept distinct so it doesn't dilute the fundamental model agreement score.
+    _pt_median    = val_inputs.get("analyst_pt_median")
+    _pt_consensus = val_inputs.get("analyst_pt_consensus")
+    _pt_value     = _pt_median or _pt_consensus
+    _pt_upside    = round((_pt_value - price) / price, 4) if (_pt_value and price) else None
+
+    analyst_consensus = {
+        "target_median":    _pt_median,
+        "target_consensus": _pt_consensus,
+        "target_high":      val_inputs.get("analyst_pt_high"),
+        "target_low":       val_inputs.get("analyst_pt_low"),
+        "analyst_count":    val_inputs.get("analyst_count", 0),
+        "has_data":         bool(_pt_value),
+        "pt_upside_pct":    _pt_upside,
+    }
+
     result = {
         "ticker":                 ticker,
         "sector":                 sector   or "Unknown",
@@ -281,8 +298,9 @@ def run_valuation(ticker: str, price: float | None = None) -> dict:
         "why_these_models":       BUCKET_EXPLANATIONS.get(bucket, ""),
         "models_run":             models_run,
         **blend,
-        "overall_confidence":     adjusted_confidence,   # overrides blend's raw value
+        "overall_confidence":     adjusted_confidence,
         "confidence_explanation": confidence_explanation,
+        "analyst_consensus":      analyst_consensus,
         "warnings":               all_warnings,
     }
 

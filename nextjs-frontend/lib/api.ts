@@ -682,7 +682,16 @@ export interface ValuationResult {
   upside_pct:         number
   valuation_rating:   string
   overall_confidence:      number
-  confidence_explanation?: string   // optional — absent in old cached responses
+  confidence_explanation?: string
+  analyst_consensus?: {
+    target_median:    number | null
+    target_consensus: number | null
+    target_high:      number | null
+    target_low:       number | null
+    analyst_count:    number
+    has_data:         boolean
+    pt_upside_pct:    number | null
+  }
   warnings:                string[]
 }
 
