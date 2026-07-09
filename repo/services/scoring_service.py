@@ -491,7 +491,10 @@ def build_scoring_inputs(
     d["net_income"]     = _ttm(incomes,   "net_income", "netIncome")
 
     # ── Growth inputs ─────────────────────────────────────────────────────────
-    d["revenue_growth"] = _safe_float(r.get("revenue_growth_yoy"))
+    _rg = _safe_float(r.get("revenue_growth_yoy"))
+    if _rg is not None and abs(_rg) > 3.0:
+        _rg = _rg / 100.0 if abs(_rg) <= 300.0 else None
+    d["revenue_growth"] = _rg
 
     # EPS growth derived from income series (year-on-year)
     d["earnings_growth"] = None
@@ -626,7 +629,12 @@ def generate_investment_thesis(
     val_status  = scores.get("valuation_status", "")
 
     roic       = _safe_float(r.get("roic"))
-    rev_growth = _safe_float(r.get("revenue_growth_yoy"))
+    _raw_growth = _safe_float(r.get("revenue_growth_yoy"))
+    # Guard: if the value is outside a plausible decimal range it wasn't normalised
+    # upstream — divide by 100 to recover. Values > 3.0 (300% growth) are capped.
+    if _raw_growth is not None and abs(_raw_growth) > 3.0:
+        _raw_growth = _raw_growth / 100.0 if abs(_raw_growth) <= 300.0 else None
+    rev_growth = _raw_growth
     pe         = _safe_float(r.get("pe_ratio"))
     de         = _safe_float(r.get("debt_equity"))
     beta       = _safe_float(r.get("beta"))

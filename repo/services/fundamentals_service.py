@@ -101,6 +101,32 @@ def get_financial_statements(ticker: str) -> dict | None:
     return result
 
 
+def _normalise_growth(value) -> float | None:
+    """
+    Normalise a growth rate that may arrive as a decimal or percentage.
+
+    Finnhub's revenueGrowthTTMYoy is documented as decimal (0.12 = 12%) but
+    in practice returns percentage-expressed values for many tickers (12.0 = 12%).
+    Without this guard the thesis generator multiplies by 100 again → 1200%.
+
+    Rules:
+      -1.5 to 3.0  → treat as decimal (already correct)
+      -150 to 300  → treat as percentage, divide by 100
+      outside both → discard (implausible, return None)
+    """
+    if value is None:
+        return None
+    try:
+        v = float(value)
+    except (TypeError, ValueError):
+        return None
+    if -1.5 <= v <= 3.0:
+        return v
+    if -150.0 <= v <= 300.0:
+        return v / 100.0
+    return None   # outside any plausible range — discard
+
+
 def get_key_ratios(ticker: str) -> dict | None:
     """
     Return key financial ratios for a ticker.
@@ -164,7 +190,7 @@ def get_key_ratios(ticker: str) -> dict | None:
         "beta":               finnhub_m.get("beta"),
         "52_week_high":       finnhub_m.get("52_week_high"),
         "52_week_low":        finnhub_m.get("52_week_low"),
-        "revenue_growth_yoy": finnhub_m.get("revenue_growth_yoy"),
+        "revenue_growth_yoy": _normalise_growth(finnhub_m.get("revenue_growth_yoy")),
         "source":             "fmp+finnhub",
         "confidence":         82.0,
     }
