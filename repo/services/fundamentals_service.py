@@ -236,7 +236,15 @@ def get_valuation_inputs(ticker: str, price: float | None = None, sector: str = 
 
     finnhub_yoy = (ratios or {}).get("revenue_growth_yoy")
     if finnhub_yoy is not None and isinstance(finnhub_yoy, (int, float)) and not (finnhub_yoy != finnhub_yoy):
-        revenue_growth = float(finnhub_yoy)
+        raw_yoy = float(finnhub_yoy)
+        # Finnhub sometimes returns growth as a percentage (e.g. 5.18 meaning 5.18%)
+        # rather than a decimal (0.0518). Detect and normalise.
+        if -1.5 <= raw_yoy <= 3.0:
+            revenue_growth = raw_yoy          # decimal — use as-is
+        elif -150 <= raw_yoy <= 300:
+            revenue_growth = raw_yoy / 100    # percentage format — convert
+            warnings.append(f"Revenue growth from Finnhub normalised ({raw_yoy:.2f}% → decimal)")
+        # else: outside any plausible range — discard, fall through to TTM calc
 
     if revenue_growth is None and len(income) >= 8:
         ttm_now   = sum(q.get("revenue") or 0 for q in income[:4])

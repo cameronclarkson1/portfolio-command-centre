@@ -97,6 +97,22 @@ def _latest_balance(statements: dict) -> dict:
     return balance[0] if balance else {}
 
 
+def _get_shares(statements: dict) -> float | None:
+    """
+    Get diluted share count, trying balance sheet first then income statement.
+
+    FMP's stable API no longer returns shares_outstanding on the balance sheet,
+    so we fall back to weighted-average diluted shares from the income statement.
+    """
+    bal    = _latest_balance(statements)
+    shares = bal.get("shares_outstanding")
+    if not shares:
+        income = statements.get("income") or [{}]
+        latest = income[0] if income else {}
+        shares = latest.get("shares_diluted") or latest.get("shares_basic")
+    return shares
+
+
 def run_pe(bucket: str, ratios: dict, statements: dict, price: float = 0) -> dict:
     """P/E comparable valuation: Fair Value = TTM EPS × sector average P/E.
     Falls back to inferring EPS from the live P/E ratio when statements are unavailable."""
@@ -136,11 +152,11 @@ def run_ev_ebitda(bucket: str, ratios: dict, statements: dict) -> dict:
     """EV/EBITDA valuation: Implied EV = EBITDA × benchmark, then subtract net debt."""
     benchmark = EV_EBITDA_BENCHMARKS.get(bucket, EV_EBITDA_BENCHMARKS["default"])
 
-    ttm     = _ttm_income(statements)
-    bal     = _latest_balance(statements)
-    ebitda  = ttm.get("ebitda")
-    net_debt    = bal.get("net_debt") or 0
-    shares_out  = bal.get("shares_outstanding")
+    ttm        = _ttm_income(statements)
+    bal        = _latest_balance(statements)
+    ebitda     = ttm.get("ebitda")
+    net_debt   = bal.get("net_debt") or 0
+    shares_out = _get_shares(statements)
 
     if not ebitda or ebitda <= 0 or not shares_out:
         return {"model": "ev_ebitda", "name": "EV/EBITDA Comparable", "fair_value": None,
@@ -219,7 +235,7 @@ def run_pb(bucket: str, ratios: dict, statements: dict, price: float = 0) -> dic
     benchmark  = PB_BENCHMARKS.get(bucket, PB_BENCHMARKS["default"])
     bal        = _latest_balance(statements)
     equity     = bal.get("total_equity")
-    shares_out = bal.get("shares_outstanding")
+    shares_out = _get_shares(statements)
 
     warnings = []
     if equity and shares_out:
