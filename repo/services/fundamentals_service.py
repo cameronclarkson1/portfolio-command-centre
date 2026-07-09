@@ -173,7 +173,7 @@ def get_key_ratios(ticker: str) -> dict | None:
     return result
 
 
-def get_valuation_inputs(ticker: str) -> dict:
+def get_valuation_inputs(ticker: str, price: float | None = None, sector: str = "") -> dict:
     """
     Assemble all inputs needed to run a DCF model.
     Also returns a warnings list if any key inputs are missing.
@@ -269,14 +269,8 @@ def get_valuation_inputs(ticker: str) -> dict:
         warnings.append("EBIT margin could not be calculated")
     inputs["ebit_margin"] = ebit_margin
 
-    # ── Tax rate ──────────────────────────────────────────────────────────────
-    # Estimate from net income / pre-tax income not available directly in our schema
-    # Use a standard 20% assumption if not available
-    tax_rate = 0.20
-    warnings.append("Tax rate defaulted to 20% — verify against actual effective rate")
-    inputs["tax_rate"] = tax_rate
-
     # ── Depreciation, Capex, and FCF (TTM = sum of last 4 quarters) ─────────
+    # Tax rate is computed later in the WACC section from income statement data.
     # Single-quarter × 4 causes seasonal distortion for companies like LULU.
     def _ttm(lst, field, n=4):
         return sum((q.get(field) or 0) for q in lst[:n]) or 0
@@ -323,45 +317,96 @@ def get_valuation_inputs(ticker: str) -> dict:
     inputs["net_debt"]     = net_debt
     inputs["shares_out"]   = shares_out
 
-    # ── Beta and WACC estimate ────────────────────────────────────────────────
-    beta = (ratios or {}).get("beta")
-    if beta is None:
-        beta = 1.0
-        warnings.append("Beta not available — defaulted to 1.0 (market-equivalent risk)")
+    # ── Effective tax rate from income statement ──────────────────────────────
+    # TTM pretax income and tax expense give the actual rate this company pays.
+    # Capped at [15%, 40%] to exclude loss-years and international anomalies.
+    ttm_pretax = sum((q.get("pretax_income")      or 0) for q in income[:4])
+    ttm_tax    = sum((q.get("income_tax_expense") or 0) for q in income[:4])
+    if ttm_pretax > 0 and ttm_tax > 0:
+        tax_rate = max(0.15, min(0.40, ttm_tax / ttm_pretax))
+    else:
+        tax_rate = 0.21   # US statutory rate — more accurate than the previous 20% default
+        warnings.append("Effective tax rate defaulted to 21% — pretax income data unavailable")
 
-    # Risk-free rate from FRED (fall back to 4.5% if unavailable)
+    inputs["tax_rate"] = tax_rate
+
+    # ── Beta and WACC estimate ────────────────────────────────────────────────
+    # Step 1: Damodaran sector unlevered beta (more stable than company's own beta)
+    from data.damodaran_betas import get_unlevered_beta, relevered_beta, DAMODARAN_ERP
+    ul_beta = get_unlevered_beta(sector, "")
+
+    # Step 2: Company debt from balance sheet
+    total_debt_val   = latest_bal.get("total_debt")   or 0
+    total_equity_val = latest_bal.get("total_equity") or 0
+
+    # Step 3: Market equity — price × diluted shares (more accurate than book equity)
+    # Falls back to book equity for WACC weights if price is unavailable.
+    market_equity = (price * shares_out) if (price and shares_out) else None
+    if market_equity is None and total_equity_val > 0:
+        market_equity = total_equity_val   # book equity as last resort
+
+    # Step 4: Re-lever sector beta for this company's actual capital structure
+    if market_equity and market_equity > 0:
+        beta_est = relevered_beta(ul_beta, total_debt_val, market_equity, tax_rate)
+    else:
+        # Fall back to Finnhub's raw beta if market equity is unknowable
+        beta_est = (ratios or {}).get("beta") or ul_beta
+        warnings.append("Re-levered beta unavailable — using Damodaran sector unlevered beta")
+
+    # Step 5: Risk-free rate from FRED 10Y Treasury
     risk_free = 0.045
+    baa_yield  = None
     try:
         from services.macro_service import get_macro_snapshot
         macro = get_macro_snapshot()
         if macro and macro.get("treasury_10y"):
             risk_free = (macro["treasury_10y"]["value"] or 4.5) / 100
+        if macro and macro.get("baa_yield"):
+            baa_yield = (macro["baa_yield"]["value"] or None)
+            if baa_yield:
+                baa_yield = baa_yield / 100
     except Exception:
-        warnings.append("Risk-free rate from FRED unavailable — defaulted to 4.5%")
+        warnings.append("FRED rates unavailable — risk-free defaulted to 4.5%")
 
-    market_premium = 0.055   # standard equity risk premium
-    cost_of_equity = risk_free + beta * market_premium
+    # Step 6: Cost of equity (CAPM with Damodaran ERP)
+    cost_of_equity = risk_free + beta_est * DAMODARAN_ERP
 
-    # WACC = equity_weight × cost_of_equity + debt_weight × cost_of_debt × (1 − tax)
-    # Uses book equity weights (conservative proxy; market equity weights require live price).
-    # Only applied when both equity and debt are positive — negative-equity companies
-    # (e.g. MCD, KO after heavy buybacks) default to cost of equity.
-    total_debt_val   = latest_bal.get("total_debt") or 0
-    total_equity_val = latest_bal.get("total_equity") or 0
+    # Step 7: Cost of debt — best of FRED Baa yield vs company's actual interest rate
+    # Company rate = TTM interest expense / total debt (reflects actual borrowing cost)
+    ttm_interest   = sum((q.get("interest_expense") or 0) for q in income[:4])
+    company_kd     = (ttm_interest / total_debt_val) if total_debt_val > 0 and ttm_interest > 0 else None
+    fred_kd        = baa_yield or (risk_free + 0.02)   # fall back to rf + 200bps spread
+    # Take the higher of the two (conservative) — ensures leveraged companies aren't undercosted
+    cost_of_debt   = max(company_kd, fred_kd) if company_kd else fred_kd
+    after_tax_kd   = cost_of_debt * (1 - tax_rate)
 
-    if total_debt_val > 0 and total_equity_val > 0:
-        book_capital    = total_equity_val + total_debt_val
-        e_weight        = total_equity_val / book_capital
-        d_weight        = total_debt_val   / book_capital
-        cost_of_debt    = risk_free + 0.02       # risk-free + ~200bps IG credit spread
-        after_tax_kd    = cost_of_debt * (1 - tax_rate)
-        wacc_estimate   = (e_weight * cost_of_equity) + (d_weight * after_tax_kd)
+    # Step 8: Capital structure weights using market equity (correct)
+    # Negative-equity companies (MCD, KO) default to 100% equity weight.
+    if market_equity and market_equity > 0 and total_debt_val > 0:
+        total_capital = market_equity + total_debt_val
+        e_weight      = market_equity    / total_capital
+        d_weight      = total_debt_val   / total_capital
+        wacc_estimate = (e_weight * cost_of_equity) + (d_weight * after_tax_kd)
     else:
-        wacc_estimate = cost_of_equity
+        wacc_estimate = cost_of_equity   # no debt or no equity — WACC = Ke
 
-    inputs["beta"]           = beta
-    inputs["wacc_estimate"]  = round(wacc_estimate, 4)
-    inputs["terminal_growth"]= 0.03   # standard 3% perpetuity growth
+    inputs["beta"]            = round(beta_est, 3)
+    inputs["wacc_estimate"]   = round(wacc_estimate, 4)
+    inputs["terminal_growth"] = 0.03   # standard 3% perpetuity growth
+
+    # Store WACC components for transparency in the research output
+    inputs["wacc_components"] = {
+        "risk_free":       round(risk_free, 4),
+        "beta":            round(beta_est, 3),
+        "erp":             DAMODARAN_ERP,
+        "cost_of_equity":  round(cost_of_equity, 4),
+        "cost_of_debt":    round(cost_of_debt, 4),
+        "after_tax_kd":    round(after_tax_kd, 4),
+        "equity_weight":   round(e_weight if (market_equity and total_debt_val > 0) else 1.0, 3),
+        "debt_weight":     round(d_weight if (market_equity and total_debt_val > 0) else 0.0, 3),
+        "tax_rate":        round(tax_rate, 3),
+        "source":          "Damodaran 2025 sector betas + FRED rates",
+    }
 
     # ── Completeness score ────────────────────────────────────────────────────
     required = [

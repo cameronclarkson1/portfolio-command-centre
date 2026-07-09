@@ -198,7 +198,7 @@ def run_valuation(ticker: str, price: float | None = None) -> dict:
     # 2. Fetch all financial data needed by the models
     ratios     = get_key_ratios(ticker)          or {}
     statements = get_financial_statements(ticker) or {}
-    val_inputs = get_valuation_inputs(ticker)
+    val_inputs = get_valuation_inputs(ticker, price=price, sector=sector)
 
     # 3. Determine valuation bucket (with early-stage override)
     bucket = get_bucket(sector, industry)

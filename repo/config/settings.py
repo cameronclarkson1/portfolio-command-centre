@@ -110,6 +110,7 @@ FRED_SERIES = {
     "cpi_yoy":        "CPIAUCSL",
     "unemployment":   "UNRATE",
     "gdp_growth":     "A191RL1Q225SBEA",
+    "baa_yield":      "DBAA",     # Moody's Baa corporate bond yield — used as cost of debt in WACC
 }
 
 # ─── Event Classification Categories ─────────────────────────────────────────

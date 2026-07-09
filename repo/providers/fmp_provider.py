@@ -86,17 +86,21 @@ def get_income_statement(ticker: str, limit: int = 4) -> list[dict]:
         net_income       = stmt.get("netIncome")
 
         results.append({
-            "period":           stmt.get("period"),
-            "date":             stmt.get("date"),
-            "revenue":          stmt.get("revenue"),
-            "gross_profit":     gross_profit,
-            "operating_income": operating_income,
-            "net_income":       net_income,
-            "ebitda":           stmt.get("ebitda"),
-            "eps":              stmt.get("eps"),
-            "eps_diluted":      stmt.get("epsDiluted"),
-            "shares_basic":     stmt.get("weightedAverageShsOut"),
-            "shares_diluted":   stmt.get("weightedAverageShsOutDil"),
+            "period":             stmt.get("period"),
+            "date":               stmt.get("date"),
+            "revenue":            stmt.get("revenue"),
+            "gross_profit":       gross_profit,
+            "operating_income":   operating_income,
+            "net_income":         net_income,
+            "ebitda":             stmt.get("ebitda"),
+            "eps":                stmt.get("eps"),
+            "eps_diluted":        stmt.get("epsDiluted"),
+            "shares_basic":       stmt.get("weightedAverageShsOut"),
+            "shares_diluted":     stmt.get("weightedAverageShsOutDil"),
+            # WACC inputs — interest cost and tax rate components
+            "interest_expense":   stmt.get("interestExpense"),
+            "pretax_income":      stmt.get("incomeBeforeTax"),
+            "income_tax_expense": stmt.get("incomeTaxExpense"),
             # Calculate margins — not returned directly in stable API
             "gross_margin":     (gross_profit / revenue)     if revenue and gross_profit     is not None else None,
             "operating_margin": (operating_income / revenue) if revenue and operating_income is not None else None,
