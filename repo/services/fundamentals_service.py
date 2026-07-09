@@ -260,6 +260,40 @@ def get_valuation_inputs(ticker: str, price: float | None = None, sector: str = 
 
     inputs["revenue_growth"] = revenue_growth
 
+    # ── Analyst forward revenue estimates ─────────────────────────────────────
+    # FMP consensus estimates for the next 1–2 fiscal years.
+    # These anchor Stage 1 of the DCF. Falls back to historical growth if empty.
+    analyst_rev_growth_y1   = None
+    analyst_rev_growth_y2   = None
+    analyst_count           = 0
+    analyst_estimate_spread = None   # (high − low) / avg — proxy for disagreement
+
+    try:
+        est_data = fmp.get_analyst_estimates(ticker, limit=3)
+        if est_data and revenue_ttm and revenue_ttm > 0:
+            est0 = est_data[0]
+            rev0 = est0.get("estimated_revenue_avg")
+            if rev0 and rev0 > 0:
+                analyst_rev_growth_y1 = (rev0 - revenue_ttm) / revenue_ttm
+                rev_low  = est0.get("estimated_revenue_low")  or rev0
+                rev_high = est0.get("estimated_revenue_high") or rev0
+                analyst_estimate_spread = (rev_high - rev_low) / rev0
+            analyst_count = max(
+                est0.get("analyst_count_revenue") or 0,
+                est0.get("analyst_count_eps")     or 0,
+            )
+            if len(est_data) >= 2:
+                rev1 = est_data[1].get("estimated_revenue_avg")
+                if rev1 and rev0 and rev0 > 0:
+                    analyst_rev_growth_y2 = (rev1 - rev0) / rev0
+    except Exception as e:
+        log.warning(f"Analyst estimates unavailable for {ticker}: {e}")
+
+    inputs["analyst_rev_growth_y1"]   = analyst_rev_growth_y1
+    inputs["analyst_rev_growth_y2"]   = analyst_rev_growth_y2
+    inputs["analyst_count"]           = analyst_count
+    inputs["analyst_estimate_spread"] = analyst_estimate_spread
+
     # ── EBIT margin ───────────────────────────────────────────────────────────
     latest_income = income[0] if income else {}
     ebit_margin = latest_income.get("operating_margin")

@@ -328,6 +328,43 @@ def get_batch_quotes(tickers: list[str]) -> list[dict]:
     return results
 
 
+def get_analyst_estimates(ticker: str, limit: int = 3) -> list[dict]:
+    """
+    Annual analyst consensus revenue, EPS, and EBITDA estimates.
+    Returns up to `limit` future fiscal years, nearest year first.
+
+    Fields per year: estimated_revenue_avg/low/high, estimated_eps_avg/low/high,
+    estimated_ebitda_avg, estimated_ebit_avg, analyst_count_revenue, analyst_count_eps.
+
+    Note: small-caps and foreign-listed stocks often have zero coverage — caller
+    should handle empty list gracefully.
+    """
+    log_provider_call(log, "FMP", f"/analyst-estimates?symbol={ticker}", ticker)
+
+    data = _get("/analyst-estimates", params={"symbol": ticker, "limit": limit})
+    if not data:
+        raise ValueError(f"FMP returned no analyst estimates for {ticker}")
+
+    results = []
+    for est in (data or []):
+        results.append({
+            "date":                     est.get("date"),
+            "estimated_revenue_avg":    est.get("estimatedRevenueAvg"),
+            "estimated_revenue_low":    est.get("estimatedRevenueLow"),
+            "estimated_revenue_high":   est.get("estimatedRevenueHigh"),
+            "estimated_ebitda_avg":     est.get("estimatedEbitdaAvg"),
+            "estimated_ebit_avg":       est.get("estimatedEbitAvg"),
+            "estimated_net_income_avg": est.get("estimatedNetIncomeAvg"),
+            "estimated_eps_avg":        est.get("estimatedEpsAvg"),
+            "estimated_eps_low":        est.get("estimatedEpsLow"),
+            "estimated_eps_high":       est.get("estimatedEpsHigh"),
+            "analyst_count_revenue":    est.get("numberAnalystEstimatedRevenue"),
+            "analyst_count_eps":        est.get("numberAnalystEstimatedEps"),
+        })
+    # Nearest fiscal year first (ascending date order)
+    return sorted(results, key=lambda x: x.get("date") or "")
+
+
 def get_company_profile(ticker: str) -> dict:
     """
     Get company profile: name, sector, industry, description, market cap.
