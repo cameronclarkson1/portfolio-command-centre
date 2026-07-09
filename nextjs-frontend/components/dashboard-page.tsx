@@ -28,7 +28,7 @@ interface DashboardPageProps {
 }
 
 export function DashboardPage({ liveData }: DashboardPageProps) {
-  const [livePerf, setLivePerf] = useState<{ date: string; value: number }[] | null>(null)
+  const [livePerf, setLivePerf] = useState<{ date: string; portfolio: number }[] | null>(null)
   const [scanning, setScanning] = useState(false)
   const [scannerOpps, setScannerOpps] = useState<ScannerOpportunity[] | null>(null)
   const [earnings, setEarnings] = useState<EarningsItem[] | null>(null)

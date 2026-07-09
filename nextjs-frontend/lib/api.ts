@@ -235,7 +235,7 @@ async function fetchMarketNews(): Promise<NewsEventData[] | null> {
     ticker:    item.ticker ? String(item.ticker) : null,
     aiScore:   65,
     url:       item.url ? String(item.url) : null,
-  }))
+  })) as NewsEventData[]
 }
 
 // ── Sector Performance ────────────────────────────────────────────────────────
@@ -720,21 +720,21 @@ export async function fetchWatchlistRefresh(tickers: string[]): Promise<Watchlis
 // ── Scanner (Daily Opportunities) ────────────────────────────────────────────
 
 export interface ScannerOpportunity {
-  ticker:       string
-  name:         string
-  sector:       string
-  price:        number | null
-  change_pct:   number | null
-  market_cap:   number | null
-  pe_ratio:     number | null
-  ev_ebitda:    number | null
-  roic:         number | null      // percent, e.g. 18.5 means 18.5%
-  net_margin:   number | null      // percent
-  rev_growth:   number | null      // percent
-  fcf_positive: boolean
-  year_high:    number | null
-  year_low:     number | null
-  score:        number             // 0–100 composite score
+  ticker:        string
+  name:          string
+  sector:        string
+  price:         number | null
+  change_pct:    number | null
+  market_cap:    number | null
+  pe_ratio:      number | null
+  ev_ebitda:     number | null
+  roic:          number | null      // percent, e.g. 18.5 means 18.5%
+  net_margin:    number | null      // percent
+  rev_growth:    number | null      // percent
+  current_ratio: number | null
+  year_high:     number | null
+  year_low:      number | null
+  score:         number             // 0–100 composite score
 }
 
 export interface ScannerResults {

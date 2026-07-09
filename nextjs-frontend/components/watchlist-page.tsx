@@ -316,7 +316,7 @@ export function WatchlistPage({ livePrices }: { livePrices?: LivePriceData | nul
     .sort((a, b) => {
       if (sortBy === 'change')      return b.changePercent - a.changePercent
       if (sortBy === 'upside')      return b.upside - a.upside
-      if (sortBy === 'risk')        return b.safetyScore - a.safetyScore   // highest safety first
+      if (sortBy === 'risk')        return (b.safetyScore ?? -1) - (a.safetyScore ?? -1)   // highest safety first
       if (sortBy === 'final_score') return (b.finalScore ?? -1) - (a.finalScore ?? -1)
       if (sortBy === 'confidence')  return (b.confidence ?? -1) - (a.confidence ?? -1)
       if (sortBy === 'alpha')       return a.symbol.localeCompare(b.symbol)
@@ -415,9 +415,9 @@ export function WatchlistPage({ livePrices }: { livePrices?: LivePriceData | nul
             <p className="text-[10px] uppercase tracking-wide text-muted-foreground">Safety</p>
             <p className={cn(
               'text-sm font-medium mt-0.5',
-              stock.safetyScore >= 75 ? 'text-success' :
-              stock.safetyScore >= 55 ? 'text-gold-foreground' :
-              stock.safetyScore >= 40 ? 'text-orange-400' : 'text-destructive'
+              (stock.safetyScore ?? 0) >= 75 ? 'text-success' :
+              (stock.safetyScore ?? 0) >= 55 ? 'text-gold-foreground' :
+              (stock.safetyScore ?? 0) >= 40 ? 'text-orange-400' : 'text-destructive'
             )}>
               {stock.safetyScore != null ? stock.safetyScore : '—'}
             </p>

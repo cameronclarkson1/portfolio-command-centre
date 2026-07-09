@@ -329,7 +329,6 @@ def get_valuation_inputs(ticker: str) -> dict:
         beta = 1.0
         warnings.append("Beta not available — defaulted to 1.0 (market-equivalent risk)")
 
-    # Simplified WACC: CAPM cost of equity + rough cost of debt
     # Risk-free rate from FRED (fall back to 4.5% if unavailable)
     risk_free = 0.045
     try:
@@ -342,7 +341,23 @@ def get_valuation_inputs(ticker: str) -> dict:
 
     market_premium = 0.055   # standard equity risk premium
     cost_of_equity = risk_free + beta * market_premium
-    wacc_estimate  = cost_of_equity  # simplified (ignores debt cost for now)
+
+    # WACC = equity_weight × cost_of_equity + debt_weight × cost_of_debt × (1 − tax)
+    # Uses book equity weights (conservative proxy; market equity weights require live price).
+    # Only applied when both equity and debt are positive — negative-equity companies
+    # (e.g. MCD, KO after heavy buybacks) default to cost of equity.
+    total_debt_val   = latest_bal.get("total_debt") or 0
+    total_equity_val = latest_bal.get("total_equity") or 0
+
+    if total_debt_val > 0 and total_equity_val > 0:
+        book_capital    = total_equity_val + total_debt_val
+        e_weight        = total_equity_val / book_capital
+        d_weight        = total_debt_val   / book_capital
+        cost_of_debt    = risk_free + 0.02       # risk-free + ~200bps IG credit spread
+        after_tax_kd    = cost_of_debt * (1 - tax_rate)
+        wacc_estimate   = (e_weight * cost_of_equity) + (d_weight * after_tax_kd)
+    else:
+        wacc_estimate = cost_of_equity
 
     inputs["beta"]           = beta
     inputs["wacc_estimate"]  = round(wacc_estimate, 4)

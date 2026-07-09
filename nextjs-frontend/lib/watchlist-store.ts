@@ -12,7 +12,7 @@ export type WatchlistItem = {
   fairValue:     number
   rating:        string    // 7-level: Strong Buy | Buy | Accumulate | Hold / Watchlist | Reduce | Sell | Strong Sell
   upside:        number
-  safetyScore:   number    // 0-100, higher = safer (business/financial risk)
+  safetyScore:   number | null    // 0-100, higher = safer (business/financial risk)
   sparkline:     number[]
 
   sector?:         string | null

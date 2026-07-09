@@ -4,7 +4,7 @@ import { useEffect, useState, useCallback } from 'react'
 import Link from 'next/link'
 import {
   TrendingUp, RefreshCw, Clock, AlertCircle, Loader2,
-  BarChart3, ChevronUp, ChevronDown, Zap, CheckCircle2,
+  BarChart3, ChevronUp, ChevronDown, Zap, CheckCircle2, Info,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import {
@@ -83,7 +83,7 @@ function OpportunityCard({ stock, rank }: { stock: ScannerOpportunity; rank: num
             <div className="flex items-center gap-1.5">
               <span className="text-sm font-bold text-foreground">{stock.ticker}</span>
               {stock.roic && stock.roic > 20 && (
-                <CheckCircle2 className="h-3 w-3 text-success" title="High ROIC" />
+                <CheckCircle2 className="h-3 w-3 text-success" aria-label="High ROIC" />
               )}
             </div>
             <p className="text-[11px] text-muted-foreground truncate max-w-[130px]">{stock.name || '—'}</p>
@@ -116,14 +116,19 @@ function OpportunityCard({ stock, rank }: { stock: ScannerOpportunity; rank: num
       {/* Metrics grid */}
       <div className="grid grid-cols-2 gap-x-4 gap-y-2.5 mb-3 pt-3 border-t border-border">
         <MetricCell
-          label="EV/EBITDA"
-          value={fmt(stock.ev_ebitda, 1, 'x')}
-          highlight={stock.ev_ebitda ? (stock.ev_ebitda < 15 ? 'good' : stock.ev_ebitda > 25 ? 'bad' : null) : null}
-        />
-        <MetricCell
           label="ROIC"
           value={fmt(stock.roic, 1, '%')}
           highlight={stock.roic ? (stock.roic > 15 ? 'good' : stock.roic < 0 ? 'bad' : null) : null}
+        />
+        <MetricCell
+          label="EV/EBITDA"
+          value={fmt(stock.ev_ebitda, 1, 'x')}
+          highlight={stock.ev_ebitda ? (stock.ev_ebitda < 12 ? 'good' : stock.ev_ebitda > 28 ? 'bad' : null) : null}
+        />
+        <MetricCell
+          label="P/E Ratio"
+          value={fmt(stock.pe_ratio, 1, 'x')}
+          highlight={stock.pe_ratio ? (stock.pe_ratio < 18 ? 'good' : stock.pe_ratio > 40 ? 'bad' : null) : null}
         />
         <MetricCell
           label="Net Margin"
@@ -135,11 +140,10 @@ function OpportunityCard({ stock, rank }: { stock: ScannerOpportunity; rank: num
           value={stock.rev_growth != null ? `${stock.rev_growth > 0 ? '+' : ''}${fmt(stock.rev_growth, 1, '%')}` : '—'}
           highlight={stock.rev_growth ? (stock.rev_growth > 8 ? 'good' : stock.rev_growth < -5 ? 'bad' : null) : null}
         />
-        <MetricCell label="Mkt Cap" value={fmtMarketCap(stock.market_cap)} />
         <MetricCell
-          label="52W Range"
-          value={pctFromLow != null ? `${pctFromLow.toFixed(0)}% from low` : '—'}
-          highlight={pctFromLow != null ? (pctFromLow < 30 ? 'good' : null) : null}
+          label="Current Ratio"
+          value={fmt(stock.current_ratio, 2, 'x')}
+          highlight={stock.current_ratio ? (stock.current_ratio >= 1.5 ? 'good' : stock.current_ratio < 1.0 ? 'bad' : null) : null}
         />
       </div>
 
@@ -269,6 +273,18 @@ export function OpportunitiesPage({ initialResults, initialStatus }: Opportuniti
           {isRunning ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <RefreshCw className="h-3.5 w-3.5" />}
           {isRunning ? 'Scanning…' : 'Run Scan Now'}
         </button>
+      </div>
+
+      {/* How the score works */}
+      <div className="flex items-start gap-3 rounded-xl border border-primary/20 bg-primary/5 px-4 py-3 text-xs text-muted-foreground">
+        <Info className="h-4 w-4 mt-0.5 flex-shrink-0 text-primary" />
+        <p>
+          <span className="font-semibold text-foreground">How to use this page:</span>{' '}
+          The composite score reflects <span className="font-medium text-foreground">quality + sector-relative valuation + growth + safety</span>.
+          It ranks which stocks in the universe are most compelling <em>right now</em> — not a buy signal by itself.
+          Use the <Link href="/research" className="font-medium text-primary underline underline-offset-2">Stock Research</Link> tab
+          to run a full 9-model fair value analysis on any stock that catches your eye.
+        </p>
       </div>
 
       {/* Status bar */}
