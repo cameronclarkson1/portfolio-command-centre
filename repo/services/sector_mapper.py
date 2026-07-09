@@ -57,20 +57,23 @@ BUCKET_LABELS = {
 # Which 3 models to run and their weights for each bucket.
 # Keys must match model keys in valuation_engine._run_model().
 BUCKET_WEIGHTS = {
-    "technology":             {"dcf": 0.40, "ev_sales": 0.30, "ev_ebitda": 0.30},
-    "consumer_discretionary": {"dcf": 0.40, "pe":       0.30, "ev_ebitda": 0.30},
-    "consumer_staples":       {"dcf": 0.40, "pe":       0.35, "ddm":       0.25},
-    "financials":             {"pb":  0.40, "pe":       0.35, "ddm":       0.25},
-    "insurance":              {"pb":  0.40, "pe":       0.35, "ddm":       0.25},
-    "reit":                   {"pffo":0.40, "paffo":    0.40, "pb":        0.20},
-    "utilities":              {"ddm": 0.40, "pe":       0.30, "ev_ebitda": 0.30},
-    "energy":                 {"dcf": 0.40, "ev_ebitda":0.35, "pcf":       0.25},
-    "materials":              {"ev_ebitda":0.40, "pcf": 0.35, "pb":        0.25},
-    "industrials":            {"dcf": 0.40, "ev_ebitda":0.35, "pe":        0.25},
-    "healthcare":             {"dcf": 0.40, "pe":       0.35, "ev_sales":  0.25},
-    "communication":          {"dcf": 0.40, "ev_ebitda":0.35, "pe":        0.25},
-    "early_stage":            {"ev_sales":0.50, "pcf":  0.30, "pb":        0.20},
-    "default":                {"dcf": 0.40, "pe":       0.30, "ev_ebitda": 0.30},
+    # analyst_pt weight is additive — _blend_results re-normalises automatically.
+    # When no PT data is available (small caps, uncovered tickers) the model
+    # returns fair_value=None and is excluded, so existing weights are unaffected.
+    "technology":             {"dcf": 0.40, "ev_sales": 0.30, "ev_ebitda": 0.30, "analyst_pt": 0.20},
+    "consumer_discretionary": {"dcf": 0.40, "pe":       0.30, "ev_ebitda": 0.30, "analyst_pt": 0.20},
+    "consumer_staples":       {"dcf": 0.40, "pe":       0.35, "ddm":       0.25, "analyst_pt": 0.20},
+    "financials":             {"pb":  0.40, "pe":       0.35, "ddm":       0.25, "analyst_pt": 0.20},
+    "insurance":              {"pb":  0.40, "pe":       0.35, "ddm":       0.25, "analyst_pt": 0.20},
+    "reit":                   {"pffo":0.40, "paffo":    0.40, "pb":        0.20, "analyst_pt": 0.20},
+    "utilities":              {"ddm": 0.40, "pe":       0.30, "ev_ebitda": 0.30, "analyst_pt": 0.20},
+    "energy":                 {"dcf": 0.40, "ev_ebitda":0.35, "pcf":       0.25, "analyst_pt": 0.20},
+    "materials":              {"ev_ebitda":0.40, "pcf": 0.35, "pb":        0.25, "analyst_pt": 0.20},
+    "industrials":            {"dcf": 0.40, "ev_ebitda":0.35, "pe":        0.25, "analyst_pt": 0.20},
+    "healthcare":             {"dcf": 0.40, "pe":       0.35, "ev_sales":  0.25, "analyst_pt": 0.20},
+    "communication":          {"dcf": 0.40, "ev_ebitda":0.35, "pe":        0.25, "analyst_pt": 0.20},
+    "early_stage":            {"ev_sales":0.50, "pcf":  0.30, "pb":        0.20, "analyst_pt": 0.15},
+    "default":                {"dcf": 0.40, "pe":       0.30, "ev_ebitda": 0.30, "analyst_pt": 0.20},
 }
 
 # Plain-English explanation shown in the app for each bucket

@@ -303,3 +303,78 @@ def run_pcf(bucket: str, ratios: dict, statements: dict, price: float = 0) -> di
         },
         "warnings": warnings + [f"Uses sector average P/CF of {benchmark}×"],
     }
+
+
+def run_analyst_pt(bucket: str, val_inputs: dict) -> dict:
+    """
+    Analyst consensus price target valuation.
+
+    Uses the median price target from all covering sell-side analysts.
+    Median is preferred over mean — it is less distorted by outlier calls.
+
+    Confidence scales with analyst count and the spread between high/low targets.
+    Automatically excluded (fair_value = None) for uncovered tickers so it has
+    zero effect on the blend for small caps with no coverage.
+    """
+    pt_median     = val_inputs.get("analyst_pt_median")
+    pt_consensus  = val_inputs.get("analyst_pt_consensus")
+    pt_high       = val_inputs.get("analyst_pt_high")
+    pt_low        = val_inputs.get("analyst_pt_low")
+    analyst_count = val_inputs.get("analyst_count", 0) or 0
+
+    fair_value = pt_median or pt_consensus   # median preferred; consensus as fallback
+
+    if not fair_value or fair_value <= 0:
+        return {
+            "model":       "analyst_pt",
+            "name":        "Analyst Price Target Consensus",
+            "fair_value":  None,
+            "confidence":  0.0,
+            "inputs_used": {},
+            "warnings":    ["No analyst price target data available for this ticker"],
+        }
+
+    warnings = []
+
+    # ── Confidence: base 65, adjust for coverage depth and spread ────────────
+    confidence = 65.0
+
+    if analyst_count >= 15:
+        confidence += 12.0
+    elif analyst_count >= 8:
+        confidence += 7.0
+    elif analyst_count >= 3:
+        confidence += 3.0
+    elif analyst_count == 0:
+        confidence -= 10.0
+        warnings.append("Analyst count unknown — price target coverage may be thin")
+
+    # Spread = disagreement among analysts
+    if pt_high and pt_low and fair_value > 0:
+        spread = (pt_high - pt_low) / fair_value
+        if spread > 0.50:
+            confidence -= 12.0
+            warnings.append(
+                f"Wide analyst PT spread ({spread:.0%} between high and low) — "
+                "significant disagreement on fair value"
+            )
+        elif spread > 0.30:
+            confidence -= 6.0
+            warnings.append(f"Moderate analyst PT spread ({spread:.0%})")
+
+    confidence = round(min(max(confidence, 20.0), 80.0), 1)
+
+    return {
+        "model":      "analyst_pt",
+        "name":       "Analyst Price Target Consensus",
+        "fair_value": round(fair_value, 2),
+        "confidence": confidence,
+        "inputs_used": {
+            "pt_median":    round(pt_median, 2)    if pt_median    else None,
+            "pt_consensus": round(pt_consensus, 2) if pt_consensus else None,
+            "pt_high":      round(pt_high, 2)      if pt_high      else None,
+            "pt_low":       round(pt_low, 2)       if pt_low       else None,
+            "analyst_count": analyst_count,
+        },
+        "warnings": warnings,
+    }

@@ -302,6 +302,27 @@ def get_valuation_inputs(ticker: str, price: float | None = None, sector: str = 
     inputs["analyst_count"]           = analyst_count
     inputs["analyst_estimate_spread"] = analyst_estimate_spread
 
+    # ── Analyst price target consensus ────────────────────────────────────────
+    # Median PT is more robust than mean — less distorted by outlier bull/bear calls.
+    # Stored as None for small caps / uncovered tickers; run_analyst_pt handles gracefully.
+    analyst_pt_consensus = None
+    analyst_pt_median    = None
+    analyst_pt_high      = None
+    analyst_pt_low       = None
+    try:
+        pt_data = fmp.get_price_target_consensus(ticker)
+        analyst_pt_consensus = pt_data.get("target_consensus")
+        analyst_pt_median    = pt_data.get("target_median")
+        analyst_pt_high      = pt_data.get("target_high")
+        analyst_pt_low       = pt_data.get("target_low")
+    except Exception as e:
+        log.warning(f"Price target consensus unavailable for {ticker}: {e}")
+
+    inputs["analyst_pt_consensus"] = analyst_pt_consensus
+    inputs["analyst_pt_median"]    = analyst_pt_median
+    inputs["analyst_pt_high"]      = analyst_pt_high
+    inputs["analyst_pt_low"]       = analyst_pt_low
+
     # ── EBIT margin ───────────────────────────────────────────────────────────
     latest_income = income[0] if income else {}
     ebit_margin = latest_income.get("operating_margin")

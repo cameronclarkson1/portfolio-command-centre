@@ -328,6 +328,30 @@ def get_batch_quotes(tickers: list[str]) -> list[dict]:
     return results
 
 
+def get_price_target_consensus(ticker: str) -> dict:
+    """
+    Analyst consensus price target from all covering sell-side analysts.
+    Returns median, mean (consensus), high, and low price targets.
+
+    Note: returns empty dict (not an error) when no analysts cover the ticker —
+    callers should check for None values rather than catching exceptions.
+    """
+    log_provider_call(log, "FMP", f"/price-target-consensus?symbol={ticker}", ticker)
+
+    data = _get("/price-target-consensus", params={"symbol": ticker})
+    if not data:
+        return {}
+
+    d = data[0] if isinstance(data, list) else data
+    return {
+        "target_consensus": d.get("targetConsensus"),
+        "target_median":    d.get("targetMedian"),
+        "target_high":      d.get("targetHigh"),
+        "target_low":       d.get("targetLow"),
+        "last_updated":     d.get("lastUpdated"),
+    }
+
+
 def get_analyst_estimates(ticker: str, limit: int = 3) -> list[dict]:
     """
     Annual analyst consensus revenue, EPS, and EBITDA estimates.

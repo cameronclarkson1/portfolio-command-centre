@@ -20,7 +20,7 @@ from services.fundamentals_service import (
     get_financial_statements, get_key_ratios, get_valuation_inputs,
 )
 from services.dcf_model           import run_dcf
-from services.relative_valuation  import run_pe, run_ev_ebitda, run_ev_sales, run_pb, run_pcf
+from services.relative_valuation  import run_pe, run_ev_ebitda, run_ev_sales, run_pb, run_pcf, run_analyst_pt
 from services.ddm_model           import run_ddm
 from services.reit_valuation      import run_pffo, run_paffo
 from storage.cache_manager        import cache
@@ -80,8 +80,9 @@ def _run_model(model_key: str, bucket: str, ticker: str,
         elif model_key == "pb":       return run_pb(bucket, ratios, statements, price)
         elif model_key == "pcf":      return run_pcf(bucket, ratios, statements, price)
         elif model_key == "ddm":      return run_ddm(ticker, bucket, ratios, statements, price)
-        elif model_key == "pffo":     return run_pffo(ratios, statements)
-        elif model_key == "paffo":    return run_paffo(ratios, statements)
+        elif model_key == "pffo":       return run_pffo(ratios, statements)
+        elif model_key == "paffo":      return run_paffo(ratios, statements)
+        elif model_key == "analyst_pt": return run_analyst_pt(bucket, val_inputs)
         else:
             return {"model": model_key, "name": model_key, "fair_value": None,
                     "confidence": 0.0, "inputs_used": {}, "warnings": [f"Unknown model: {model_key}"]}
