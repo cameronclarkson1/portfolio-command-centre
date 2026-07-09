@@ -83,6 +83,59 @@ def get_unlevered_beta(sector: str, industry: str = "") -> float:
     return SECTOR_UNLEVERED_BETA.get(sector, _DEFAULT_UNLEVERED_BETA)
 
 
+# ── Synthetic credit rating (Damodaran default spread table) ─────────────────
+# Coverage ratio = EBIT / Interest Expense.
+# Maps to a credit rating and a default spread, which we add to the risk-free
+# rate to get cost of debt. Source: Damodaran "ratings.xls", January 2025.
+# Entries are (min_coverage, spread_decimal, rating_label).
+# The table is sorted descending: first match wins.
+_COVERAGE_TABLE: list[tuple[float, float, str]] = [
+    (8.50,  0.0063, "Aaa/AAA"),
+    (6.50,  0.0078, "Aa2/AA"),
+    (5.50,  0.0088, "A1/A+"),
+    (4.25,  0.0098, "A2/A"),
+    (3.00,  0.0113, "A3/A-"),
+    (2.50,  0.0138, "Baa2/BBB"),
+    (2.00,  0.0163, "Ba1/BB+"),
+    (1.75,  0.0213, "Ba2/BB"),
+    (1.50,  0.0263, "B1/B+"),
+    (1.25,  0.0338, "B2/B"),
+    (0.80,  0.0438, "B3/B-"),
+    (0.65,  0.0538, "Caa/CCC"),
+    (0.20,  0.0688, "Ca2/CC"),
+    (0.00,  0.1063, "C2/C"),
+]
+_DISTRESSED_SPREAD: float = 0.1463   # D-rated / negative coverage
+_DISTRESSED_RATING: str   = "D"
+
+
+def synthetic_default_spread(
+    ebit_ttm: float | None,
+    interest_expense_ttm: float | None,
+) -> tuple[float, str]:
+    """
+    Estimate a company's default spread from its interest coverage ratio.
+
+    Returns (spread_as_decimal, rating_label).
+    E.g. (0.0138, "Baa2/BBB") means add 1.38% to the risk-free rate.
+
+    If either input is missing, returns the Baa spread as a neutral default.
+    """
+    if not ebit_ttm or not interest_expense_ttm or interest_expense_ttm <= 0:
+        return 0.0138, "Baa2/BBB"   # neutral default — no data to work with
+
+    coverage = ebit_ttm / interest_expense_ttm
+
+    if coverage <= 0:
+        return _DISTRESSED_SPREAD, _DISTRESSED_RATING
+
+    for min_cov, spread, rating in _COVERAGE_TABLE:
+        if coverage >= min_cov:
+            return spread, rating
+
+    return _DISTRESSED_SPREAD, _DISTRESSED_RATING
+
+
 def relevered_beta(
     unlevered: float,
     total_debt: float,

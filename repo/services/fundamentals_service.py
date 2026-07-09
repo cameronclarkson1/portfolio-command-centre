@@ -371,14 +371,22 @@ def get_valuation_inputs(ticker: str, price: float | None = None, sector: str = 
     # Step 6: Cost of equity (CAPM with Damodaran ERP)
     cost_of_equity = risk_free + beta_est * DAMODARAN_ERP
 
-    # Step 7: Cost of debt — best of FRED Baa yield vs company's actual interest rate
-    # Company rate = TTM interest expense / total debt (reflects actual borrowing cost)
+    # Step 7: Cost of debt via synthetic credit rating
+    # Financials (banks/insurers) excluded: their "interest expense" is core operations,
+    # not debt service, so the coverage ratio would be meaninglessly low.
     ttm_interest   = sum((q.get("interest_expense") or 0) for q in income[:4])
-    company_kd     = (ttm_interest / total_debt_val) if total_debt_val > 0 and ttm_interest > 0 else None
-    fred_kd        = baa_yield or (risk_free + 0.02)   # fall back to rf + 200bps spread
-    # Take the higher of the two (conservative) — ensures leveraged companies aren't undercosted
-    cost_of_debt   = max(company_kd, fred_kd) if company_kd else fred_kd
-    after_tax_kd   = cost_of_debt * (1 - tax_rate)
+    ttm_ebit       = sum((q.get("operating_income") or 0) for q in income[:4])
+
+    if sector == "Financials":
+        # For banks/insurers, use FRED Baa yield as a reasonable proxy
+        syn_spread   = baa_yield - risk_free if baa_yield and baa_yield > risk_free else 0.0138
+        syn_rating   = "N/A (Financials)"
+    else:
+        from data.damodaran_betas import synthetic_default_spread
+        syn_spread, syn_rating = synthetic_default_spread(ttm_ebit, ttm_interest)
+
+    cost_of_debt = risk_free + syn_spread
+    after_tax_kd = cost_of_debt * (1 - tax_rate)
 
     # Step 8: Capital structure weights using market equity (correct)
     # Negative-equity companies (MCD, KO) default to 100% equity weight.
@@ -396,16 +404,18 @@ def get_valuation_inputs(ticker: str, price: float | None = None, sector: str = 
 
     # Store WACC components for transparency in the research output
     inputs["wacc_components"] = {
-        "risk_free":       round(risk_free, 4),
-        "beta":            round(beta_est, 3),
-        "erp":             DAMODARAN_ERP,
-        "cost_of_equity":  round(cost_of_equity, 4),
-        "cost_of_debt":    round(cost_of_debt, 4),
-        "after_tax_kd":    round(after_tax_kd, 4),
-        "equity_weight":   round(e_weight if (market_equity and total_debt_val > 0) else 1.0, 3),
-        "debt_weight":     round(d_weight if (market_equity and total_debt_val > 0) else 0.0, 3),
-        "tax_rate":        round(tax_rate, 3),
-        "source":          "Damodaran 2025 sector betas + FRED rates",
+        "risk_free":        round(risk_free, 4),
+        "beta":             round(beta_est, 3),
+        "erp":              DAMODARAN_ERP,
+        "cost_of_equity":   round(cost_of_equity, 4),
+        "synthetic_rating": syn_rating,
+        "default_spread":   round(syn_spread, 4),
+        "cost_of_debt":     round(cost_of_debt, 4),
+        "after_tax_kd":     round(after_tax_kd, 4),
+        "equity_weight":    round(e_weight if (market_equity and total_debt_val > 0) else 1.0, 3),
+        "debt_weight":      round(d_weight if (market_equity and total_debt_val > 0) else 0.0, 3),
+        "tax_rate":         round(tax_rate, 3),
+        "source":           "Damodaran 2025 sector betas + FRED rates + synthetic rating",
     }
 
     # ── Completeness score ────────────────────────────────────────────────────
