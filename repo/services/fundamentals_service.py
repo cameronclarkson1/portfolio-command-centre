@@ -309,6 +309,8 @@ def get_valuation_inputs(ticker: str, price: float | None = None, sector: str = 
     analyst_pt_median    = None
     analyst_pt_high      = None
     analyst_pt_low       = None
+
+    # Primary: FMP price-target-consensus (may require higher plan — falls back silently)
     try:
         pt_data = fmp.get_price_target_consensus(ticker)
         analyst_pt_consensus = pt_data.get("target_consensus")
@@ -316,7 +318,19 @@ def get_valuation_inputs(ticker: str, price: float | None = None, sector: str = 
         analyst_pt_high      = pt_data.get("target_high")
         analyst_pt_low       = pt_data.get("target_low")
     except Exception as e:
-        log.warning(f"Price target consensus unavailable for {ticker}: {e}")
+        log.warning(f"FMP price target unavailable for {ticker}: {e}")
+
+    # Fallback: Finnhub price target (free tier, broader coverage)
+    if not analyst_pt_median and not analyst_pt_consensus:
+        try:
+            import providers.finnhub_provider as finnhub
+            pt_data = finnhub.get_price_target(ticker)
+            analyst_pt_consensus = pt_data.get("target_mean")
+            analyst_pt_median    = pt_data.get("target_median")
+            analyst_pt_high      = pt_data.get("target_high")
+            analyst_pt_low       = pt_data.get("target_low")
+        except Exception as e:
+            log.warning(f"Finnhub price target unavailable for {ticker}: {e}")
 
     inputs["analyst_pt_consensus"] = analyst_pt_consensus
     inputs["analyst_pt_median"]    = analyst_pt_median

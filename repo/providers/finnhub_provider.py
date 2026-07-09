@@ -179,6 +179,29 @@ def get_basic_financials(ticker: str) -> dict:
     }
 
 
+def get_price_target(ticker: str) -> dict:
+    """
+    Get analyst consensus price target from Finnhub.
+    Available on the free tier.
+
+    Returns target_mean, target_median, target_high, target_low.
+    Returns empty dict when no analysts cover the ticker.
+    """
+    log_provider_call(log, "Finnhub", f"/stock/price-target?symbol={ticker}", ticker)
+
+    data = _get("/stock/price-target", params={"symbol": ticker})
+    if not data or not data.get("targetMean"):
+        return {}
+
+    return {
+        "target_mean":   data.get("targetMean"),
+        "target_median": data.get("targetMedian"),
+        "target_high":   data.get("targetHigh"),
+        "target_low":    data.get("targetLow"),
+        "last_updated":  data.get("lastUpdated"),
+    }
+
+
 def get_earnings_calendar(ticker: str, days_ahead: int = 90) -> list[dict]:
     """
     Get upcoming earnings dates for a ticker.
