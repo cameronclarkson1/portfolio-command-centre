@@ -6,12 +6,34 @@ FastAPI so the Next.js frontend receives real computed data instead
 of merging prices client-side from mock records.
 """
 
+import json
 from concurrent.futures import ThreadPoolExecutor, as_completed
+from pathlib import Path
+from pydantic import BaseModel
 from fastapi import APIRouter, Query
 from utils.sample_data import PORTFOLIO_HOLDINGS, PORTFOLIO_SUMMARY, WATCHLIST
 from services import market_data_service
 
 router = APIRouter()
+
+# ── Cash persistence ──────────────────────────────────────────────────────────
+# Stored in data/cash_balance.json so edits on one page persist everywhere.
+
+_CASH_FILE = Path(__file__).parent.parent / "data" / "cash_balance.json"
+_CASH_FILE.parent.mkdir(exist_ok=True)
+
+
+def _get_cash() -> float:
+    try:
+        if _CASH_FILE.exists():
+            return float(json.loads(_CASH_FILE.read_text()).get("amount", 0.0))
+    except Exception:
+        pass
+    return float(PORTFOLIO_SUMMARY.get("cash", 0.0))
+
+
+def _set_cash(amount: float):
+    _CASH_FILE.write_text(json.dumps({"amount": round(amount, 2)}))
 
 # ── Risk limits (mirrored from risk_centre.py) ────────────────────────────────
 _POS_CAP      = 10.0
@@ -117,7 +139,7 @@ def _build_live_portfolio():
         holdings.append(item)
 
     total_invested = sum(h["market_value"] for h in holdings)
-    cash           = PORTFOLIO_SUMMARY["cash"]
+    cash           = _get_cash()
     total_value    = total_invested + cash
 
     for item in holdings:
@@ -412,6 +434,17 @@ def get_portfolio():
     }
 
 
+class CashUpdate(BaseModel):
+    amount: float
+
+@router.patch("/cash")
+def update_cash(body: CashUpdate):
+    """Persist a new cash balance (USD). Syncs across all pages on next fetch."""
+    amount = max(0.0, round(body.amount, 2))
+    _set_cash(amount)
+    return {"amount": amount}
+
+
 @router.get("/risk")
 def get_portfolio_risk():
     """
@@ -463,7 +496,7 @@ def get_performance(period: str = Query("3m", regex="^(1m|3m|6m|1y)$")):
     log = logging.getLogger(__name__)
 
     base_holdings = _get_base_holdings()
-    cash_balance  = PORTFOLIO_SUMMARY.get("cash", 0.0)
+    cash_balance  = _get_cash()
 
     # ── Try to fetch Sharesight trade history ─────────────────────────────────
     sharesight_trades: list[dict] = []

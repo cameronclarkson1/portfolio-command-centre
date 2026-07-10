@@ -471,6 +471,15 @@ export async function fetchPortfolio(): Promise<PortfolioApiData | null> {
   return raw
 }
 
+export async function updateCash(usdAmount: number): Promise<boolean> {
+  const raw = await apiFetch('/api/portfolio/cash', 10_000, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ amount: usdAmount }),
+  })
+  return raw != null
+}
+
 // ── Portfolio Risk ────────────────────────────────────────────────────────────
 
 export interface RiskCategory {

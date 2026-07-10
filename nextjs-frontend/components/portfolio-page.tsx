@@ -14,6 +14,9 @@ import {
   DollarSign,
   BarChart3,
   CalendarDays,
+  Pencil,
+  Check,
+  X,
 } from 'lucide-react'
 import {
   MetricCard,
@@ -25,7 +28,7 @@ import {
   portfolioData as mockSummary,
   holdings      as mockHoldings,
 } from '@/lib/mock-data'
-import { type PortfolioApiData, type PortfolioPerformanceData, type DecisionSignal, type DividendEntry, fetchPortfolio, fetchPortfolioPerformance, fetchDecisions, fetchDividends } from '@/lib/api'
+import { type PortfolioApiData, type PortfolioPerformanceData, type DecisionSignal, type DividendEntry, fetchPortfolio, fetchPortfolioPerformance, fetchDecisions, fetchDividends, updateCash } from '@/lib/api'
 import { cn } from '@/lib/utils'
 import { useState, useEffect } from 'react'
 
@@ -175,6 +178,9 @@ export function PortfolioPage({ apiData }: { apiData?: PortfolioApiData | null }
   const [perfData,      setPerfData]      = useState<PortfolioPerformanceData | null>(null)
   const [perfLoading,   setPerfLoading]   = useState(true)
   const [perfError,     setPerfError]     = useState(false)
+  const [editingCash,   setEditingCash]   = useState(false)
+  const [cashInput,     setCashInput]     = useState('')
+  const [savingCash,    setSavingCash]    = useState(false)
   const [decisions,     setDecisions]     = useState<DecisionSignal[]>([])
   const [decisionsLive, setDecisionsLive] = useState(false)
   const [dividends,     setDividends]     = useState<DividendEntry[]>([])
@@ -231,6 +237,17 @@ export function PortfolioPage({ apiData }: { apiData?: PortfolioApiData | null }
       setLastUpdated(new Date())
     }
     setRefreshing(false)
+  }
+
+  async function handleSaveCash() {
+    const usd = parseFloat(cashInput.replace(/[^0-9.]/g, ''))
+    if (isNaN(usd) || usd < 0) { setEditingCash(false); return }
+    setSavingCash(true)
+    await updateCash(usd)
+    const fresh = await fetchPortfolio()
+    if (fresh) { setLiveData(fresh); setLastUpdated(new Date()) }
+    setEditingCash(false)
+    setSavingCash(false)
   }
 
   const data    = liveData ? fromApi(liveData) : fromMock()
@@ -320,12 +337,56 @@ export function PortfolioPage({ apiData }: { apiData?: PortfolioApiData | null }
           subtitle={`${formatCurrency(invested, true)} USD`}
           icon={<BarChart3 className="h-4 w-4" />}
         />
-        <MetricCard
-          title="Cash"
-          value={fmtNZD(cash)}
-          subtitle={`${formatCurrency(cash, true)} USD`}
-          icon={<DollarSign className="h-4 w-4" />}
-        />
+        {/* Editable cash card */}
+        {editingCash ? (
+          <div className="rounded-xl border-2 border-primary bg-card p-4 shadow-sm">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Cash (USD)</span>
+              <div className="flex items-center gap-1">
+                <button onClick={handleSaveCash} disabled={savingCash} className="p-1 rounded hover:bg-success/10 text-success transition-colors">
+                  <Check className="h-3.5 w-3.5" />
+                </button>
+                <button onClick={() => setEditingCash(false)} className="p-1 rounded hover:bg-destructive/10 text-destructive transition-colors">
+                  <X className="h-3.5 w-3.5" />
+                </button>
+              </div>
+            </div>
+            <div className="flex items-center gap-1">
+              <span className="text-lg text-muted-foreground">$</span>
+              <input
+                autoFocus
+                type="number"
+                min="0"
+                step="0.01"
+                value={cashInput}
+                onChange={e => setCashInput(e.target.value)}
+                onKeyDown={e => {
+                  if (e.key === 'Enter') handleSaveCash()
+                  if (e.key === 'Escape') setEditingCash(false)
+                }}
+                className="w-full text-2xl font-semibold bg-transparent focus:outline-none text-foreground"
+                placeholder="0.00"
+              />
+            </div>
+            <p className="text-xs text-muted-foreground mt-1">Enter · Save &nbsp;·&nbsp; Esc · Cancel</p>
+          </div>
+        ) : (
+          <div className="relative group">
+            <MetricCard
+              title="Cash"
+              value={fmtNZD(cash)}
+              subtitle={`${formatCurrency(cash, true)} USD`}
+              icon={<DollarSign className="h-4 w-4" />}
+            />
+            <button
+              onClick={() => { setCashInput(String(cash)); setEditingCash(true) }}
+              className="absolute top-3 right-10 opacity-0 group-hover:opacity-100 transition-opacity p-1 rounded hover:bg-accent"
+              title="Edit cash balance"
+            >
+              <Pencil className="h-3 w-3 text-muted-foreground" />
+            </button>
+          </div>
+        )}
       </div>
 
       {/* Daily P&L banner — only meaningful when live prices are loaded */}
