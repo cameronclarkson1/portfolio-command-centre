@@ -1,9 +1,8 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
-import { 
-  Settings, 
-  User,
+import {
+  Settings,
   Bell,
   Moon,
   Sun,
@@ -21,12 +20,15 @@ import { SectionHeader, StatusBadge } from '@/components/ui-components'
 import { useTheme } from 'next-themes'
 import { cn } from '@/lib/utils'
 
-const profileSettings = {
-  name: 'John Doe',
-  email: 'john.doe@hedgefund.com',
-  phone: '+1 (555) 123-4567',
-  timezone: 'America/New_York',
-  currency: 'USD',
+interface Profile {
+  name:     string
+  email:    string
+  phone:    string
+  timezone: string
+}
+
+function initials(name: string): string {
+  return name.trim().split(/\s+/).map(w => w[0] ?? '').join('').toUpperCase().slice(0, 2) || '?'
 }
 
 const notificationSettings = [
@@ -70,6 +72,9 @@ export function SettingsPage() {
   const [saved, setSaved]                   = useState(false)
   const [providers, setProviders]           = useState<ProviderStatus[]>([])
   const [providersLoading, setProvidersLoading] = useState(true)
+  const [profile, setProfile]               = useState<Profile>({ name: '', email: '', phone: '', timezone: 'America/New_York' })
+  const [editingProfile, setEditingProfile] = useState(false)
+  const [draftProfile, setDraftProfile]     = useState<Profile>({ name: '', email: '', phone: '', timezone: 'America/New_York' })
   const { theme, setTheme } = useTheme()
   const darkMode = theme === 'dark'
 
@@ -85,6 +90,10 @@ export function SettingsPage() {
             ...n,
             enabled: data.notifications[n.id] ?? n.enabled,
           })))
+        }
+        if (data.profile) {
+          setProfile(data.profile)
+          setDraftProfile(data.profile)
         }
       })
       .catch(() => {})
@@ -118,6 +127,23 @@ export function SettingsPage() {
     flashSaved()
   }
 
+  const startEditProfile = () => {
+    setDraftProfile(profile)
+    setEditingProfile(true)
+  }
+
+  const saveProfile = () => {
+    setProfile(draftProfile)
+    setEditingProfile(false)
+    apiSave({ profile: draftProfile })
+    flashSaved()
+  }
+
+  const cancelEditProfile = () => {
+    setDraftProfile(profile)
+    setEditingProfile(false)
+  }
+
   return (
     <div className="px-4 py-6 lg:px-8 lg:py-8 space-y-6">
       {/* Header */}
@@ -141,38 +167,111 @@ export function SettingsPage() {
         <div className="lg:col-span-2 space-y-6">
           {/* Profile Settings */}
           <div className="rounded-xl border border-border bg-card p-4 shadow-sm">
-            <SectionHeader 
+            <SectionHeader
               title="Profile"
               action={
-                <button className="text-xs text-primary font-medium hover:underline">
-                  Edit Profile
-                </button>
+                editingProfile ? (
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={cancelEditProfile}
+                      className="text-xs text-muted-foreground font-medium hover:underline"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      onClick={saveProfile}
+                      className="text-xs text-primary font-medium hover:underline"
+                    >
+                      Save
+                    </button>
+                  </div>
+                ) : (
+                  <button
+                    onClick={startEditProfile}
+                    className="text-xs text-primary font-medium hover:underline"
+                  >
+                    Edit Profile
+                  </button>
+                )
               }
             />
             <div className="mt-4 flex items-start gap-4">
-              <div className="flex h-16 w-16 items-center justify-center rounded-full bg-primary text-xl font-semibold text-primary-foreground">
-                JD
+              <div className="flex h-16 w-16 flex-shrink-0 items-center justify-center rounded-full bg-primary text-xl font-semibold text-primary-foreground">
+                {initials(profile.name)}
               </div>
-              <div className="flex-1 space-y-3">
-                <div>
-                  <p className="text-lg font-semibold text-foreground">{profileSettings.name}</p>
-                  <p className="text-sm text-muted-foreground">Pro Account</p>
+              {editingProfile ? (
+                <div className="flex-1 space-y-3">
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="col-span-2">
+                      <label className="text-xs text-muted-foreground mb-1 block">Name</label>
+                      <input
+                        className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20"
+                        value={draftProfile.name}
+                        onChange={e => setDraftProfile(p => ({ ...p, name: e.target.value }))}
+                        placeholder="Your name"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-xs text-muted-foreground mb-1 block">Email</label>
+                      <input
+                        className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20"
+                        value={draftProfile.email}
+                        onChange={e => setDraftProfile(p => ({ ...p, email: e.target.value }))}
+                        placeholder="your@email.com"
+                        type="email"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-xs text-muted-foreground mb-1 block">Phone</label>
+                      <input
+                        className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20"
+                        value={draftProfile.phone}
+                        onChange={e => setDraftProfile(p => ({ ...p, phone: e.target.value }))}
+                        placeholder="+1 (555) 000-0000"
+                        type="tel"
+                      />
+                    </div>
+                    <div className="col-span-2">
+                      <label className="text-xs text-muted-foreground mb-1 block">Timezone</label>
+                      <input
+                        className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20"
+                        value={draftProfile.timezone}
+                        onChange={e => setDraftProfile(p => ({ ...p, timezone: e.target.value }))}
+                        placeholder="America/New_York"
+                      />
+                    </div>
+                  </div>
                 </div>
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="flex items-center gap-2">
-                    <Mail className="h-4 w-4 text-muted-foreground" />
-                    <span className="text-sm text-muted-foreground">{profileSettings.email}</span>
+              ) : (
+                <div className="flex-1 space-y-3">
+                  <div>
+                    <p className="text-lg font-semibold text-foreground">
+                      {profile.name || <span className="text-muted-foreground italic text-base font-normal">No name set</span>}
+                    </p>
+                    <p className="text-sm text-muted-foreground">Personal Account</p>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <Smartphone className="h-4 w-4 text-muted-foreground" />
-                    <span className="text-sm text-muted-foreground">{profileSettings.phone}</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Globe className="h-4 w-4 text-muted-foreground" />
-                    <span className="text-sm text-muted-foreground">{profileSettings.timezone}</span>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="flex items-center gap-2">
+                      <Mail className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                      <span className="text-sm text-muted-foreground truncate">
+                        {profile.email || '—'}
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Smartphone className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                      <span className="text-sm text-muted-foreground truncate">
+                        {profile.phone || '—'}
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Globe className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                      <span className="text-sm text-muted-foreground truncate">
+                        {profile.timezone || '—'}
+                      </span>
+                    </div>
                   </div>
                 </div>
-              </div>
+              )}
             </div>
           </div>
 

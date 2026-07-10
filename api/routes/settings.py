@@ -27,6 +27,12 @@ _DEFAULTS: dict[str, Any] = {
         "cash_buffer_pct":      10,
         "rebalance_frequency":  "Monthly",
     },
+    "profile": {
+        "name":     "",
+        "email":    "",
+        "phone":    "",
+        "timezone": "America/New_York",
+    },
 }
 
 
@@ -48,6 +54,7 @@ class SettingsPayload(BaseModel):
     risk_profile:     str | None = None
     notifications:    dict | None = None
     portfolio_prefs:  dict | None = None
+    profile:          dict | None = None
 
 
 @router.get("")
@@ -69,6 +76,8 @@ def save_settings(payload: SettingsPayload):
         current.setdefault("notifications", {}).update(payload.notifications)
     if payload.portfolio_prefs is not None:
         current.setdefault("portfolio_prefs", {}).update(payload.portfolio_prefs)
+    if payload.profile is not None:
+        current.setdefault("profile", {}).update(payload.profile)
     try:
         _save(current)
     except Exception as e:
