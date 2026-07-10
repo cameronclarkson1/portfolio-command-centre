@@ -66,36 +66,76 @@ _FALLBACK_UNIVERSE: list[str] = sorted(set([
 
 _universe_cache: list[str] = []
 _universe_fetched_at: float = 0.0
-_UNIVERSE_TTL = 86_400  # refresh constituents once per day
+_UNIVERSE_TTL = 86_400  # refresh once per day
+
+
+def _fetch_wikipedia_universe() -> list[str]:
+    """
+    Fetch S&P 500 + Dow 30 components from Wikipedia.
+    Returns sorted deduplicated list of tickers, or [] on failure.
+    FMP starter plan doesn't expose constituent endpoints, so Wikipedia
+    is the free alternative for keeping the universe up to date.
+    """
+    import requests as _req
+    import pandas as _pd
+    from io import StringIO as _StringIO
+
+    headers = {"User-Agent": "Mozilla/5.0 (compatible; PortfolioCommandCentre/1.0)"}
+    tickers: set[str] = set()
+
+    # S&P 500 — Wikipedia table has a 'Symbol' column
+    try:
+        r = _req.get(
+            "https://en.wikipedia.org/wiki/List_of_S%26P_500_companies",
+            headers=headers, timeout=15,
+        )
+        r.raise_for_status()
+        df = _pd.read_html(_StringIO(r.text))[0]
+        symbols = df["Symbol"].str.replace(".", "-", regex=False).dropna().tolist()
+        tickers.update(s.strip().upper() for s in symbols if s.strip())
+        print(f"[scanner] Wikipedia S&P 500: {len(symbols)} tickers")
+    except Exception as exc:
+        print(f"[scanner] Wikipedia S&P 500 fetch failed: {exc}")
+
+    # Dow 30 — Wikipedia table[1] has a 'Symbol' column
+    try:
+        r = _req.get(
+            "https://en.wikipedia.org/wiki/Dow_Jones_Industrial_Average",
+            headers=headers, timeout=15,
+        )
+        r.raise_for_status()
+        tables = _pd.read_html(_StringIO(r.text))
+        for t in tables:
+            if "Symbol" in t.columns:
+                symbols = t["Symbol"].dropna().tolist()
+                tickers.update(s.strip().upper() for s in symbols if s.strip())
+                print(f"[scanner] Wikipedia Dow 30: {len(symbols)} tickers")
+                break
+    except Exception as exc:
+        print(f"[scanner] Wikipedia Dow 30 fetch failed: {exc}")
+
+    return sorted(tickers)
 
 
 def _get_universe() -> list[str]:
     """
-    Return the full S&P 500 + Dow Jones + NASDAQ-100 universe.
-    Fetched live from FMP on first call, then cached for 24 hours.
-    Falls back to the hardcoded list if FMP is unreachable.
+    Return the full S&P 500 + Dow 30 universe (~503 unique tickers).
+    Fetched from Wikipedia on first call, then cached for 24 hours.
+    Falls back to the hardcoded list if Wikipedia is unreachable.
     """
     global _universe_cache, _universe_fetched_at
 
     if _universe_cache and (time.time() - _universe_fetched_at) < _UNIVERSE_TTL:
         return _universe_cache
 
-    print("[scanner] Fetching index constituents from FMP…")
-    tickers: set[str] = set()
-
-    for index in ("sp500", "dowjones", "nasdaq"):
-        try:
-            members = fmp.get_index_constituents(index)
-            print(f"[scanner] {index}: {len(members)} tickers fetched")
-            tickers.update(t for t in members if t)
-        except Exception as exc:
-            print(f"[scanner] Could not fetch {index} constituents: {exc}")
+    print("[scanner] Fetching index constituents from Wikipedia…")
+    tickers = _fetch_wikipedia_universe()
 
     if not tickers:
-        print("[scanner] FMP constituent fetch failed — using fallback universe")
+        print("[scanner] Wikipedia fetch failed — using fallback universe")
         return _FALLBACK_UNIVERSE
 
-    _universe_cache = sorted(tickers)
+    _universe_cache = tickers
     _universe_fetched_at = time.time()
     print(f"[scanner] Universe ready: {len(_universe_cache)} unique tickers")
     return _universe_cache
