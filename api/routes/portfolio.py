@@ -584,6 +584,25 @@ def get_performance(period: str = Query("3m", regex="^(1m|3m|6m|1y)$")):
             pt["benchmark"] = None
         benchmark_change_pct = None
 
+    # ── Annualised volatility and Sharpe from daily returns ───────────────────
+    volatility_pct: float | None = None
+    sharpe_ratio:   float | None = None
+    daily_returns = []
+    for i in range(1, len(series)):
+        prev = series[i - 1]["value"]
+        curr = series[i]["value"]
+        if prev > 0:
+            daily_returns.append((curr - prev) / prev)
+
+    if len(daily_returns) >= 10:
+        import math, statistics as _stats
+        mean_r = _stats.mean(daily_returns)
+        std_r  = _stats.stdev(daily_returns)
+        if std_r > 0:
+            volatility_pct = round(std_r * math.sqrt(252) * 100, 1)
+            rf_daily       = 0.045 / 252   # ~4.5 % annual risk-free rate
+            sharpe_ratio   = round((mean_r - rf_daily) / std_r * math.sqrt(252), 2)
+
     return {
         "series":               series,
         "period":               period,
@@ -592,6 +611,8 @@ def get_performance(period: str = Query("3m", regex="^(1m|3m|6m|1y)$")):
         "change_pct":           change_pct,
         "change_dollars":       change_dollars,
         "benchmark_change_pct": benchmark_change_pct,
+        "volatility":           volatility_pct,
+        "sharpe":               sharpe_ratio,
     }
 
 
