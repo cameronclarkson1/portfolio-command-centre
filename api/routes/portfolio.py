@@ -513,14 +513,33 @@ def get_performance(period: str = Query("3m", regex="^(1m|3m|6m|1y)$")):
     trade_tickers   = {t["ticker"] for t in sharesight_trades}
     all_tickers     = current_tickers | trade_tickers | {"SPY"}
 
+    # ── Decide whether to use trade-aware path ───────────────────────────────
+    # Trade-aware reconstruction is only accurate when trade history covers
+    # most of the requested period. For a new investor (e.g. 30 days of trades
+    # on a 1Y request), the fallback path (current holdings × historical prices)
+    # gives a more useful chart than a flat $0 pre-investment period.
+    _period_days = {"1m": 25, "3m": 75, "6m": 150, "1y": 300}
+    _min_days_needed = _period_days.get(period, 300)
+
+    sorted_trades: list[dict] = []
+    use_trade_aware = False
+    if sharesight_trades:
+        from datetime import date as _date
+        sorted_trades = sorted(sharesight_trades, key=lambda x: x["date"])
+        if sorted_trades:
+            from datetime import datetime as _dt
+            _earliest = _dt.strptime(sorted_trades[0]["date"], "%Y-%m-%d").date()
+            _days_covered = (_date.today() - _earliest).days
+            use_trade_aware = _days_covered >= _min_days_needed
+
     # ── Fetch candles in parallel ─────────────────────────────────────────────
     candle_map: dict[str, list[dict]] = {}
-    with ThreadPoolExecutor(max_workers=min(len(all_tickers), 12)) as pool:
+    with ThreadPoolExecutor(max_workers=min(len(all_tickers), 8)) as pool:
         futures = {
             pool.submit(market_data_service.get_candles, tk, period): tk
             for tk in all_tickers
         }
-        for future in as_completed(futures, timeout=35):
+        for future in as_completed(futures, timeout=45):
             tk = futures[future]
             try:    candle_map[tk] = future.result() or []
             except: candle_map[tk] = []
@@ -538,6 +557,9 @@ def get_performance(period: str = Query("3m", regex="^(1m|3m|6m|1y)$")):
         ticker_prices[tk] = by_date
         all_dates.update(by_date.keys())
 
+    # Also include SPY dates so the benchmark has full coverage
+    all_dates.update(spy_by_date.keys())
+
     sorted_dates = sorted(all_dates)
     if not sorted_dates:
         return {"series": [], "period": period, "change_pct": 0.0, "change_dollars": 0.0,
@@ -549,10 +571,9 @@ def get_performance(period: str = Query("3m", regex="^(1m|3m|6m|1y)$")):
 
     series: list[dict] = []
 
-    if sharesight_trades:
+    if use_trade_aware:
         # ── Trade-aware path: evolve holdings as buys/sells occur ────────────
         running_holdings: dict[str, float] = {}   # {ticker: shares}
-        sorted_trades = sorted(sharesight_trades, key=lambda x: x["date"])
         trade_idx = 0
 
         for date in sorted_dates:
@@ -589,8 +610,14 @@ def get_performance(period: str = Query("3m", regex="^(1m|3m|6m|1y)$")):
                 "spy_close": round(last_spy, 4) if last_spy else None,
             })
 
+        # Trim leading flat period before first investment
+        if sorted_trades and series:
+            first_trade_date = sorted_trades[0]["date"]
+            series = [pt for pt in series if pt["date"] >= first_trade_date]
+
     else:
         # ── Fallback: current holdings held for full period ───────────────────
+        # Shows what these positions would have been worth over the full period.
         holdings_meta = [{"ticker": h["ticker"], "shares": h["shares"]} for h in base_holdings]
 
         # Seed carry-forward from each ticker's earliest available price
@@ -618,6 +645,10 @@ def get_performance(period: str = Query("3m", regex="^(1m|3m|6m|1y)$")):
                 "value":     round(day_value, 2),
                 "spy_close": round(last_spy, 4) if last_spy else None,
             })
+
+    if not series:
+        return {"series": [], "period": period, "change_pct": 0.0, "change_dollars": 0.0,
+                "benchmark_change_pct": None}
 
     # ── Compute period stats ──────────────────────────────────────────────────
     start = series[0]["value"]
@@ -667,6 +698,7 @@ def get_performance(period: str = Query("3m", regex="^(1m|3m|6m|1y)$")):
         "benchmark_change_pct": benchmark_change_pct,
         "volatility":           volatility_pct,
         "sharpe":               sharpe_ratio,
+        "hypothetical":         not use_trade_aware,
     }
 
 

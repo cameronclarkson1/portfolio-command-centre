@@ -508,6 +508,7 @@ export interface PortfolioPerformanceData {
   benchmark_change_pct?: number | null   // SPY % change over same period
   volatility?:           number | null   // annualised daily vol as %
   sharpe?:               number | null   // annualised Sharpe ratio
+  hypothetical?:         boolean         // true when showing current holdings applied retroactively
 }
 
 export async function fetchPortfolioPerformance(period: string): Promise<PortfolioPerformanceData | null> {

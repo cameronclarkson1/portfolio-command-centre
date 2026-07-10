@@ -442,6 +442,11 @@ export function PortfolioPage({ apiData }: { apiData?: PortfolioApiData | null }
                     </p>
                   )
                 })()}
+                {perfData.hypothetical && (
+                  <p className="text-[10px] text-muted-foreground italic">
+                    Hypothetical — shows current holdings over this period
+                  </p>
+                )}
               </div>
             )}
           </div>
