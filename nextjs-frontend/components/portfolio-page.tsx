@@ -240,8 +240,9 @@ export function PortfolioPage({ apiData }: { apiData?: PortfolioApiData | null }
   }
 
   async function handleSaveCash() {
-    const usd = parseFloat(cashInput.replace(/[^0-9.]/g, ''))
-    if (isNaN(usd) || usd < 0) { setEditingCash(false); return }
+    const nzd = parseFloat(cashInput.replace(/[^0-9.]/g, ''))
+    if (isNaN(nzd) || nzd < 0) { setEditingCash(false); return }
+    const usd = nzd / nzdRate  // convert NZD input → USD for storage
     setSavingCash(true)
     await updateCash(usd)
     const fresh = await fetchPortfolio()
@@ -341,7 +342,7 @@ export function PortfolioPage({ apiData }: { apiData?: PortfolioApiData | null }
         {editingCash ? (
           <div className="rounded-xl border-2 border-primary bg-card p-4 shadow-sm">
             <div className="flex items-center justify-between mb-2">
-              <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Cash (USD)</span>
+              <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Cash (NZD)</span>
               <div className="flex items-center gap-1">
                 <button onClick={handleSaveCash} disabled={savingCash} className="p-1 rounded hover:bg-success/10 text-success transition-colors">
                   <Check className="h-3.5 w-3.5" />
@@ -352,7 +353,7 @@ export function PortfolioPage({ apiData }: { apiData?: PortfolioApiData | null }
               </div>
             </div>
             <div className="flex items-center gap-1">
-              <span className="text-lg text-muted-foreground">$</span>
+              <span className="text-lg text-muted-foreground">NZ$</span>
               <input
                 autoFocus
                 type="number"
@@ -379,7 +380,7 @@ export function PortfolioPage({ apiData }: { apiData?: PortfolioApiData | null }
               icon={<DollarSign className="h-4 w-4" />}
             />
             <button
-              onClick={() => { setCashInput(String(cash)); setEditingCash(true) }}
+              onClick={() => { setCashInput(String(Math.round(cash * nzdRate))); setEditingCash(true) }}
               className="absolute top-3 right-10 opacity-0 group-hover:opacity-100 transition-opacity p-1 rounded hover:bg-accent"
               title="Edit cash balance"
             >
