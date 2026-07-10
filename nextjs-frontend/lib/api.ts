@@ -213,7 +213,7 @@ async function fetchMarketIndices(): Promise<MarketIndexData[] | null> {
     name:   String(idx.name),
     symbol: SYMBOL_MAP[String(idx.name)] ?? String(idx.name),
     value:  Number(idx.value),
-    change: Number(idx.change_pct),
+    change: Number(idx.change_pct) * 100,
     ytd:    null,   // API doesn't provide YTD — shown as "—" in the table
   }))
 }
