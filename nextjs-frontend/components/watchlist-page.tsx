@@ -314,9 +314,16 @@ export function WatchlistPage({ livePrices }: { livePrices?: LivePriceData | nul
 
   // ── Filter + sort ─────────────────────────────────────────────────────────────
 
+  const inBuyZone = (s: WatchlistItem) =>
+    (s.buyBelow ?? 0) > 0 && s.price > 0 && s.price <= (s.buyBelow ?? 0)
+
   const filtered = items
     .filter((s) => {
       if (activeFilter === 'all') return true
+      // "Buy" filter includes both composite-rated Buy stocks AND any stock
+      // whose price has hit its mechanical buy-below target (buy zone).
+      // A stock in the buy zone is a stronger buy signal, not a weaker one.
+      if (activeFilter === 'Buy') return s.rating === 'Buy' || inBuyZone(s)
       return s.rating === activeFilter
     })
     .filter((s) =>
