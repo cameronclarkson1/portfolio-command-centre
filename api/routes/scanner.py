@@ -415,6 +415,21 @@ def run_daily_scan() -> dict:
                     results.append(r)
 
         results.sort(key=lambda x: x["score"], reverse=True)
+
+        # Normalize raw scores to 0–100 so the best stock in today's scan
+        # gets 100 and the worst gets 0. Without this, many quality stocks
+        # all hit the formula ceiling and look identical.
+        if len(results) > 1:
+            raw_max = results[0]["score"]
+            raw_min = results[-1]["score"]
+            spread = raw_max - raw_min
+            if spread > 0:
+                for r in results:
+                    r["score"] = round((r["score"] - raw_min) / spread * 100, 1)
+            else:
+                for r in results:
+                    r["score"] = 100.0
+
         top_20 = results[:20]
 
         duration = round((datetime.now(timezone.utc) - started_at).total_seconds(), 1)
