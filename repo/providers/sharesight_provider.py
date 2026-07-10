@@ -225,3 +225,58 @@ def get_holdings(portfolio_id: int = None) -> list[dict]:
 
     log.info(f"Sharesight: loaded {len(holdings)} holdings from portfolio {pid}")
     return holdings
+
+
+def get_trades(portfolio_id: int = None) -> list[dict]:
+    """
+    Fetch full transaction history from Sharesight.
+    Used to reconstruct what was actually held on each historical date,
+    so the performance chart is accurate for 3M/1Y (not just the last month).
+
+    Each returned item:
+      ticker, date (YYYY-MM-DD), quantity (float), type ("BUY" | "SELL" | other)
+    Sorted oldest → newest.
+    """
+    pid = portfolio_id or SHARESIGHT_PORTFOLIO_ID
+    if not pid:
+        portfolios = get_portfolios()
+        if not portfolios:
+            log.warning("Sharesight get_trades: no portfolios found")
+            return []
+        pid = portfolios[0]["id"]
+
+    data = _api_get(f"/portfolios/{pid}/trades.json")
+    raw  = data.get("trades", [])
+
+    result = []
+    for t in raw:
+        # Ticker can be at top level or nested under "security"
+        sec    = t.get("security") or {}
+        symbol = (
+            sec.get("code") or
+            t.get("symbol") or
+            t.get("ticker_symbol") or
+            t.get("market_code") or
+            ""
+        )
+        ticker = str(symbol).split(".")[0].upper()
+        if not ticker:
+            continue
+
+        date = str(t.get("transaction_date") or t.get("date") or "")
+        if not date:
+            continue
+
+        qty   = float(t.get("quantity") or 0)
+        ttype = str(t.get("transaction_type") or "BUY").upper()
+
+        result.append({
+            "ticker":   ticker,
+            "date":     date,
+            "quantity": qty,
+            "type":     ttype,
+        })
+
+    result.sort(key=lambda x: x["date"])
+    log.info(f"Sharesight: loaded {len(result)} trades from portfolio {pid}")
+    return result

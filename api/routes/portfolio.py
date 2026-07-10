@@ -430,45 +430,58 @@ def get_portfolio_risk():
 @router.get("/performance")
 def get_performance(period: str = Query("3m", regex="^(1m|3m|6m|1y)$")):
     """
-    Reconstruct historical NAV by fetching daily candles for every holding,
-    multiplying shares × close each day, then adding the cash balance.
+    Reconstruct historical NAV with accuracy across all periods.
 
-    Returns a date-indexed series plus overall change stats.
+    If Sharesight trade history is available, the portfolio composition is
+    evolved day-by-day as trades occur — so 3M/1Y reflect what you actually
+    held, not just today's positions applied backwards.
+
+    Falls back to current-holdings × candle-prices when Sharesight is offline.
     """
+    import logging
+    log = logging.getLogger(__name__)
+
     base_holdings = _get_base_holdings()
-    holdings_meta = [
-        {"ticker": h["ticker"], "shares": h["shares"]}
-        for h in base_holdings
-    ]
-    cash_balance = PORTFOLIO_SUMMARY.get("cash", 0.0)
+    cash_balance  = PORTFOLIO_SUMMARY.get("cash", 0.0)
 
-    # Fetch candles for all holdings + SPY benchmark in parallel
-    all_fetch = {h["ticker"] for h in holdings_meta} | {"SPY"}
+    # ── Try to fetch Sharesight trade history ─────────────────────────────────
+    sharesight_trades: list[dict] = []
+    try:
+        import providers.sharesight_provider as sharesight
+        from config.api_keys import SHARESIGHT_ACCESS_TOKEN
+        if SHARESIGHT_ACCESS_TOKEN:
+            sharesight_trades = sharesight.get_trades() or []
+    except Exception as exc:
+        log.warning(f"Sharesight trades unavailable, using current holdings: {exc}")
+
+    # Tickers to fetch candles for: current holdings ∪ any ticker ever traded ∪ SPY
+    current_tickers = {h["ticker"] for h in base_holdings}
+    trade_tickers   = {t["ticker"] for t in sharesight_trades}
+    all_tickers     = current_tickers | trade_tickers | {"SPY"}
+
+    # ── Fetch candles in parallel ─────────────────────────────────────────────
     candle_map: dict[str, list[dict]] = {}
-    with ThreadPoolExecutor(max_workers=9) as pool:
+    with ThreadPoolExecutor(max_workers=min(len(all_tickers), 12)) as pool:
         futures = {
-            pool.submit(market_data_service.get_candles, ticker, period): ticker
-            for ticker in all_fetch
+            pool.submit(market_data_service.get_candles, tk, period): tk
+            for tk in all_tickers
         }
-        for future in as_completed(futures, timeout=30):
-            ticker = futures[future]
-            try:
-                candle_map[ticker] = future.result() or []
-            except Exception:
-                candle_map[ticker] = []
+        for future in as_completed(futures, timeout=35):
+            tk = futures[future]
+            try:    candle_map[tk] = future.result() or []
+            except: candle_map[tk] = []
 
-    # Separate SPY before building portfolio price lookup
     spy_candles = candle_map.pop("SPY", [])
     spy_by_date: dict[str, float] = {
         c["date"]: c["close"] for c in spy_candles if c.get("date") and c.get("close")
     }
 
-    # Build per-ticker price lookup: {ticker: {date: close}}
+    # Build {ticker: {date: close}} price maps
     ticker_prices: dict[str, dict[str, float]] = {}
     all_dates: set[str] = set()
-    for ticker, candles in candle_map.items():
+    for tk, candles in candle_map.items():
         by_date = {c["date"]: c["close"] for c in candles if c.get("date") and c.get("close")}
-        ticker_prices[ticker] = by_date
+        ticker_prices[tk] = by_date
         all_dates.update(by_date.keys())
 
     sorted_dates = sorted(all_dates)
@@ -476,71 +489,109 @@ def get_performance(period: str = Query("3m", regex="^(1m|3m|6m|1y)$")):
         return {"series": [], "period": period, "change_pct": 0.0, "change_dollars": 0.0,
                 "benchmark_change_pct": None}
 
-    # Pre-populate with each ticker's earliest price so all holdings contribute from day one
-    last_known: dict[str, float] = {}
-    for h in holdings_meta:
-        t = h["ticker"]
-        dates = sorted(ticker_prices.get(t, {}).keys())
-        if dates:
-            last_known[t] = ticker_prices[t][dates[0]]
-
-    # SPY: carry-forward like portfolio holdings
-    last_spy: float | None = None
-    if spy_by_date:
-        first_spy_date = min(spy_by_date.keys())
-        last_spy = spy_by_date.get(first_spy_date)
+    # Carry-forward price state
+    last_price: dict[str, float] = {}
+    last_spy: float | None = spy_by_date.get(min(spy_by_date)) if spy_by_date else None
 
     series: list[dict] = []
 
-    for date in sorted_dates:
+    if sharesight_trades:
+        # ── Trade-aware path: evolve holdings as buys/sells occur ────────────
+        running_holdings: dict[str, float] = {}   # {ticker: shares}
+        sorted_trades = sorted(sharesight_trades, key=lambda x: x["date"])
+        trade_idx = 0
+
+        for date in sorted_dates:
+            # Apply every trade that falls on or before this date
+            while trade_idx < len(sorted_trades) and sorted_trades[trade_idx]["date"] <= date:
+                tr    = sorted_trades[trade_idx]
+                tk    = tr["ticker"]
+                qty   = tr["quantity"]
+                ttype = tr["type"]
+                if ttype in ("BUY", "ACCUMULATE", "TRANSFER_IN"):
+                    running_holdings[tk] = running_holdings.get(tk, 0) + qty
+                elif ttype in ("SELL", "REDUCE", "TRANSFER_OUT"):
+                    new_qty = running_holdings.get(tk, 0) - qty
+                    running_holdings[tk] = max(new_qty, 0)
+                    if running_holdings[tk] == 0:
+                        running_holdings.pop(tk, None)
+                trade_idx += 1
+
+            # Update carry-forward prices for held tickers
+            for tk in running_holdings:
+                if date in ticker_prices.get(tk, {}):
+                    last_price[tk] = ticker_prices[tk][date]
+            if date in spy_by_date:
+                last_spy = spy_by_date[date]
+
+            day_value = cash_balance + sum(
+                last_price.get(tk, 0) * shares
+                for tk, shares in running_holdings.items()
+                if last_price.get(tk)
+            )
+            series.append({
+                "date":      date,
+                "value":     round(day_value, 2),
+                "spy_close": round(last_spy, 4) if last_spy else None,
+            })
+
+    else:
+        # ── Fallback: current holdings held for full period ───────────────────
+        holdings_meta = [{"ticker": h["ticker"], "shares": h["shares"]} for h in base_holdings]
+
+        # Seed carry-forward from each ticker's earliest available price
         for h in holdings_meta:
-            t = h["ticker"]
-            if date in ticker_prices.get(t, {}):
-                last_known[t] = ticker_prices[t][date]
-        if date in spy_by_date:
-            last_spy = spy_by_date[date]
+            tk    = h["ticker"]
+            dates = sorted(ticker_prices.get(tk, {}).keys())
+            if dates:
+                last_price[tk] = ticker_prices[tk][dates[0]]
 
-        day_value = cash_balance
-        for h in holdings_meta:
-            price = last_known.get(h["ticker"])
-            if price:
-                day_value += price * h["shares"]
+        for date in sorted_dates:
+            for h in holdings_meta:
+                tk = h["ticker"]
+                if date in ticker_prices.get(tk, {}):
+                    last_price[tk] = ticker_prices[tk][date]
+            if date in spy_by_date:
+                last_spy = spy_by_date[date]
 
-        series.append({
-            "date":      date,
-            "value":     round(day_value, 2),
-            "spy_close": round(last_spy, 4) if last_spy else None,
-        })
+            day_value = cash_balance + sum(
+                last_price.get(h["ticker"], 0) * h["shares"]
+                for h in holdings_meta
+                if last_price.get(h["ticker"])
+            )
+            series.append({
+                "date":      date,
+                "value":     round(day_value, 2),
+                "spy_close": round(last_spy, 4) if last_spy else None,
+            })
 
-    start  = series[0]["value"]
-    end    = series[-1]["value"]
+    # ── Compute period stats ──────────────────────────────────────────────────
+    start = series[0]["value"]
+    end   = series[-1]["value"]
     change_dollars = round(end - start, 2)
     change_pct     = round((end - start) / start * 100, 2) if start else 0.0
 
-    # Normalise SPY to portfolio starting value for direct overlay comparison
-    spy_start_close = series[0].get("spy_close")
-    spy_end_close   = series[-1].get("spy_close")
-    if spy_start_close and spy_end_close and spy_start_close > 0:
-        scale = start / spy_start_close
+    # Normalise SPY to portfolio starting value for overlay comparison
+    spy_start = series[0].get("spy_close")
+    spy_end   = series[-1].get("spy_close")
+    if spy_start and spy_end and spy_start > 0:
+        scale = start / spy_start
         for pt in series:
-            if pt["spy_close"] is not None:
-                pt["benchmark"] = round(pt["spy_close"] * scale, 2)
-            else:
-                pt["benchmark"] = None
-        benchmark_change_pct = round((spy_end_close - spy_start_close) / spy_start_close * 100, 2)
+            pt["benchmark"] = round(pt["spy_close"] * scale, 2) if pt["spy_close"] else None
+        benchmark_change_pct = round((spy_end - spy_start) / spy_start * 100, 2)
     else:
         for pt in series:
             pt["benchmark"] = None
         benchmark_change_pct = None
 
     return {
-        "series":                series,
-        "period":                period,
-        "start_value":           round(start, 2),
-        "end_value":             round(end, 2),
-        "change_pct":            change_pct,
-        "change_dollars":        change_dollars,
-        "benchmark_change_pct":  benchmark_change_pct,
+        "series":               series,
+        "period":               period,
+        "start_value":          round(start, 2),
+        "end_value":            round(end, 2),
+        "change_pct":           change_pct,
+        "change_dollars":       change_dollars,
+        "benchmark_change_pct": benchmark_change_pct,
     }
 
 
