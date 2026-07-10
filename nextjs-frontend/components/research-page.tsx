@@ -216,8 +216,13 @@ export function ResearchPage() {
                 <div>
                   <div className="flex items-center gap-2 flex-wrap">
                     <h2 className="text-xl font-semibold text-foreground">{searchedTicker}</h2>
-                    {research?.valuation && (
-                      <RatingBadge rating={ratingFromValuation(research.valuation.valuation_rating)} />
+                    {(research?.scores?.rating || research?.valuation) && (
+                      <RatingBadge
+                        rating={
+                          research.scores?.rating ??
+                          ratingFromValuation(research.valuation?.valuation_rating ?? '')
+                        }
+                      />
                     )}
                   </div>
                   {research?.company_name && (

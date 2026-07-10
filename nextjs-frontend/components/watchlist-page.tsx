@@ -23,7 +23,7 @@ import {
   formatCurrency,
 } from '@/components/ui-components'
 import { watchlist as mockWatchlist } from '@/lib/mock-data'
-import { fetchWatchlistPrices, fetchValuation, fetchWatchlistRefresh, fetchSparklines, type LivePriceData } from '@/lib/api'
+import { fetchWatchlistPrices, fetchWatchlistRefresh, fetchSparklines, type LivePriceData } from '@/lib/api'
 import {
   type WatchlistItem,
   getStoredWatchlist,
@@ -253,10 +253,13 @@ export function WatchlistPage({ livePrices }: { livePrices?: LivePriceData | nul
     let price = 0, change = 0, changePercent = 0
     let fairValue = 0, rating = 'Hold / Watchlist', upside = 0, safetyScore = 50
     let name = symbol
+    let finalScore: number | null = null, qualityScore: number | null = null
+    let growthScore: number | null = null, valuationScore: number | null = null
+    let confidence: number | null = null
 
-    const [prices, valuation] = await Promise.allSettled([
+    const [prices, refreshed] = await Promise.allSettled([
       fetchWatchlistPrices([symbol]),
-      fetchValuation(symbol),
+      fetchWatchlistRefresh([symbol]),   // full valuation + composite scores in one call
     ])
 
     if (prices.status === 'fulfilled' && prices.value?.[symbol]) {
@@ -266,20 +269,27 @@ export function WatchlistPage({ livePrices }: { livePrices?: LivePriceData | nul
       change        = +(price - price / (1 + changePercent / 100)).toFixed(2)
     }
 
-    if (valuation.status === 'fulfilled' && valuation.value) {
-      const val = valuation.value
-      fairValue   = val.fair_value_base
-      upside      = Math.round(val.upside_pct * 100)
-      safetyScore = Math.round(val.overall_confidence ?? 50)   // confidence as safety proxy until scores refresh
-      const r = val.valuation_rating.toLowerCase()
-      if (r.includes('under'))     rating = 'Buy'
-      else if (r.includes('over')) rating = 'Hold / Watchlist'
-      else                         rating = 'Hold / Watchlist'
+    if (refreshed.status === 'fulfilled' && refreshed.value?.[0]) {
+      const r = refreshed.value[0]
+      if (!r.error) {
+        fairValue      = r.fair_value      ?? fairValue
+        upside         = r.upside_pct != null ? Math.round(r.upside_pct * 100) : upside
+        price          = r.price           ?? price
+        changePercent  = r.change_pct      ?? changePercent
+        rating         = r.scores?.rating  ?? rating
+        safetyScore    = r.scores?.safety_score   ?? safetyScore
+        finalScore     = r.scores?.final_score     ?? null
+        qualityScore   = r.scores?.quality_score   ?? null
+        growthScore    = r.scores?.growth_score    ?? null
+        valuationScore = r.scores?.valuation_score ?? null
+        confidence     = r.scores?.confidence      ?? null
+      }
     }
 
     setItems((prev) => [{
       symbol, name, price, change, changePercent, fairValue, rating, upside, safetyScore,
       sparkline: Array(7).fill(price || 0),
+      finalScore, qualityScore, growthScore, valuationScore, confidence,
     }, ...prev])
     setAddInput('')
     setShowAdd(false)

@@ -160,19 +160,37 @@ export function Sparkline({ data, width = 60, height = 20, className, positive }
 }
 
 // ── RatingBadge ───────────────────────────────────────────────────────────────
+// Handles both the 3-level valuation labels (Buy/Hold/Sell) and the
+// 7-level composite score labels used by the watchlist and scoring engine.
 
 interface RatingBadgeProps {
-  rating: 'Buy' | 'Hold' | 'Sell'
+  rating: string
   className?: string
 }
 
 export function RatingBadge({ rating, className }: RatingBadgeProps) {
+  const r = rating.toLowerCase()
+  const style =
+    r === 'strong buy'
+      ? 'bg-success/15 text-success border border-success/30'
+    : r === 'buy'
+      ? 'bg-success/10 text-success border border-success/20'
+    : r === 'accumulate'
+      ? 'bg-primary/10 text-primary border border-primary/30'
+    : r === 'hold / watchlist' || r === 'hold'
+      ? 'bg-gold/10 text-gold-foreground border border-gold/30'
+    : r === 'reduce'
+      ? 'bg-orange-500/10 text-orange-400 border border-orange-500/30'
+    : r === 'sell'
+      ? 'bg-destructive/10 text-destructive border border-destructive/30'
+    : r === 'strong sell'
+      ? 'bg-destructive/15 text-destructive border border-destructive/40'
+    : 'bg-muted text-muted-foreground border border-border'
+
   return (
     <span className={cn(
       'inline-flex items-center rounded-md px-2 py-1 text-xs font-semibold',
-      rating === 'Buy'  && 'bg-success/10 text-success',
-      rating === 'Hold' && 'bg-gold/10 text-gold',
-      rating === 'Sell' && 'bg-destructive/10 text-destructive',
+      style,
       className
     )}>
       {rating}
