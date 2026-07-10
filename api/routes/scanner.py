@@ -14,6 +14,7 @@ Persists top 20 results to disk.
 """
 
 import json
+import time
 import threading
 from datetime import datetime, timezone
 from concurrent.futures import ThreadPoolExecutor, as_completed
@@ -37,25 +38,23 @@ _state = {
     "error":               None,
 }
 
-# ── Hardcoded universe ────────────────────────────────────────────────────────
-# Covers all Dow 30 + NASDAQ-100 top 50 + S&P 500 top 50 (deduplicated).
+# ── Universe — full S&P 500 + Dow Jones + NASDAQ-100 ─────────────────────────
+# Fetched live from FMP constituent endpoints and cached for 24 hours.
+# Hardcoded list below is the fallback if FMP is unreachable.
 
-_DOW_30 = [
+_FALLBACK_UNIVERSE: list[str] = sorted(set([
+    # Dow 30
     "AAPL", "AMGN", "AXP", "BA", "CAT", "CRM", "CSCO", "CVX", "DIS", "DOW",
     "GS",   "HD",   "HON", "IBM", "INTC", "JNJ", "JPM", "KO",  "MCD", "MMM",
     "MRK",  "MSFT", "NKE", "PG",  "TRV", "UNH", "V",   "VZ",  "WBA", "WMT",
-]
-
-_NASDAQ_100_TOP = [
+    # NASDAQ-100 top
     "NVDA", "AMZN", "META", "GOOGL", "TSLA", "AVGO", "COST", "NFLX", "AMD",
     "ADBE", "QCOM", "INTU", "TXN",   "BKNG", "ISRG", "REGN", "VRTX", "MU",
     "PANW", "LRCX", "KLAC", "SNPS",  "CDNS", "ADI",  "AMAT", "GILD", "MELI",
     "MNST", "PYPL", "ROST", "PAYX",  "DXCM", "BIIB", "MRNA", "CRWD", "ABNB",
     "FAST", "MCHP", "ODFL", "ADSK",  "EBAY", "CPRT", "WDAY", "TEAM", "DDOG",
     "ORLY", "PCAR", "KDP",  "EXC",   "FTNT",
-]
-
-_SP500_TOP = [
+    # S&P 500 top
     "LLY",  "XOM",  "MA",   "UNH",  "ABBV", "ACN",  "TMO",  "ORCL", "ABT",
     "PM",   "LIN",  "DHR",  "GE",   "MS",   "BMY",  "PFE",  "T",    "RTX",
     "BLK",  "SYK",  "ZTS",  "MDT",  "PEP",  "SPGI", "NOW",  "C",    "UBER",
@@ -63,13 +62,43 @@ _SP500_TOP = [
     "CL",   "BDX",  "ELV",  "TJX",  "AMT",  "CI",   "CVS",  "MO",   "DE",
     "MMC",  "SCHW", "COP",  "PLD",  "F",    "GM",   "BAC",  "WFC",  "USB",
     "PNC",  "MCO",  "SBUX", "NOC",  "LMT",  "GD",   "HUM",  "ANTM", "IDXX",
-]
+]))
 
-UNIVERSE: list[str] = sorted(set(_DOW_30 + _NASDAQ_100_TOP + _SP500_TOP))
+_universe_cache: list[str] = []
+_universe_fetched_at: float = 0.0
+_UNIVERSE_TTL = 86_400  # refresh constituents once per day
 
 
 def _get_universe() -> list[str]:
-    return UNIVERSE
+    """
+    Return the full S&P 500 + Dow Jones + NASDAQ-100 universe.
+    Fetched live from FMP on first call, then cached for 24 hours.
+    Falls back to the hardcoded list if FMP is unreachable.
+    """
+    global _universe_cache, _universe_fetched_at
+
+    if _universe_cache and (time.time() - _universe_fetched_at) < _UNIVERSE_TTL:
+        return _universe_cache
+
+    print("[scanner] Fetching index constituents from FMP…")
+    tickers: set[str] = set()
+
+    for index in ("sp500", "dowjones", "nasdaq"):
+        try:
+            members = fmp.get_index_constituents(index)
+            print(f"[scanner] {index}: {len(members)} tickers fetched")
+            tickers.update(t for t in members if t)
+        except Exception as exc:
+            print(f"[scanner] Could not fetch {index} constituents: {exc}")
+
+    if not tickers:
+        print("[scanner] FMP constituent fetch failed — using fallback universe")
+        return _FALLBACK_UNIVERSE
+
+    _universe_cache = sorted(tickers)
+    _universe_fetched_at = time.time()
+    print(f"[scanner] Universe ready: {len(_universe_cache)} unique tickers")
+    return _universe_cache
 
 
 # ── Sector benchmarks for relative valuation ─────────────────────────────────
@@ -332,10 +361,10 @@ def run_daily_scan() -> dict:
 
         print(f"[scanner] PE ratios fetched for {len(pe_map)}/{len(tickers)} tickers")
 
-        # Deep analysis on all tickers (3 concurrent calls per stock, 5 stocks at a time)
+        # Deep analysis — 10 stocks at a time (each stock runs 4 parallel FMP calls internally)
         print("[scanner] Running deep analysis…")
         results: list[dict] = []
-        with ThreadPoolExecutor(max_workers=5) as ex:
+        with ThreadPoolExecutor(max_workers=10) as ex:
             futures = {
                 ex.submit(_analyse_one, ticker, {}, pe_map.get(ticker)): ticker
                 for ticker in tickers

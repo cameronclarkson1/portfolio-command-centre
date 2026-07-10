@@ -165,6 +165,28 @@ def get_cash_flow_statement(ticker: str, limit: int = 4) -> list[dict]:
     return results
 
 
+def get_index_constituents(index: str) -> list[str]:
+    """
+    Fetch current members of a major index from FMP.
+    index: 'sp500' | 'dowjones' | 'nasdaq'
+    Returns a deduplicated list of uppercase ticker symbols.
+    """
+    endpoint_map = {
+        "sp500":    "/sp500_constituent",
+        "dowjones": "/dowjones_constituent",
+        "nasdaq":   "/nasdaq_constituent",
+    }
+    endpoint = endpoint_map.get(index.lower())
+    if not endpoint:
+        raise ValueError(f"Unknown index '{index}'. Use sp500, dowjones, or nasdaq.")
+
+    log_provider_call(log, "FMP", endpoint)
+    data = _get(endpoint)
+    if not data:
+        return []
+    return [item.get("symbol", "").upper() for item in data if item.get("symbol")]
+
+
 def get_key_metrics(ticker: str, limit: int = 1) -> list[dict]:
     """
     Get annual key financial metrics and ratios.
