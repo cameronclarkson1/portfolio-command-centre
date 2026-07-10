@@ -70,7 +70,7 @@ function relativeTime(iso: string): string {
 
 // ── Component ─────────────────────────────────────────────────────────────────
 
-type Tab = 'valuation' | 'scores' | 'financials' | 'analyst' | 'news'
+type Tab = 'valuation' | 'scores' | 'analysis' | 'financials' | 'analyst' | 'news'
 
 export function ResearchPage() {
   const [searchQuery,    setSearchQuery]    = useState('')
@@ -299,6 +299,7 @@ export function ResearchPage() {
                 {([
                   ['valuation', 'Valuation'],
                   ['scores',    'Scores'],
+                  ['analysis',  'Analysis'],
                   ['financials', 'Financials'],
                   ['analyst',   'Analyst'],
                   ['news',      'News'],
@@ -340,6 +341,9 @@ export function ResearchPage() {
           )}
           {research && activeTab === 'scores' && (
             <ScoresTab research={research} />
+          )}
+          {research && activeTab === 'analysis' && (
+            <AnalysisTab research={research} />
           )}
           {research && activeTab === 'financials' && (
             <FinancialsTab research={research} />
@@ -878,6 +882,249 @@ function ScoresTab({ research }: { research: ResearchData }) {
           </div>
         </div>
       )}
+    </div>
+  )
+}
+
+// ── Analysis Tab ─────────────────────────────────────────────────────────────
+
+function letterGrade(score: number | null): { grade: string; color: string; bg: string } {
+  if (score == null) return { grade: '—', color: 'text-muted-foreground', bg: 'bg-muted/30' }
+  if (score >= 90) return { grade: 'A+', color: 'text-success',        bg: 'bg-success/10' }
+  if (score >= 83) return { grade: 'A',  color: 'text-success',        bg: 'bg-success/10' }
+  if (score >= 77) return { grade: 'A−', color: 'text-emerald-500',    bg: 'bg-emerald-500/10' }
+  if (score >= 70) return { grade: 'B+', color: 'text-emerald-500',    bg: 'bg-emerald-500/10' }
+  if (score >= 63) return { grade: 'B',  color: 'text-primary',        bg: 'bg-primary/10' }
+  if (score >= 57) return { grade: 'B−', color: 'text-primary',        bg: 'bg-primary/10' }
+  if (score >= 50) return { grade: 'C+', color: 'text-gold-foreground', bg: 'bg-gold/10' }
+  if (score >= 43) return { grade: 'C',  color: 'text-gold-foreground', bg: 'bg-gold/10' }
+  if (score >= 37) return { grade: 'C−', color: 'text-orange-500',     bg: 'bg-orange-500/10' }
+  if (score >= 30) return { grade: 'D',  color: 'text-orange-500',     bg: 'bg-orange-500/10' }
+  return               { grade: 'F',  color: 'text-destructive',    bg: 'bg-destructive/10' }
+}
+
+function roicToScore(roic: number | null): number | null {
+  if (roic == null) return null
+  if (roic >= 0.25) return 93
+  if (roic >= 0.20) return 85
+  if (roic >= 0.15) return 72
+  if (roic >= 0.10) return 58
+  if (roic >= 0.05) return 43
+  return 25
+}
+
+function grossMarginToScore(gm: number | null): number | null {
+  if (gm == null) return null
+  if (gm >= 65)  return 95
+  if (gm >= 55)  return 87
+  if (gm >= 40)  return 73
+  if (gm >= 25)  return 57
+  if (gm >= 12)  return 40
+  if (gm >=  0)  return 25
+  return 10
+}
+
+function AnalysisTab({ research }: { research: ResearchData }) {
+  const profile = research.company_profile
+  const ratios  = research.ratios
+  const margins = research.margins
+  const scores  = research.scores
+  const val     = research.valuation
+
+  // ── Report card — map each dimension to a 0-100 score for grading ─────────
+  const reportCard = [
+    {
+      key:    'capital_returns',
+      label:  'Capital Returns',
+      score:  roicToScore(ratios?.roic ?? null),
+      desc:   'How efficiently the company converts capital into profit (ROIC)',
+      metric: ratios?.roic != null ? `ROIC ${(ratios.roic * 100).toFixed(1)}%` : null,
+    },
+    {
+      key:    'pricing_power',
+      label:  'Pricing Power',
+      score:  grossMarginToScore(margins?.gross ?? null),
+      desc:   'Gross margin — ability to charge premium prices without losing customers',
+      metric: margins?.gross != null ? `Gross margin ${margins.gross.toFixed(1)}%` : null,
+    },
+    {
+      key:    'earnings_quality',
+      label:  'Earnings Quality',
+      score:  scores?.quality_score ?? null,
+      desc:   'ROIC + ROE + free cash flow — how real and repeatable the profits are',
+      metric: null,
+    },
+    {
+      key:    'balance_sheet',
+      label:  'Balance Sheet',
+      score:  scores?.safety_score ?? null,
+      desc:   'Leverage, interest coverage, drawdown — financial resilience under stress',
+      metric: ratios?.debt_equity != null ? `D/E ${ratios.debt_equity.toFixed(1)}×` : null,
+    },
+    {
+      key:    'growth_profile',
+      label:  'Growth Profile',
+      score:  scores?.growth_score ?? null,
+      desc:   'Revenue + FCF growth trajectory — is the business expanding its earnings power?',
+      metric: ratios?.revenue_growth_yoy != null
+        ? `Rev growth ${(ratios.revenue_growth_yoy * 100).toFixed(1)}%`
+        : null,
+    },
+  ]
+
+  // ── Risk profile ───────────────────────────────────────────────────────────
+  const safety      = scores?.safety_score ?? 50
+  const riskTier    = safety > 75 ? 'Low' : safety > 55 ? 'Medium' : safety > 35 ? 'High' : 'Very High'
+  const riskColor   = riskTier === 'Low'
+    ? 'text-success border-success/30 bg-success/10'
+    : riskTier === 'Medium'
+      ? 'text-gold-foreground border-gold/30 bg-gold/10'
+      : 'text-destructive border-destructive/30 bg-destructive/10'
+
+  type FlagLevel = 'green' | 'amber' | 'red'
+  const riskFlags: Array<{ label: string; detail: string; level: FlagLevel }> = []
+
+  const de         = ratios?.debt_equity        ?? null
+  const beta       = ratios?.beta               ?? null
+  const upsidePct  = val?.upside_pct            ?? null
+  const revGrowth  = ratios?.revenue_growth_yoy ?? null
+  const confidence = val?.overall_confidence    ?? null
+
+  if (de != null && de > 2.0)
+    riskFlags.push({ label: 'High Leverage', detail: `Debt/Equity of ${de.toFixed(1)}× is elevated — rising rates or a revenue drop could pressure the balance sheet`, level: 'red' })
+  else if (de != null && de > 1.0)
+    riskFlags.push({ label: 'Moderate Leverage', detail: `Debt/Equity of ${de.toFixed(1)}× is manageable but worth monitoring through the rate cycle`, level: 'amber' })
+
+  if (beta != null && beta > 1.5)
+    riskFlags.push({ label: 'High Volatility', detail: `Beta ${beta.toFixed(2)} — this stock moves ${beta.toFixed(1)}× the broader market; losses are amplified in downturns`, level: 'red' })
+  else if (beta != null && beta > 1.2)
+    riskFlags.push({ label: 'Above-Average Volatility', detail: `Beta ${beta.toFixed(2)} — slightly more volatile than the S&P 500`, level: 'amber' })
+
+  if (upsidePct != null && upsidePct < -0.20)
+    riskFlags.push({ label: 'Valuation Risk', detail: `Stock is ${Math.abs(upsidePct * 100).toFixed(0)}% above our fair value estimate — limited margin of safety at the current price`, level: 'red' })
+
+  if (revGrowth != null && revGrowth < -0.05)
+    riskFlags.push({ label: 'Revenue Decline', detail: `Revenue fell ${Math.abs(revGrowth * 100).toFixed(1)}% year-on-year — the business may be facing structural headwinds`, level: 'red' })
+
+  if (confidence != null && confidence < 45)
+    riskFlags.push({ label: 'Low Model Confidence', detail: `Valuation confidence is ${confidence.toFixed(0)}% — some inputs were estimated due to limited data availability`, level: 'amber' })
+
+  if (riskFlags.length === 0)
+    riskFlags.push({ label: 'No major risk flags identified', detail: 'No critical risks detected from available financial data. Conduct your own research before investing real money', level: 'green' })
+
+  const flagStyle: Record<FlagLevel, { border: string; text: string; dot: string }> = {
+    green: { border: 'border-success/30 bg-success/5',              text: 'text-success',          dot: 'bg-success' },
+    amber: { border: 'border-gold/30 bg-gold/5',                    text: 'text-gold-foreground',  dot: 'bg-gold' },
+    red:   { border: 'border-destructive/30 bg-destructive/5',      text: 'text-destructive',      dot: 'bg-destructive' },
+  }
+
+  return (
+    <div className="space-y-4">
+
+      {/* ── Company Snapshot ── */}
+      <div className="rounded-xl border border-border bg-card p-4 shadow-sm">
+        <SectionHeader title="Company Snapshot" />
+
+        {profile?.description ? (
+          <p className="mt-3 text-sm text-foreground/80 leading-relaxed">
+            {profile.description.length > 600
+              ? profile.description.slice(0, 597) + '…'
+              : profile.description}
+          </p>
+        ) : (
+          <p className="mt-3 text-sm text-muted-foreground italic">
+            No company description available from data provider.
+          </p>
+        )}
+
+        {/* Key facts grid */}
+        {profile && (
+          <div className="mt-4 grid grid-cols-2 gap-2.5 lg:grid-cols-4">
+            {profile.ceo && (
+              <div className="rounded-lg bg-muted/40 px-3 py-2.5">
+                <p className="text-[10px] font-medium text-muted-foreground uppercase tracking-wide">CEO</p>
+                <p className="mt-0.5 text-sm font-medium text-foreground truncate">{profile.ceo}</p>
+              </div>
+            )}
+            {profile.employees != null && (
+              <div className="rounded-lg bg-muted/40 px-3 py-2.5">
+                <p className="text-[10px] font-medium text-muted-foreground uppercase tracking-wide">Employees</p>
+                <p className="mt-0.5 text-sm font-medium text-foreground">
+                  {Number(profile.employees).toLocaleString()}
+                </p>
+              </div>
+            )}
+            {profile.ipo_year && (
+              <div className="rounded-lg bg-muted/40 px-3 py-2.5">
+                <p className="text-[10px] font-medium text-muted-foreground uppercase tracking-wide">IPO Year</p>
+                <p className="mt-0.5 text-sm font-medium text-foreground">{profile.ipo_year}</p>
+              </div>
+            )}
+            {profile.country && (
+              <div className="rounded-lg bg-muted/40 px-3 py-2.5">
+                <p className="text-[10px] font-medium text-muted-foreground uppercase tracking-wide">Country</p>
+                <p className="mt-0.5 text-sm font-medium text-foreground">{profile.country}</p>
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+
+      {/* ── Business Quality Report Card ── */}
+      <div className="rounded-xl border border-border bg-card p-4 shadow-sm">
+        <SectionHeader title="Business Quality Report Card" />
+        <p className="mt-1 text-xs text-muted-foreground">
+          Each dimension graded A+→F from the underlying financial metrics
+        </p>
+        <div className="mt-4 grid grid-cols-2 gap-3 lg:grid-cols-5">
+          {reportCard.map(({ key, label, score, desc, metric }) => {
+            const g = letterGrade(score)
+            return (
+              <div key={key} className={cn('rounded-xl border border-border p-4 text-center', g.bg)}>
+                <p className={cn('text-4xl font-bold leading-none', g.color)}>{g.grade}</p>
+                <p className="mt-2 text-xs font-semibold text-foreground">{label}</p>
+                <p className="mt-1.5 text-[10px] text-muted-foreground leading-snug">{desc}</p>
+                {metric && (
+                  <p className={cn('mt-2 text-[10px] font-medium', g.color)}>{metric}</p>
+                )}
+              </div>
+            )
+          })}
+        </div>
+        <p className="mt-3 text-[10px] text-muted-foreground">
+          Capital Returns and Pricing Power are derived from ROIC and gross margin.
+          The other three dimensions use the Quality, Safety, and Growth scores from our scoring engine.
+        </p>
+      </div>
+
+      {/* ── Risk Profile ── */}
+      <div className="rounded-xl border border-border bg-card p-4 shadow-sm">
+        <div className="flex items-center justify-between flex-wrap gap-2">
+          <SectionHeader title="Risk Profile" />
+          <span className={cn('px-3 py-1 rounded-lg border text-xs font-semibold', riskColor)}>
+            {riskTier} Risk
+          </span>
+        </div>
+        <div className="mt-4 space-y-2.5">
+          {riskFlags.map((flag, i) => {
+            const s = flagStyle[flag.level]
+            return (
+              <div key={i} className={cn('flex items-start gap-3 rounded-lg border p-3', s.border)}>
+                <div className={cn('mt-1.5 h-2 w-2 shrink-0 rounded-full', s.dot)} />
+                <div>
+                  <p className={cn('text-xs font-semibold', s.text)}>{flag.label}</p>
+                  <p className="mt-0.5 text-xs text-muted-foreground leading-snug">{flag.detail}</p>
+                </div>
+              </div>
+            )
+          })}
+        </div>
+        <p className="mt-3 text-[10px] text-muted-foreground">
+          Risk tier is derived from the Safety score ({Math.round(safety)}/100), leverage ratio, beta, and valuation gap.
+          Always conduct your own research before investing real money.
+        </p>
+      </div>
+
     </div>
   )
 }

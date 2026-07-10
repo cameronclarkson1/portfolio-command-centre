@@ -596,11 +596,22 @@ export interface InvestmentThesis {
   watch: string[]
 }
 
+export interface CompanyProfile {
+  description: string | null
+  ceo:         string | null
+  employees:   number | string | null
+  exchange:    string | null
+  country:     string | null
+  ipo_year:    string | null
+  website:     string | null
+}
+
 export interface ResearchData {
-  ticker:       string
-  company_name: string | null
-  price:        number | null
-  change_pct:   number
+  ticker:          string
+  company_name:    string | null
+  company_profile: CompanyProfile | null
+  price:           number | null
+  change_pct:      number
 
   // Valuation engine (9-model sector-aware)
   valuation: ValuationResult | null

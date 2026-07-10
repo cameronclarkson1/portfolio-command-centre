@@ -125,9 +125,10 @@ def get_research(ticker: str, price: float = Query(None)):
         "recent_news":        lambda: news_service.get_stock_news(ticker, days_back=30),
         "earnings":           lambda: news_service.get_earnings_events(ticker),
         "company_name":       lambda: _get_company_name(ticker),
+        "company_profile":    lambda: fmp.get_company_profile(ticker),
     }
 
-    with ThreadPoolExecutor(max_workers=7) as executor:
+    with ThreadPoolExecutor(max_workers=8) as executor:
         future_map = {executor.submit(fn): key for key, fn in tasks.items()}
         for future in as_completed(future_map, timeout=45):
             key = future_map[future]
@@ -172,11 +173,13 @@ def get_research(ticker: str, price: float = Query(None)):
         margins   = margins,
     )
 
-    company_name = results.get("company_name") or None
+    company_name    = results.get("company_name") or None
+    company_profile = results.get("company_profile") or None
 
     return {
-        "ticker":       ticker,
-        "company_name": company_name,
+        "ticker":           ticker,
+        "company_name":     company_name,
+        "company_profile":  company_profile,
         "price":        price,
         "change_pct":   change_pct,
 

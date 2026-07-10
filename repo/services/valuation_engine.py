@@ -70,13 +70,13 @@ def _get_sector(ticker: str) -> tuple[str, str]:
 
 def _run_model(model_key: str, bucket: str, ticker: str,
                ratios: dict, statements: dict, price: float,
-               val_inputs: dict) -> dict:
+               val_inputs: dict, industry: str = "") -> dict:
     """Dispatch to the correct model function by key. Catches all errors gracefully."""
     try:
         if   model_key == "dcf":      return run_dcf(ticker, bucket, inputs=val_inputs, price=price)
-        elif model_key == "pe":       return run_pe(bucket, ratios, statements, price)
-        elif model_key == "ev_ebitda":return run_ev_ebitda(bucket, ratios, statements)
-        elif model_key == "ev_sales": return run_ev_sales(bucket, ratios, statements, price)
+        elif model_key == "pe":       return run_pe(bucket, ratios, statements, price, industry=industry)
+        elif model_key == "ev_ebitda":return run_ev_ebitda(bucket, ratios, statements, industry=industry)
+        elif model_key == "ev_sales": return run_ev_sales(bucket, ratios, statements, price, industry=industry)
         elif model_key == "pb":       return run_pb(bucket, ratios, statements, price)
         elif model_key == "pcf":      return run_pcf(bucket, ratios, statements, price)
         elif model_key == "ddm":      return run_ddm(ticker, bucket, ratios, statements, price)
@@ -213,7 +213,8 @@ def run_valuation(ticker: str, price: float | None = None) -> dict:
     models_run = {}
     for model_key in weights:
         models_run[model_key] = _run_model(
-            model_key, bucket, ticker, ratios, statements, price or 0, val_inputs
+            model_key, bucket, ticker, ratios, statements, price or 0, val_inputs,
+            industry=industry,
         )
 
     # 6. Cross-validate DCF against relative models — flag it as outlier if extreme

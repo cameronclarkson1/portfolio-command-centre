@@ -54,6 +54,127 @@ EV_SALES_BENCHMARKS = {
     "default":                2.5,
 }
 
+
+# ── Sub-sector benchmark overrides ────────────────────────────────────────────
+# Industry strings come from FMP company profile.  Examples:
+#   "Software—Application", "Semiconductors", "Computer Hardware",
+#   "Information Technology Services", "Internet Content & Information",
+#   "Biotechnology", "Drug Manufacturers—General", "Medical Devices"
+#
+# Return value: the specific multiple to use, or None → fall back to sector avg.
+
+def _sub_sector_benchmark(industry: str, bucket: str, model: str) -> float | None:
+    """
+    Look up a more precise multiple for a given sub-sector.
+
+    model: "ev_sales" | "ev_ebitda" | "pe"
+    Returns None when no sub-sector match found so the caller uses the sector default.
+    """
+    if not industry:
+        return None
+    ind = industry.lower()
+
+    if bucket == "technology":
+        if model == "ev_sales":
+            if any(k in ind for k in ("software", "saas", "application", "infrastructure", "cloud")):
+                return 10.0   # SaaS / software typically 8-14×
+            if any(k in ind for k in ("internet content", "interactive media", "platform")):
+                return 8.0    # Internet platforms 6-10×
+            if any(k in ind for k in ("semiconductor", "chip")):
+                return 6.5    # Semis 5-8×
+            if any(k in ind for k in ("hardware", "computer hardware", "electronic equipment")):
+                return 3.0    # Hardware 2-4×
+            if any(k in ind for k in ("information technology services", "it services", "consulting")):
+                return 2.5    # IT services 1.5-3×
+        elif model == "ev_ebitda":
+            if any(k in ind for k in ("software", "saas", "application", "infrastructure", "cloud")):
+                return 25.0
+            if any(k in ind for k in ("internet content", "interactive media", "platform")):
+                return 22.0
+            if any(k in ind for k in ("semiconductor", "chip")):
+                return 20.0
+            if any(k in ind for k in ("hardware", "computer hardware", "electronic equipment")):
+                return 15.0
+            if any(k in ind for k in ("information technology services", "it services", "consulting")):
+                return 14.0
+        elif model == "pe":
+            if any(k in ind for k in ("software", "saas", "application", "infrastructure", "cloud")):
+                return 35.0
+            if any(k in ind for k in ("internet content", "interactive media", "platform")):
+                return 30.0
+            if any(k in ind for k in ("semiconductor", "chip")):
+                return 28.0
+            if any(k in ind for k in ("hardware", "computer hardware", "electronic equipment")):
+                return 22.0
+            if any(k in ind for k in ("information technology services", "it services", "consulting")):
+                return 20.0
+
+    elif bucket == "healthcare":
+        if model == "ev_sales":
+            if any(k in ind for k in ("biotechnology", "biotech")):
+                return 8.0
+            if any(k in ind for k in ("drug manufacturer", "pharmaceutical", "specialty pharma")):
+                return 4.0
+            if any(k in ind for k in ("medical device", "medical instrument", "medical equipment")):
+                return 5.0
+            if any(k in ind for k in ("health care plan", "managed care", "health insurance")):
+                return 1.0
+        elif model == "pe":
+            if any(k in ind for k in ("biotechnology", "biotech")):
+                return 38.0
+            if any(k in ind for k in ("drug manufacturer", "pharmaceutical")):
+                return 18.0
+            if any(k in ind for k in ("medical device", "medical instrument")):
+                return 28.0
+
+    elif bucket == "communication":
+        if model == "ev_sales":
+            if any(k in ind for k in ("internet content", "interactive media", "platform", "social")):
+                return 6.0
+            if any(k in ind for k in ("telecom", "telephone", "wireless", "broadband")):
+                return 2.0
+            if any(k in ind for k in ("entertainment", "media", "broadcasting", "cable")):
+                return 2.5
+            if any(k in ind for k in ("gaming", "electronic gaming")):
+                return 4.0
+        elif model == "ev_ebitda":
+            if any(k in ind for k in ("internet content", "interactive media", "platform", "social")):
+                return 18.0
+            if any(k in ind for k in ("telecom", "telephone", "wireless", "broadband")):
+                return 7.0
+            if any(k in ind for k in ("entertainment", "media", "broadcasting", "cable")):
+                return 12.0
+            if any(k in ind for k in ("gaming", "electronic gaming")):
+                return 15.0
+        elif model == "pe":
+            if any(k in ind for k in ("internet content", "interactive media", "platform", "social")):
+                return 25.0
+            if any(k in ind for k in ("telecom", "telephone", "wireless", "broadband")):
+                return 14.0
+            if any(k in ind for k in ("entertainment", "media", "broadcasting", "cable")):
+                return 20.0
+
+    elif bucket == "consumer_discretionary":
+        if model == "ev_ebitda":
+            if any(k in ind for k in ("restaurant", "food service")):
+                return 16.0
+            if any(k in ind for k in ("auto", "automobile", "vehicle")):
+                return 10.0
+            if any(k in ind for k in ("luxury", "hotels", "travel", "leisure")):
+                return 14.0
+            if any(k in ind for k in ("retail", "specialty retail", "apparel")):
+                return 12.0
+        elif model == "pe":
+            if any(k in ind for k in ("internet retail", "e-commerce")):
+                return 35.0
+            if any(k in ind for k in ("restaurant", "food service")):
+                return 26.0
+            if any(k in ind for k in ("auto", "automobile", "vehicle")):
+                return 15.0
+
+    return None
+
+
 PB_BENCHMARKS = {
     "financials":  1.5,
     "insurance":   1.4,
@@ -113,10 +234,12 @@ def _get_shares(statements: dict) -> float | None:
     return shares
 
 
-def run_pe(bucket: str, ratios: dict, statements: dict, price: float = 0) -> dict:
+def run_pe(bucket: str, ratios: dict, statements: dict, price: float = 0, industry: str = "") -> dict:
     """P/E comparable valuation: Fair Value = TTM EPS × sector average P/E.
     Falls back to inferring EPS from the live P/E ratio when statements are unavailable."""
-    benchmark = PE_BENCHMARKS.get(bucket, PE_BENCHMARKS["default"])
+    sub = _sub_sector_benchmark(industry, bucket, "pe")
+    benchmark = sub if sub is not None else PE_BENCHMARKS.get(bucket, PE_BENCHMARKS["default"])
+    benchmark_label = f"{benchmark}× ({'sub-sector' if sub else 'sector avg'})"
     if benchmark is None:
         return {"model": "pe", "name": "P/E Comparable", "fair_value": None,
                 "confidence": 0.0, "inputs_used": {},
@@ -143,14 +266,16 @@ def run_pe(bucket: str, ratios: dict, statements: dict, price: float = 0) -> dic
         "name":       "P/E Comparable",
         "fair_value": round(eps * benchmark, 2),
         "confidence": confidence,
-        "inputs_used": {"eps_ttm": round(eps, 4), "sector_pe_benchmark": benchmark},
-        "warnings":   warnings + [f"Uses sector average P/E of {benchmark}× — individual quality premium not applied"],
+        "inputs_used": {"eps_ttm": round(eps, 4), "pe_benchmark": benchmark},
+        "warnings":   warnings + [f"Uses {benchmark_label} P/E — individual quality premium not applied"],
     }
 
 
-def run_ev_ebitda(bucket: str, ratios: dict, statements: dict) -> dict:
+def run_ev_ebitda(bucket: str, ratios: dict, statements: dict, industry: str = "") -> dict:
     """EV/EBITDA valuation: Implied EV = EBITDA × benchmark, then subtract net debt."""
-    benchmark = EV_EBITDA_BENCHMARKS.get(bucket, EV_EBITDA_BENCHMARKS["default"])
+    sub = _sub_sector_benchmark(industry, bucket, "ev_ebitda")
+    benchmark = sub if sub is not None else EV_EBITDA_BENCHMARKS.get(bucket, EV_EBITDA_BENCHMARKS["default"])
+    benchmark_label = f"{benchmark}× ({'sub-sector' if sub else 'sector avg'})"
 
     ttm        = _ttm_income(statements)
     bal        = _latest_balance(statements)
@@ -178,21 +303,23 @@ def run_ev_ebitda(bucket: str, ratios: dict, statements: dict) -> dict:
             "net_debt":              net_debt,
             "shares_out":            shares_out,
         },
-        "warnings": [f"Uses sector average EV/EBITDA of {benchmark}× — individual quality not adjusted"],
+        "warnings": [f"Uses {benchmark_label} EV/EBITDA — individual quality not adjusted"],
     }
 
 
-def run_ev_sales(bucket: str, ratios: dict, statements: dict, price: float = 0) -> dict:
+def run_ev_sales(bucket: str, ratios: dict, statements: dict, price: float = 0, industry: str = "") -> dict:
     """EV/Sales valuation: Implied EV = Revenue × benchmark, then subtract net debt.
     Falls back to using revenue-per-share from key metrics when statements are unavailable."""
-    benchmark = EV_SALES_BENCHMARKS.get(bucket, EV_SALES_BENCHMARKS["default"])
+    sub = _sub_sector_benchmark(industry, bucket, "ev_sales")
+    benchmark = sub if sub is not None else EV_SALES_BENCHMARKS.get(bucket, EV_SALES_BENCHMARKS["default"])
+    benchmark_label = f"{benchmark}× ({'sub-sector' if sub else 'sector avg'})"
 
     warnings = []
     ttm        = _ttm_income(statements)
     bal        = _latest_balance(statements)
     revenue    = ttm.get("revenue")
     net_debt   = bal.get("net_debt") or 0
-    shares_out = bal.get("shares_outstanding")
+    shares_out = _get_shares(statements)
 
     if revenue and shares_out:
         implied_ev   = revenue * benchmark
@@ -225,7 +352,7 @@ def run_ev_sales(bucket: str, ratios: dict, statements: dict, price: float = 0) 
             "revenue_per_share": round(revenue / shares_out if (revenue and shares_out) else (ratios or {}).get("revenue_per_share") or 0, 2),
             "sector_ev_sales":   benchmark,
         },
-        "warnings": warnings + [f"Uses sector average EV/Sales of {benchmark}×"],
+        "warnings": warnings + [f"Uses {benchmark_label} EV/Sales"],
     }
 
 

@@ -401,6 +401,11 @@ def get_company_profile(ticker: str) -> dict:
         raise ValueError(f"FMP returned no profile for {ticker}")
 
     p = data[0] if isinstance(data, list) else data
+
+    # Extract IPO year from "2004-08-19" → "2004"
+    ipo_date = p.get("ipoDate") or ""
+    ipo_year = ipo_date[:4] if len(ipo_date) >= 4 else None
+
     return {
         "ticker":      ticker.upper(),
         "name":        p.get("companyName"),
@@ -410,5 +415,9 @@ def get_company_profile(ticker: str) -> dict:
         "market_cap":  p.get("marketCap"),
         "exchange":    p.get("exchange"),
         "country":     p.get("country"),
+        "ceo":         p.get("ceo"),
+        "employees":   p.get("fullTimeEmployees"),
+        "ipo_year":    ipo_year,
+        "website":     p.get("website"),
         "source":      "fmp",
     }
