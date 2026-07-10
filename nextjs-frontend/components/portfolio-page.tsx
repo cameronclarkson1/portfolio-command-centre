@@ -174,6 +174,7 @@ export function PortfolioPage({ apiData }: { apiData?: PortfolioApiData | null }
   const [period,      setPeriod]      = useState<'1m' | '3m' | '6m' | '1y'>('3m')
   const [perfData,      setPerfData]      = useState<PortfolioPerformanceData | null>(null)
   const [perfLoading,   setPerfLoading]   = useState(true)
+  const [perfError,     setPerfError]     = useState(false)
   const [decisions,     setDecisions]     = useState<DecisionSignal[]>([])
   const [decisionsLive, setDecisionsLive] = useState(false)
   const [dividends,     setDividends]     = useState<DividendEntry[]>([])
@@ -190,13 +191,21 @@ export function PortfolioPage({ apiData }: { apiData?: PortfolioApiData | null }
     })
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
-  useEffect(() => {
+  const loadPerf = (p: string) => {
     setPerfLoading(true)
-    fetchPortfolioPerformance(period).then((d) => {
-      setPerfData(d)
+    setPerfError(false)
+    fetchPortfolioPerformance(p).then((d) => {
+      if (d && d.series.length > 0) {
+        setPerfData(d)
+        setPerfError(false)
+      } else {
+        setPerfError(true)
+      }
       setPerfLoading(false)
     })
-  }, [period])
+  }
+
+  useEffect(() => { loadPerf(period) }, [period]) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     fetchDecisions().then((d) => {
@@ -453,8 +462,20 @@ export function PortfolioPage({ apiData }: { apiData?: PortfolioApiData | null }
             </AreaChart>
           </ResponsiveContainer>
         ) : (
-          <div className="h-48 flex items-center justify-center text-sm text-muted-foreground">
-            Performance data unavailable — start the API to load historical NAV.
+          <div className="h-48 flex flex-col items-center justify-center gap-3">
+            <p className="text-sm text-muted-foreground">
+              {perfError
+                ? 'Performance data unavailable — the server may still be warming up.'
+                : 'No performance data for this period.'}
+            </p>
+            {perfError && (
+              <button
+                onClick={() => loadPerf(period)}
+                className="flex items-center gap-1.5 rounded-md border border-border px-3 py-1.5 text-xs font-medium text-foreground hover:bg-accent transition-colors"
+              >
+                <RefreshCw className="h-3 w-3" /> Retry
+              </button>
+            )}
           </div>
         )}
 

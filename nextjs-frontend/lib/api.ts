@@ -501,7 +501,7 @@ export interface PortfolioPerformanceData {
 }
 
 export async function fetchPortfolioPerformance(period: string): Promise<PortfolioPerformanceData | null> {
-  const raw = await apiFetch(`/api/portfolio/performance?period=${period}`, 35_000) as PortfolioPerformanceData | null
+  const raw = await apiFetch(`/api/portfolio/performance?period=${period}`, 60_000) as PortfolioPerformanceData | null
   if (!raw || !Array.isArray(raw.series)) return null
   return raw
 }
