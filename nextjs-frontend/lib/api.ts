@@ -659,7 +659,7 @@ export interface ResearchData {
   }[]
 
   // Recent news
-  recent_news: { headline: string; source: string; published_at: string; summary?: string | null }[]
+  recent_news: { headline: string; source: string; published_at: string; summary?: string | null; url?: string | null }[]
 
   // Upcoming earnings
   earnings: { date: string; hour: string; eps_estimate?: number | null; revenue_est?: number | null }[]

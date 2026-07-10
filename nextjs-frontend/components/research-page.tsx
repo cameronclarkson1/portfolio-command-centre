@@ -1370,24 +1370,40 @@ function NewsTab({ research }: { research: ResearchData }) {
 
   return (
     <div className="space-y-3">
-      {news.map((item, i) => (
-        <div key={i} className="rounded-xl border border-border bg-card p-4 shadow-sm">
-          <div className="flex items-start justify-between gap-3">
-            <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium text-foreground leading-snug">{item.headline}</p>
-              {item.summary && (
-                <p className="mt-1.5 text-xs text-muted-foreground leading-relaxed line-clamp-3">
-                  {item.summary}
+      {news.map((item, i) => {
+        const hasUrl = !!item.url
+        const Wrapper = hasUrl ? 'a' : 'div'
+        const wrapperProps = hasUrl
+          ? { href: item.url!, target: '_blank', rel: 'noopener noreferrer' }
+          : {}
+        return (
+          <Wrapper
+            key={i}
+            {...wrapperProps}
+            className={cn(
+              'block rounded-xl border border-border bg-card p-4 shadow-sm transition-all',
+              hasUrl && 'hover:shadow-md hover:border-primary/30 cursor-pointer'
+            )}
+          >
+            <div className="flex items-start justify-between gap-3">
+              <div className="flex-1 min-w-0">
+                <p className={cn('text-sm font-medium leading-snug', hasUrl ? 'text-foreground hover:text-primary' : 'text-foreground')}>
+                  {item.headline}
                 </p>
-              )}
+                {item.summary && (
+                  <p className="mt-1.5 text-xs text-muted-foreground leading-relaxed line-clamp-3">
+                    {item.summary}
+                  </p>
+                )}
+              </div>
+              <div className="text-right shrink-0">
+                <p className="text-xs font-medium text-foreground">{item.source}</p>
+                <p className="text-xs text-muted-foreground mt-0.5">{relativeTime(item.published_at)}</p>
+              </div>
             </div>
-            <div className="text-right shrink-0">
-              <p className="text-xs font-medium text-foreground">{item.source}</p>
-              <p className="text-xs text-muted-foreground mt-0.5">{relativeTime(item.published_at)}</p>
-            </div>
-          </div>
-        </div>
-      ))}
+          </Wrapper>
+        )
+      })}
     </div>
   )
 }

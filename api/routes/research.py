@@ -218,6 +218,7 @@ def get_research(ticker: str, price: float = Query(None)):
                 "source":       n.get("source", ""),
                 "published_at": n.get("published_at", ""),
                 "summary":      n.get("summary"),
+                "url":          n.get("url", ""),
             }
             for n in (results.get("recent_news") or [])[:10]
         ],
