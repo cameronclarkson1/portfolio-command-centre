@@ -235,6 +235,15 @@ export function PortfolioPage({ apiData }: { apiData?: PortfolioApiData | null }
 
   const data    = liveData ? fromApi(liveData) : fromMock()
   const isLive  = liveData?.summary.prices_live ?? false
+  const nzdRate = liveData?.nzd_rate ?? 1.69
+
+  // Format a USD value as NZD (primary display)
+  const fmtNZD = (usd: number) => {
+    const nzd = usd * nzdRate
+    const abs = Math.abs(nzd)
+    const sign = nzd < 0 ? '-' : ''
+    return `${sign}NZ$${abs.toLocaleString('en-NZ', { maximumFractionDigits: 0 })}`
+  }
 
   const { holdings, totalValue, totalGain, totalGainPct,
           dailyChangePct, dailyChangeDollars, cash, invested, sectorChart } = data
@@ -292,25 +301,29 @@ export function PortfolioPage({ apiData }: { apiData?: PortfolioApiData | null }
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4 lg:gap-4">
         <MetricCard
           title="Total Value"
-          value={formatCurrency(totalValue, true)}
+          value={fmtNZD(totalValue)}
+          subtitle={`${formatCurrency(totalValue, true)} USD`}
           change={dailyChangePct}
           changeLabel="today"
           icon={<DollarSign className="h-4 w-4" />}
         />
         <MetricCard
           title="Total Gain / Loss"
-          value={formatCurrency(totalGain, true)}
+          value={fmtNZD(totalGain)}
+          subtitle={`${formatCurrency(totalGain, true)} USD`}
           change={totalGainPct}
           icon={<TrendingUp className="h-4 w-4" />}
         />
         <MetricCard
           title="Invested"
-          value={formatCurrency(invested, true)}
+          value={fmtNZD(invested)}
+          subtitle={`${formatCurrency(invested, true)} USD`}
           icon={<BarChart3 className="h-4 w-4" />}
         />
         <MetricCard
           title="Cash"
-          value={formatCurrency(cash, true)}
+          value={fmtNZD(cash)}
+          subtitle={`${formatCurrency(cash, true)} USD`}
           icon={<DollarSign className="h-4 w-4" />}
         />
       </div>
@@ -415,11 +428,12 @@ export function PortfolioPage({ apiData }: { apiData?: PortfolioApiData | null }
                 interval="preserveStartEnd"
               />
               <YAxis
+                domain={[(min: number) => min * 0.97, (max: number) => max * 1.02]}
                 tickLine={false}
                 axisLine={false}
                 tick={{ fontSize: 10, fill: 'var(--muted-foreground)' }}
-                tickFormatter={(v: number) => `$${(v / 1000).toFixed(1)}k`}
-                width={48}
+                tickFormatter={(v: number) => `NZ$${((v * nzdRate) / 1000).toFixed(1)}k`}
+                width={56}
               />
               <Tooltip
                 contentStyle={{
@@ -430,7 +444,7 @@ export function PortfolioPage({ apiData }: { apiData?: PortfolioApiData | null }
                   color: 'var(--foreground)',
                 }}
                 formatter={(v: number, name: string) => [
-                  formatCurrency(v),
+                  `${fmtNZD(v)} (${formatCurrency(v)} USD)`,
                   name === 'value' ? 'Portfolio' : 'S&P 500 (scaled)',
                 ]}
                 labelFormatter={(d: string) => new Date(d).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}

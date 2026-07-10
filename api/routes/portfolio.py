@@ -34,6 +34,26 @@ _WL_FV: dict[str, float] = {
 
 # ── Internal helpers ──────────────────────────────────────────────────────────
 
+_nzd_cache: dict = {"rate": None, "ts": 0.0}
+
+def _get_nzd_rate() -> float:
+    """Return USD → NZD rate, cached for 1 hour."""
+    import time
+    if _nzd_cache["rate"] and time.time() - _nzd_cache["ts"] < 3600:
+        return _nzd_cache["rate"]
+    try:
+        import yfinance as yf
+        price = yf.Ticker("NZDUSD=X").info.get("regularMarketPrice")
+        if price and price > 0:
+            rate = round(1.0 / price, 4)
+            _nzd_cache["rate"] = rate
+            _nzd_cache["ts"] = time.time()
+            return rate
+    except Exception:
+        pass
+    return 1.69  # fallback: ~1.69 NZD per 1 USD
+
+
 def _get_base_holdings() -> list[dict]:
     """
     Return the base holdings list — tries Sharesight first, falls back to sample_data.
@@ -356,6 +376,7 @@ def get_portfolio():
     total_gain_pct = round(total_gain / total_cost * 100, 2) if total_cost else 0
 
     return {
+        "nzd_rate": _get_nzd_rate(),
         "summary": {
             "total_value":           round(total_value, 2),
             "invested":              round(total_invested, 2),

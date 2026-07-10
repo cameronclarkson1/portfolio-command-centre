@@ -462,6 +462,7 @@ export interface PortfolioApiData {
   summary:        PortfolioSummary
   holdings:       PortfolioHolding[]
   sector_weights: Record<string, number>
+  nzd_rate?:      number
 }
 
 export async function fetchPortfolio(): Promise<PortfolioApiData | null> {

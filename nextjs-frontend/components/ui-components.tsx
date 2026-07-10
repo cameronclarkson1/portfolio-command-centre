@@ -9,6 +9,7 @@ import { ArrowUpRight, ArrowDownRight, Minus, CheckCircle2, AlertTriangle, XCirc
 interface MetricCardProps {
   title: string
   value: string | number
+  subtitle?: string
   change?: number
   changeLabel?: string
   icon?: ReactNode
@@ -16,7 +17,7 @@ interface MetricCardProps {
   compact?: boolean
 }
 
-export function MetricCard({ title, value, change, changeLabel, icon, className, compact }: MetricCardProps) {
+export function MetricCard({ title, value, subtitle, change, changeLabel, icon, className, compact }: MetricCardProps) {
   const isPositive = change !== undefined && change > 0
   const isNegative = change !== undefined && change < 0
 
@@ -35,6 +36,9 @@ export function MetricCard({ title, value, change, changeLabel, icon, className,
       <div className={cn('mt-2 text-2xl font-semibold tracking-tight text-foreground', compact && 'mt-1 text-xl')}>
         {value}
       </div>
+      {subtitle && (
+        <div className="text-xs text-muted-foreground mt-0.5">{subtitle}</div>
+      )}
       {change !== undefined && (
         <div className="mt-1 flex items-center gap-1">
           {isPositive && <ArrowUpRight className="h-3.5 w-3.5 text-success" />}
