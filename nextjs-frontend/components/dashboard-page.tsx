@@ -27,17 +27,50 @@ interface DashboardPageProps {
   liveData?: LiveDashboardData
 }
 
+// Map UI period labels → API param + optional client-side slice
+const PERIOD_MAP: Record<string, { apiParam: string; sliceDays?: number }> = {
+  '1W': { apiParam: '1m', sliceDays: 7 },
+  '1M': { apiParam: '1m' },
+  '3M': { apiParam: '3m' },
+  '1Y': { apiParam: '1y' },
+  'ALL': { apiParam: '1y' },
+}
+
+// Format ISO date → readable label based on zoom level
+function fmtDate(iso: string, sliceDays?: number): string {
+  const d = new Date(iso + 'T00:00:00')
+  if (sliceDays && sliceDays <= 7) return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+  if (sliceDays && sliceDays <= 35) return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+  return d.toLocaleDateString('en-US', { month: 'short', year: '2-digit' })
+}
+
 export function DashboardPage({ liveData }: DashboardPageProps) {
-  const [livePerf, setLivePerf] = useState<{ date: string; portfolio: number }[] | null>(null)
+  const [activePeriod, setActivePeriod] = useState<string>('1Y')
+  const [livePerf, setLivePerf] = useState<{ date: string; portfolio: number; benchmark?: number | null }[] | null>(null)
+  const [perfLoading, setPerfLoading] = useState(false)
   const [scanning, setScanning] = useState(false)
   const [scannerOpps, setScannerOpps] = useState<ScannerOpportunity[] | null>(null)
   const [earnings, setEarnings] = useState<EarningsItem[] | null>(null)
 
   useEffect(() => {
-    fetchPortfolioPerformance('1y').then((d) => {
-      if (d && d.series.length > 0)
-        setLivePerf(d.series.map((s: { date: string; value: number }) => ({ date: s.date, portfolio: s.value })))
-    })
+    const { apiParam, sliceDays } = PERIOD_MAP[activePeriod] ?? { apiParam: '1y' }
+    setPerfLoading(true)
+    fetchPortfolioPerformance(apiParam).then((d) => {
+      if (d && d.series.length > 0) {
+        let pts = d.series.map((s: { date: string; value: number; benchmark?: number | null }) => ({
+          date:      fmtDate(s.date, sliceDays),
+          portfolio: s.value,
+          benchmark: s.benchmark ?? null,
+        }))
+        if (sliceDays) pts = pts.slice(-sliceDays)
+        setLivePerf(pts)
+      } else {
+        setLivePerf(null)
+      }
+    }).finally(() => setPerfLoading(false))
+  }, [activePeriod])
+
+  useEffect(() => {
     fetchScannerStatus().then((s) => { if (s?.running) setScanning(true) })
     fetchScannerResults().then((r) => {
       if (r?.opportunities?.length) setScannerOpps(r.opportunities.slice(0, 5))
@@ -157,19 +190,28 @@ export function DashboardPage({ liveData }: DashboardPageProps) {
             action={
               <div className="flex gap-1">
                 {['1W', '1M', '3M', '1Y', 'ALL'].map((p) => (
-                  <button key={p} className={cn(
-                    'px-2 py-1 text-xs font-medium rounded-md transition-colors',
-                    p === '1Y'
-                      ? 'bg-primary text-primary-foreground'
-                      : 'text-muted-foreground hover:bg-accent'
-                  )}>
+                  <button
+                    key={p}
+                    onClick={() => setActivePeriod(p)}
+                    className={cn(
+                      'px-2 py-1 text-xs font-medium rounded-md transition-colors',
+                      p === activePeriod
+                        ? 'bg-primary text-primary-foreground'
+                        : 'text-muted-foreground hover:bg-accent'
+                    )}
+                  >
                     {p}
                   </button>
                 ))}
               </div>
             }
           />
-          <div className="mt-4 h-52 lg:h-64">
+          <div className="mt-4 h-52 lg:h-64 relative">
+            {perfLoading && (
+              <div className="absolute inset-0 flex items-center justify-center bg-card/60 rounded-lg z-10">
+                <span className="text-xs text-muted-foreground animate-pulse">Loading…</span>
+              </div>
+            )}
             <ResponsiveContainer width="100%" height="100%">
               <AreaChart data={livePerf ?? performanceData} margin={{ top: 5, right: 5, left: 0, bottom: 5 }}>
                 <defs>
@@ -183,8 +225,12 @@ export function DashboardPage({ liveData }: DashboardPageProps) {
                   axisLine={false}
                   tickLine={false}
                   tick={{ fontSize: 10, fill: 'var(--muted-foreground)' }}
+                  interval="preserveStartEnd"
                 />
-                <YAxis hide domain={['dataMin - 50000', 'dataMax + 50000']} />
+                <YAxis
+                  hide
+                  domain={[(min: number) => min * 0.98, (max: number) => max * 1.02]}
+                />
                 <Tooltip
                   contentStyle={{
                     backgroundColor: 'var(--card)',
