@@ -185,8 +185,14 @@ def _analyse_one(ticker: str, info: dict, pe_prefetch: float | None = None) -> d
             if prior_4 > 0:
                 rev_growth = (latest_4 - prior_4) / prior_4
 
-        # PE ratio: from batch pre-fetch (more reliable) or None
+        # PE ratio: batch pre-fetch → TTM EPS fallback → None
+        # key_metrics doesn't expose PE on the stable plan, so we derive it
+        # from price / trailing-twelve-months EPS when the batch value is missing.
         pe_ratio = pe_prefetch
+        if pe_ratio is None and income and price > 0:
+            ttm_eps = sum((q.get("eps") or 0) for q in income[:4])
+            if ttm_eps > 0:
+                pe_ratio = round(price / ttm_eps, 1)
 
         # ── Composite score (0–100) ────────────────────────────────────────────
         # Starts at 50. Each factor adds or subtracts based on quality/value signal.

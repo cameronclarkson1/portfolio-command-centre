@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import {
   PieChart, Pie, Cell, ResponsiveContainer, AreaChart, Area, XAxis, YAxis, Tooltip, Line,
 } from 'recharts'
@@ -123,6 +123,25 @@ export function DashboardPage({ liveData }: DashboardPageProps) {
     return start ? Math.round((end - start) / start * 10000) / 100 : 0
   })()
   const buyingPower = portfolioData.buyingPower
+
+  // Annualised volatility and Sharpe ratio derived from the performance series
+  const { liveVolatility, liveSharpe } = useMemo(() => {
+    if (!livePerf || livePerf.length < 10) return { liveVolatility: null, liveSharpe: null }
+    const dailyReturns: number[] = []
+    for (let i = 1; i < livePerf.length; i++) {
+      const prev = livePerf[i - 1].portfolio
+      const curr = livePerf[i].portfolio
+      if (prev > 0) dailyReturns.push((curr - prev) / prev)
+    }
+    if (dailyReturns.length < 5) return { liveVolatility: null, liveSharpe: null }
+    const mean     = dailyReturns.reduce((a, b) => a + b, 0) / dailyReturns.length
+    const variance = dailyReturns.reduce((s, r) => s + (r - mean) ** 2, 0) / dailyReturns.length
+    const stdDev   = Math.sqrt(variance)
+    const annualVol    = +(stdDev * Math.sqrt(252) * 100).toFixed(1)
+    const rfDaily      = 0.045 / 252   // ~4.5% annual risk-free rate
+    const annualSharpe = stdDev > 0 ? +((mean - rfDaily) / stdDev * Math.sqrt(252)).toFixed(2) : 0
+    return { liveVolatility: annualVol, liveSharpe: annualSharpe }
+  }, [livePerf])
 
   return (
     <div className="px-4 py-6 lg:px-8 lg:py-8 space-y-6 max-w-[1600px] mx-auto">
@@ -441,11 +460,15 @@ export function DashboardPage({ liveData }: DashboardPageProps) {
             </div>
             <div className="rounded-lg bg-accent/50 p-2 text-center">
               <p className="text-[10px] text-muted-foreground uppercase tracking-wide">Vol</p>
-              <p className="text-sm font-semibold text-foreground mt-0.5">{portfolioData.volatility}%</p>
+              <p className="text-sm font-semibold text-foreground mt-0.5">
+                {liveVolatility != null ? `${liveVolatility}%` : `${portfolioData.volatility}%`}
+              </p>
             </div>
             <div className="rounded-lg bg-accent/50 p-2 text-center">
               <p className="text-[10px] text-muted-foreground uppercase tracking-wide">Sharpe</p>
-              <p className="text-sm font-semibold text-foreground mt-0.5">{portfolioData.sharpeRatio}</p>
+              <p className="text-sm font-semibold text-foreground mt-0.5">
+                {liveSharpe != null ? liveSharpe : portfolioData.sharpeRatio}
+              </p>
             </div>
           </div>
         </div>
