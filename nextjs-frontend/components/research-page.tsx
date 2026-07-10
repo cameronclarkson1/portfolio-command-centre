@@ -618,7 +618,7 @@ function ValuationTab({ research }: { research: ResearchData }) {
             <DataRow label="EV/EBITDA"        value={fmt(research.ratios.ev_ebitda,     1, 'x')} />
             <DataRow label="P/S Ratio"        value={fmt(research.ratios.ps_ratio,      1, 'x')} />
             <DataRow label="P/B Ratio"        value={fmt(research.ratios.pb_ratio,      1, 'x')} />
-            <DataRow label="Dividend Yield"   value={fmt(research.ratios.dividend_yield,2, '%')} />
+            <DataRow label="Dividend Yield"   value={research.ratios.dividend_yield != null ? fmt(research.ratios.dividend_yield * 100, 2, '%') : '—'} />
             <DataRow label="Beta"             value={fmt(research.ratios.beta,          2)} />
             <DataRow label="FCF / Share"      value={research.ratios.fcf_per_share != null ? formatCurrency(research.ratios.fcf_per_share) : '—'} />
           </div>
@@ -1226,11 +1226,11 @@ function FinancialsTab({ research }: { research: ResearchData }) {
         <div className="rounded-xl border border-border bg-card p-4 shadow-sm">
           <SectionHeader title="Quality & Balance Sheet" />
           <div className="mt-3 divide-y divide-border">
-            <DataRow label="ROIC"           value={fmt(research.ratios.roic,        1, '%')} />
-            <DataRow label="ROE"            value={fmt(research.ratios.roe,         1, '%')} />
+            <DataRow label="ROIC"           value={research.ratios.roic           != null ? fmt(research.ratios.roic           * 100, 1, '%') : '—'} />
+            <DataRow label="ROE"            value={research.ratios.roe            != null ? fmt(research.ratios.roe            * 100, 1, '%') : '—'} />
             <DataRow label="Debt / Equity"  value={fmt(research.ratios.debt_equity, 2, 'x')} />
-            <DataRow label="FCF / Share"    value={research.ratios.fcf_per_share != null ? formatCurrency(research.ratios.fcf_per_share) : '—'} />
-            <DataRow label="Dividend Yield" value={fmt(research.ratios.dividend_yield, 2, '%')} />
+            <DataRow label="FCF / Share"    value={research.ratios.fcf_per_share  != null ? formatCurrency(research.ratios.fcf_per_share) : '—'} />
+            <DataRow label="Dividend Yield" value={research.ratios.dividend_yield != null ? fmt(research.ratios.dividend_yield * 100, 2, '%') : '—'} />
           </div>
         </div>
       )}
@@ -1297,33 +1297,35 @@ function AnalystTab({ research }: { research: ResearchData }) {
         </div>
       </div>
 
-      {/* Recent actions list */}
-      <div className="rounded-xl border border-border bg-card p-4 shadow-sm">
-        <SectionHeader title="Recent Actions" />
-        <div className="mt-3 divide-y divide-border">
-          {actions.slice(0, 8).map((a, i) => (
-            <div key={i} className="py-2.5 flex items-start justify-between gap-2">
-              <div className="flex-1 min-w-0">
-                <p className="text-xs font-medium text-foreground truncate">{a.analyst_firm}</p>
-                <p className="text-xs text-muted-foreground mt-0.5">
-                  {a.action} → <span className={cn(
-                    'font-medium',
-                    a.bucket === 'buy'  ? 'text-success' :
-                    a.bucket === 'sell' ? 'text-destructive' : 'text-gold-foreground'
-                  )}>{a.rating}</span>
-                  {a.rating_prior && ` (was ${a.rating_prior})`}
-                </p>
+      {/* Recent actions list — only shown when data is available */}
+      {actions.length > 0 && (
+        <div className="rounded-xl border border-border bg-card p-4 shadow-sm">
+          <SectionHeader title="Recent Actions" />
+          <div className="mt-3 divide-y divide-border">
+            {actions.slice(0, 8).map((a, i) => (
+              <div key={i} className="py-2.5 flex items-start justify-between gap-2">
+                <div className="flex-1 min-w-0">
+                  <p className="text-xs font-medium text-foreground truncate">{a.analyst_firm}</p>
+                  <p className="text-xs text-muted-foreground mt-0.5">
+                    {a.action} → <span className={cn(
+                      'font-medium',
+                      a.bucket === 'buy'  ? 'text-success' :
+                      a.bucket === 'sell' ? 'text-destructive' : 'text-gold-foreground'
+                    )}>{a.rating}</span>
+                    {a.rating_prior && ` (was ${a.rating_prior})`}
+                  </p>
+                </div>
+                <div className="text-right shrink-0">
+                  {a.price_target != null && (
+                    <p className="text-xs font-medium text-foreground">{formatCurrency(a.price_target)}</p>
+                  )}
+                  <p className="text-xs text-muted-foreground">{relativeTime(a.published_at)}</p>
+                </div>
               </div>
-              <div className="text-right shrink-0">
-                {a.price_target != null && (
-                  <p className="text-xs font-medium text-foreground">{formatCurrency(a.price_target)}</p>
-                )}
-                <p className="text-xs text-muted-foreground">{relativeTime(a.published_at)}</p>
-              </div>
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
-      </div>
+      )}
 
       {/* Earnings upcoming */}
       {research.earnings.length > 0 && (

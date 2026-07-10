@@ -56,9 +56,9 @@ def get_financial_statements(ticker: str) -> dict | None:
     income_fallback = True
 
     try:
-        income   = fmp.get_income_statement(ticker, limit=4)
-        balance  = fmp.get_balance_sheet(ticker, limit=4)
-        cashflow = fmp.get_cash_flow_statement(ticker, limit=4)
+        income   = fmp.get_income_statement(ticker, limit=20)
+        balance  = fmp.get_balance_sheet(ticker, limit=20)
+        cashflow = fmp.get_cash_flow_statement(ticker, limit=20)
         income_source   = "fmp"
         income_fallback = False
         fmp_ok = True
@@ -67,7 +67,7 @@ def get_financial_statements(ticker: str) -> dict | None:
 
     if not fmp_ok:
         try:
-            stmts    = yf_provider.get_financial_statements(ticker, limit=4)
+            stmts    = yf_provider.get_financial_statements(ticker, limit=8)
             income   = stmts.get("income")   or []
             balance  = stmts.get("balance")  or []
             cashflow = stmts.get("cashflow") or []
