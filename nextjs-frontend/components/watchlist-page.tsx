@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useRef, useEffect } from 'react'
+import { useRouter } from 'next/navigation'
 import {
   Search,
   Plus,
@@ -104,6 +105,8 @@ const filterOptions = [
 // ── Component ─────────────────────────────────────────────────────────────────
 
 export function WatchlistPage({ livePrices }: { livePrices?: LivePriceData | null }) {
+  const router = useRouter()
+
   // Always start with the full 33-stock list from mock-data so it's visible immediately.
   // The server load below will overlay saved scores and any user-added stocks on top.
   const [items, setItems]           = useState<WatchlistItem[]>(() => buildInitialList(livePrices))
@@ -350,8 +353,9 @@ export function WatchlistPage({ livePrices }: { livePrices?: LivePriceData | nul
     return (
       <div
         key={stock.symbol}
+        onClick={() => router.push(`/research?ticker=${stock.symbol}`)}
         className={cn(
-          'rounded-xl border border-border bg-card p-4 shadow-sm hover:shadow-md transition-all group',
+          'rounded-xl border border-border bg-card p-4 shadow-sm hover:shadow-md transition-all group cursor-pointer',
           isLoading && 'opacity-60'
         )}
       >
@@ -376,7 +380,10 @@ export function WatchlistPage({ livePrices }: { livePrices?: LivePriceData | nul
                 {stock.rating}
               </span>
             )}
-            <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+            <div
+              className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity"
+              onClick={(e) => e.stopPropagation()}
+            >
               <button onClick={() => toggleFavorite(stock.symbol)}>
                 {favorites.includes(stock.symbol)
                   ? <Star    className="h-4 w-4 text-gold fill-gold" />

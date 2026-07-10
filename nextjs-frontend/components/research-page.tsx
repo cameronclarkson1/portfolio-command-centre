@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import {
   BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer,
   LineChart, Line,
@@ -72,13 +72,20 @@ function relativeTime(iso: string): string {
 
 type Tab = 'valuation' | 'scores' | 'analysis' | 'financials' | 'analyst' | 'news'
 
-export function ResearchPage() {
+export function ResearchPage({ initialTicker }: { initialTicker?: string }) {
   const [searchQuery,    setSearchQuery]    = useState('')
   const [activeTab,      setActiveTab]      = useState<Tab>('valuation')
   const [searching,      setSearching]      = useState(false)
   const [searchedTicker, setSearchedTicker] = useState<string | null>(null)
   const [research,       setResearch]       = useState<ResearchData | null>(null)
   const [addedMsg,       setAddedMsg]       = useState<string | null>(null)
+
+  useEffect(() => {
+    if (initialTicker) {
+      setSearchQuery(initialTicker)
+      runSearch(initialTicker)
+    }
+  }, [initialTicker]) // eslint-disable-line react-hooks/exhaustive-deps
 
   async function runSearch(query: string) {
     const ticker = query.trim().toUpperCase()

@@ -3,10 +3,10 @@ export const dynamic = 'force-dynamic'
 import { AppLayout } from '@/components/app-layout'
 import { ResearchPage } from '@/components/research-page'
 
-export default function Research() {
+export default function Research({ searchParams }: { searchParams: { ticker?: string } }) {
   return (
     <AppLayout>
-      <ResearchPage />
+      <ResearchPage initialTicker={searchParams.ticker} />
     </AppLayout>
   )
 }
