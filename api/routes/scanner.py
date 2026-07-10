@@ -341,7 +341,7 @@ def _analyse_one(ticker: str, info: dict, pe_prefetch: float | None = None) -> d
             pct_from_low = (price - yr_l) / (yr_h - yr_l)
             score += _interp(pct_from_low, [(0.0, 8), (0.25, 4), (0.45, 0)])
 
-        score = round(max(0.0, min(100.0, score)), 1)
+        score = round(score, 1)  # raw score — clamped to 0–100 after normalization
 
         return {
             "ticker":        ticker,
