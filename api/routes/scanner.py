@@ -361,10 +361,10 @@ def run_daily_scan() -> dict:
 
         print(f"[scanner] PE ratios fetched for {len(pe_map)}/{len(tickers)} tickers")
 
-        # Deep analysis — 10 stocks at a time (each stock runs 4 parallel FMP calls internally)
+        # Deep analysis — 5 stocks at a time (each stock runs 4 parallel FMP calls = ~20 concurrent)
         print("[scanner] Running deep analysis…")
         results: list[dict] = []
-        with ThreadPoolExecutor(max_workers=10) as ex:
+        with ThreadPoolExecutor(max_workers=5) as ex:
             futures = {
                 ex.submit(_analyse_one, ticker, {}, pe_map.get(ticker)): ticker
                 for ticker in tickers

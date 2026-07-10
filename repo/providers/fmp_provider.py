@@ -170,18 +170,24 @@ def get_index_constituents(index: str) -> list[str]:
     Fetch current members of a major index from FMP.
     index: 'sp500' | 'dowjones' | 'nasdaq'
     Returns a deduplicated list of uppercase ticker symbols.
+
+    Uses the v3 API path directly — these endpoints are not on the stable base.
     """
+    import requests as _req
     endpoint_map = {
-        "sp500":    "/sp500_constituent",
-        "dowjones": "/dowjones_constituent",
-        "nasdaq":   "/nasdaq_constituent",
+        "sp500":    "sp500_constituent",
+        "dowjones": "dowjones_constituent",
+        "nasdaq":   "nasdaq_constituent",
     }
-    endpoint = endpoint_map.get(index.lower())
-    if not endpoint:
+    name = endpoint_map.get(index.lower())
+    if not name:
         raise ValueError(f"Unknown index '{index}'. Use sp500, dowjones, or nasdaq.")
 
-    log_provider_call(log, "FMP", endpoint)
-    data = _get(endpoint)
+    url = f"https://financialmodelingprep.com/api/v3/{name}"
+    log_provider_call(log, "FMP", f"/api/v3/{name}")
+    resp = _req.get(url, params={"apikey": FMP_API_KEY}, timeout=REQUEST_TIMEOUT)
+    resp.raise_for_status()
+    data = resp.json()
     if not data:
         return []
     return [item.get("symbol", "").upper() for item in data if item.get("symbol")]
