@@ -719,6 +719,8 @@ export interface ValuationResult {
     pt_upside_pct:    number | null
   }
   warnings:                string[]
+  blend_notes?:            string[]   // outlier/down-weight explanations from P2.3
+  why_these_models?:       string     // updated dynamically when characteristic models added
 }
 
 export async function fetchValuation(ticker: string, price?: number): Promise<ValuationResult | null> {

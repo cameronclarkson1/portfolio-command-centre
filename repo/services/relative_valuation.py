@@ -175,6 +175,57 @@ def _sub_sector_benchmark(industry: str, bucket: str, model: str) -> float | Non
     return None
 
 
+# Approximate sector median ROIC (decimal) used for quality adjustment.
+# Source: Damodaran annual sector data, 2023-2024 averages.
+SECTOR_MEDIAN_ROIC: dict[str, float | None] = {
+    "technology":             0.15,
+    "consumer_discretionary": 0.10,
+    "consumer_staples":       0.12,
+    "financials":             0.10,
+    "insurance":              0.09,
+    "reit":                   0.08,
+    "utilities":              0.07,
+    "energy":                 0.08,
+    "materials":              0.09,
+    "industrials":            0.12,
+    "healthcare":             0.12,
+    "communication":          0.10,
+    "early_stage":            None,
+    "default":                0.10,
+}
+
+
+def _quality_adjust_multiple(
+    base_multiple:  float,
+    company_roic:   float | None,
+    bucket:         str,
+) -> tuple[float, str]:
+    """
+    Scale a sector-average multiple by the company's quality relative to its
+    sector median ROIC.
+
+    Formula: adjusted = base × clamp(1 + 0.5 × (roic - median) / median, 0.75, 1.25)
+
+    Returns (adjusted_multiple, caveat_string).
+    No adjustment is made when ROIC is unavailable (returns base unchanged).
+    """
+    median = SECTOR_MEDIAN_ROIC.get(bucket)
+    if company_roic is None or median is None or median <= 0:
+        return base_multiple, f"sector avg {base_multiple}× (no ROIC data for quality adjustment)"
+
+    raw_factor = 1.0 + 0.5 * (company_roic - median) / median
+    factor     = max(0.75, min(1.25, raw_factor))
+    adjusted   = round(base_multiple * factor, 1)
+
+    pct_adj    = round((factor - 1) * 100)
+    direction  = f"+{pct_adj}%" if pct_adj >= 0 else f"{pct_adj}%"
+    caveat     = (
+        f"{adjusted}× (sector avg {base_multiple}×, {direction} quality adj — "
+        f"ROIC {company_roic*100:.1f}% vs ~{median*100:.0f}% sector median)"
+    )
+    return adjusted, caveat
+
+
 PB_BENCHMARKS = {
     "financials":  1.5,
     "insurance":   1.4,
@@ -234,23 +285,22 @@ def _get_shares(statements: dict) -> float | None:
     return shares
 
 
-def run_pe(bucket: str, ratios: dict, statements: dict, price: float = 0, industry: str = "") -> dict:
-    """P/E comparable valuation: Fair Value = TTM EPS × sector average P/E.
-    Falls back to inferring EPS from the live P/E ratio when statements are unavailable."""
+def run_pe(bucket: str, ratios: dict, statements: dict, price: float = 0, industry: str = "", roic: float | None = None) -> dict:
+    """P/E comparable valuation: Fair Value = TTM EPS × quality-adjusted sector P/E."""
     sub = _sub_sector_benchmark(industry, bucket, "pe")
-    benchmark = sub if sub is not None else PE_BENCHMARKS.get(bucket, PE_BENCHMARKS["default"])
-    benchmark_label = f"{benchmark}× ({'sub-sector' if sub else 'sector avg'})"
-    if benchmark is None:
+    base_benchmark = sub if sub is not None else PE_BENCHMARKS.get(bucket, PE_BENCHMARKS["default"])
+    if base_benchmark is None:
         return {"model": "pe", "name": "P/E Comparable", "fair_value": None,
                 "confidence": 0.0, "inputs_used": {},
                 "warnings": ["P/E not applicable — company has negative or no earnings"]}
+
+    benchmark, benchmark_caveat = _quality_adjust_multiple(base_benchmark, roic, bucket)
 
     warnings = []
     ttm = _ttm_income(statements)
     eps = ttm.get("eps")
 
     if not eps or eps <= 0:
-        # Fallback: infer EPS from the live P/E ratio and current price
         live_pe = (ratios or {}).get("pe_ratio")
         if live_pe and live_pe > 0 and price:
             eps = price / live_pe
@@ -267,15 +317,15 @@ def run_pe(bucket: str, ratios: dict, statements: dict, price: float = 0, indust
         "fair_value": round(eps * benchmark, 2),
         "confidence": confidence,
         "inputs_used": {"eps_ttm": round(eps, 4), "pe_benchmark": benchmark},
-        "warnings":   warnings + [f"Uses {benchmark_label} P/E — individual quality premium not applied"],
+        "warnings":   warnings + [f"Uses {benchmark_caveat} P/E"],
     }
 
 
-def run_ev_ebitda(bucket: str, ratios: dict, statements: dict, industry: str = "") -> dict:
-    """EV/EBITDA valuation: Implied EV = EBITDA × benchmark, then subtract net debt."""
+def run_ev_ebitda(bucket: str, ratios: dict, statements: dict, industry: str = "", roic: float | None = None) -> dict:
+    """EV/EBITDA valuation: Implied EV = EBITDA × quality-adjusted benchmark, then subtract net debt."""
     sub = _sub_sector_benchmark(industry, bucket, "ev_ebitda")
-    benchmark = sub if sub is not None else EV_EBITDA_BENCHMARKS.get(bucket, EV_EBITDA_BENCHMARKS["default"])
-    benchmark_label = f"{benchmark}× ({'sub-sector' if sub else 'sector avg'})"
+    base_benchmark = sub if sub is not None else EV_EBITDA_BENCHMARKS.get(bucket, EV_EBITDA_BENCHMARKS["default"])
+    benchmark, benchmark_caveat = _quality_adjust_multiple(base_benchmark, roic, bucket)
 
     ttm        = _ttm_income(statements)
     bal        = _latest_balance(statements)
@@ -298,21 +348,20 @@ def run_ev_ebitda(bucket: str, ratios: dict, statements: dict, industry: str = "
         "fair_value": round(fair_value, 2),
         "confidence": 63.0,
         "inputs_used": {
-            "ebitda_ttm":            round(ebitda, 0),
-            "sector_ev_ebitda":      benchmark,
-            "net_debt":              net_debt,
-            "shares_out":            shares_out,
+            "ebitda_ttm":       round(ebitda, 0),
+            "sector_ev_ebitda": benchmark,
+            "net_debt":         net_debt,
+            "shares_out":       shares_out,
         },
-        "warnings": [f"Uses {benchmark_label} EV/EBITDA — individual quality not adjusted"],
+        "warnings": [f"Uses {benchmark_caveat} EV/EBITDA"],
     }
 
 
-def run_ev_sales(bucket: str, ratios: dict, statements: dict, price: float = 0, industry: str = "") -> dict:
-    """EV/Sales valuation: Implied EV = Revenue × benchmark, then subtract net debt.
-    Falls back to using revenue-per-share from key metrics when statements are unavailable."""
+def run_ev_sales(bucket: str, ratios: dict, statements: dict, price: float = 0, industry: str = "", roic: float | None = None) -> dict:
+    """EV/Sales valuation: Implied EV = Revenue × quality-adjusted benchmark, then subtract net debt."""
     sub = _sub_sector_benchmark(industry, bucket, "ev_sales")
-    benchmark = sub if sub is not None else EV_SALES_BENCHMARKS.get(bucket, EV_SALES_BENCHMARKS["default"])
-    benchmark_label = f"{benchmark}× ({'sub-sector' if sub else 'sector avg'})"
+    base_benchmark = sub if sub is not None else EV_SALES_BENCHMARKS.get(bucket, EV_SALES_BENCHMARKS["default"])
+    benchmark, benchmark_caveat = _quality_adjust_multiple(base_benchmark, roic, bucket)
 
     warnings = []
     ttm        = _ttm_income(statements)
@@ -352,7 +401,7 @@ def run_ev_sales(bucket: str, ratios: dict, statements: dict, price: float = 0, 
             "revenue_per_share": round(revenue / shares_out if (revenue and shares_out) else (ratios or {}).get("revenue_per_share") or 0, 2),
             "sector_ev_sales":   benchmark,
         },
-        "warnings": warnings + [f"Uses {benchmark_label} EV/Sales"],
+        "warnings": warnings + [f"Uses {benchmark_caveat} EV/Sales"],
     }
 
 

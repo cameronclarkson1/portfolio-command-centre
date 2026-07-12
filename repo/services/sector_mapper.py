@@ -153,6 +153,73 @@ BUCKET_EXPLANATIONS = {
 }
 
 
+# Models that must never be added to certain buckets via characteristics,
+# regardless of what the company data looks like.
+_BUCKET_MODEL_EXCLUSIONS: dict[str, set] = {
+    "reit":       {"dcf", "ev_sales", "ev_ebitda", "pe"},  # REIT GAAP earnings distorted by property gains
+    "financials": {"dcf", "ev_sales", "ev_ebitda"},          # Standard DCF/EV not appropriate for banks
+    "insurance":  {"dcf", "ev_sales", "ev_ebitda"},
+    "early_stage": {"ddm", "pe"},                             # No stable earnings or dividends
+}
+
+
+def select_models(
+    bucket:     str,
+    ratios:     dict | None,
+    statements: dict | None,
+) -> dict[str, float]:
+    """
+    Return {model_key: weight} normalized to 1.0.
+
+    Starts with the sector bucket's default models (P2 base), then adds
+    characteristic-eligible models that aren't already in the core (P2.1).
+
+    Characteristic checks:
+      - P/E    if earnings are positive (eps_ttm > 0 or live pe_ratio > 0)
+      - DDM    if company pays a dividend (dividend_yield > 0)
+      - P/CF   if operating cash flow is positive
+      - P/B    if equity is positive AND sector is asset-heavy
+
+    Added models get 50% of the smallest core weight, then everything is
+    renormalised.  Never adds models that are excluded for the bucket type.
+    """
+    core       = dict(BUCKET_WEIGHTS.get(bucket, BUCKET_WEIGHTS["default"]))
+    exclusions = _BUCKET_MODEL_EXCLUSIONS.get(bucket, set())
+
+    ratios_d     = ratios     or {}
+    statements_d = statements or {}
+    income   = statements_d.get("income",   [{}])
+    cashflow = statements_d.get("cashflow", [{}])
+    balance  = statements_d.get("balance",  [{}])
+
+    div_yield  = ratios_d.get("dividend_yield") or 0.0
+    pe_ratio   = ratios_d.get("pe_ratio")
+    eps_ttm    = sum((q.get("eps") or 0) for q in income[:4])
+    op_cf_ttm  = sum((q.get("operating_cash_flow") or 0) for q in cashflow[:4])
+    equity     = (balance[0] if balance else {}).get("total_equity") or 0
+
+    # asset-heavy sectors benefit from a P/B anchor
+    _asset_heavy = {"energy", "materials", "industrials", "utilities"}
+
+    candidates: dict[str, bool] = {
+        "pe":  eps_ttm > 0 or bool(pe_ratio and pe_ratio > 0),
+        "ddm": div_yield > 0,
+        "pcf": op_cf_ttm > 0,
+        "pb":  equity > 0 and bucket in _asset_heavy,
+    }
+
+    min_core_w = min(core.values()) if core else 0.10
+    additions  = {
+        k: min_core_w * 0.5
+        for k, eligible in candidates.items()
+        if eligible and k not in core and k not in exclusions
+    }
+
+    combined = {**core, **additions}
+    total    = sum(combined.values())
+    return {k: round(v / total, 4) for k, v in combined.items()}
+
+
 def get_bucket(sector: str | None, industry: str | None = None) -> str:
     """
     Map sector and industry strings to a valuation bucket key.
