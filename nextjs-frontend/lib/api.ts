@@ -117,6 +117,12 @@ export interface MacroEvent {
   importance:  'high' | 'medium'
 }
 
+export interface FxData {
+  label:      string
+  price:      number | null
+  change_pct: number | null
+}
+
 export interface LiveMarketsData {
   marketIndices:    MarketIndexData[]    | null
   sectorPerformance: SectorPerfData[]   | null
@@ -125,6 +131,7 @@ export interface LiveMarketsData {
   macroIndicators:  MacroIndicatorData[] | null
   commodities:      CommodityData[]      | null
   crypto:           CryptoData[]         | null
+  fx:               FxData[]             | null
 }
 
 export interface LiveIntelligenceData {
@@ -843,17 +850,24 @@ async function fetchAlternatives(): Promise<{ commodities: CommodityData[]; cryp
   return raw
 }
 
+async function fetchFxData(): Promise<FxData[] | null> {
+  const raw = await apiFetch('/api/market/fx') as { fx: FxData[] } | null
+  if (!raw || !Array.isArray(raw.fx)) return null
+  return raw.fx
+}
+
 /**
  * Fetches all live data for the Markets page in parallel.
  * Any section that fails returns null — falls back to mock data.
  */
 export async function fetchMarketsData(): Promise<LiveMarketsData> {
-  const [indices, sectors, news, macro, alternatives] = await Promise.all([
+  const [indices, sectors, news, macro, alternatives, fx] = await Promise.all([
     fetchMarketIndices(),
     fetchSectorPerformance(),
     fetchMarketNews(),
     fetchMacroSnapshot(),
     fetchAlternatives(),
+    fetchFxData(),
   ])
 
   return {
@@ -864,5 +878,6 @@ export async function fetchMarketsData(): Promise<LiveMarketsData> {
     macroIndicators:   macro ? normalizeMacroIndicators(macro) : null,
     commodities:       alternatives?.commodities ?? null,
     crypto:            alternatives?.crypto      ?? null,
+    fx,
   }
 }

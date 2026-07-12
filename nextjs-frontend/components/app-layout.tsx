@@ -62,12 +62,13 @@ const NAV_GROUPS = [
 // ── Helpers ──────────────────────────────────────────────────────────────────
 
 function useMarketStatus() {
-  const now = new Date()
-  const day = now.getDay()
-  const h   = now.getHours()
-  const m   = now.getMinutes()
-  const isWeekday  = day >= 1 && day <= 5
-  const afterOpen  = h > 9  || (h === 9  && m >= 30)
+  // Always compare against Eastern Time — US markets are 9:30–16:00 ET
+  const etDate     = new Date(new Date().toLocaleString('en-US', { timeZone: 'America/New_York' }))
+  const day        = etDate.getDay()
+  const h          = etDate.getHours()
+  const m          = etDate.getMinutes()
+  const isWeekday   = day >= 1 && day <= 5
+  const afterOpen   = h > 9  || (h === 9  && m >= 30)
   const beforeClose = h < 16
   return { isOpen: isWeekday && afterOpen && beforeClose }
 }

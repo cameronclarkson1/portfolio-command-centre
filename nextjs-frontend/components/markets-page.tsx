@@ -23,9 +23,20 @@ import {
   bondYields       as mockYields,
   crypto           as mockCrypto,
   newsEvents       as mockNews,
-  marketStatus,
 } from '@/lib/mock-data'
 import { type LiveMarketsData } from '@/lib/api'
+
+// Market open/closed based on US Eastern Time (9:30–16:00 ET, Mon–Fri)
+function getMarketOpen(): boolean {
+  const etDate     = new Date(new Date().toLocaleString('en-US', { timeZone: 'America/New_York' }))
+  const day        = etDate.getDay()
+  const h          = etDate.getHours()
+  const m          = etDate.getMinutes()
+  const isWeekday   = day >= 1 && day <= 5
+  const afterOpen   = h > 9  || (h === 9  && m >= 30)
+  const beforeClose = h < 16
+  return isWeekday && afterOpen && beforeClose
+}
 import { cn } from '@/lib/utils'
 
 const breadthIndicators = [
@@ -50,6 +61,8 @@ export function MarketsPage({ liveData }: { liveData?: LiveMarketsData }) {
   const macroIndicators   = liveData?.macroIndicators   ?? fallbackMacro
   const commodities       = liveData?.commodities       ?? mockCommodities
   const crypto            = liveData?.crypto            ?? mockCrypto
+  const fx                = liveData?.fx                ?? null
+  const marketOpen        = getMarketOpen()
   return (
     <div className="px-4 py-6 lg:px-8 lg:py-8 space-y-6">
       {/* Header */}
@@ -61,19 +74,19 @@ export function MarketsPage({ liveData }: { liveData?: LiveMarketsData }) {
         <div className="flex items-center gap-3">
           <div className={cn(
             'flex items-center gap-2 rounded-full px-3 py-1.5 text-xs font-medium',
-            marketStatus.isOpen 
-              ? 'bg-success/10 text-success' 
+            marketOpen
+              ? 'bg-success/10 text-success'
               : 'bg-muted text-muted-foreground'
           )}>
             <span className={cn(
               'h-2 w-2 rounded-full animate-pulse',
-              marketStatus.isOpen ? 'bg-success' : 'bg-muted-foreground'
+              marketOpen ? 'bg-success' : 'bg-muted-foreground'
             )} />
-            {marketStatus.isOpen ? 'Market Open' : 'Market Closed'}
+            {marketOpen ? 'Market Open' : 'Market Closed'}
           </div>
           <span className="text-xs text-muted-foreground flex items-center gap-1">
             <Clock className="h-3 w-3" />
-            Closes at {marketStatus.nextClose}
+            {marketOpen ? 'Closes at 04:00 PM ET' : 'Opens 09:30 AM ET weekdays'}
           </span>
         </div>
       </div>
@@ -159,7 +172,10 @@ export function MarketsPage({ liveData }: { liveData?: LiveMarketsData }) {
 
           {/* Market Breadth */}
           <div className="rounded-xl border border-border bg-card p-4 shadow-sm">
-            <SectionHeader title="Market Breadth" />
+            <SectionHeader
+              title="Market Breadth"
+              action={<span className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground bg-muted px-2 py-0.5 rounded">Sample data</span>}
+            />
             <div className="mt-4 grid grid-cols-2 gap-4 lg:grid-cols-4">
               {breadthIndicators.map((indicator) => (
                 <div key={indicator.name} className="text-center">
@@ -322,39 +338,28 @@ export function MarketsPage({ liveData }: { liveData?: LiveMarketsData }) {
           </div>
 
           {/* Currency */}
-          <div className="rounded-xl border border-border bg-card p-4 shadow-sm">
-            <SectionHeader title="Currency" />
-            <div className="mt-3 space-y-3">
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-muted-foreground">EUR/USD</span>
-                <div className="flex items-center gap-2">
-                  <span className="text-sm font-semibold text-foreground">1.0842</span>
-                  <span className="text-xs text-success">+0.12%</span>
-                </div>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-muted-foreground">USD/JPY</span>
-                <div className="flex items-center gap-2">
-                  <span className="text-sm font-semibold text-foreground">156.42</span>
-                  <span className="text-xs text-destructive">-0.24%</span>
-                </div>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-muted-foreground">GBP/USD</span>
-                <div className="flex items-center gap-2">
-                  <span className="text-sm font-semibold text-foreground">1.2714</span>
-                  <span className="text-xs text-success">+0.08%</span>
-                </div>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-muted-foreground">DXY</span>
-                <div className="flex items-center gap-2">
-                  <span className="text-sm font-semibold text-foreground">104.28</span>
-                  <span className="text-xs text-destructive">-0.18%</span>
-                </div>
+          {fx && fx.length > 0 && (
+            <div className="rounded-xl border border-border bg-card p-4 shadow-sm">
+              <SectionHeader title="Currency" action={<Globe className="h-4 w-4 text-muted-foreground" />} />
+              <div className="mt-3 space-y-3">
+                {fx.map((pair) => (
+                  <div key={pair.label} className="flex items-center justify-between">
+                    <span className="text-sm text-muted-foreground">{pair.label}</span>
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm font-semibold text-foreground">
+                        {pair.price != null ? pair.price.toString() : '—'}
+                      </span>
+                      {pair.change_pct != null && (
+                        <span className={cn('text-xs', pair.change_pct >= 0 ? 'text-success' : 'text-destructive')}>
+                          {pair.change_pct >= 0 ? '+' : ''}{pair.change_pct.toFixed(2)}%
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                ))}
               </div>
             </div>
-          </div>
+          )}
         </div>
       </div>
     </div>

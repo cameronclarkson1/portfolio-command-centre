@@ -134,3 +134,35 @@ def get_alternatives():
         })
 
     return {"commodities": commodities_out, "crypto": crypto_out}
+
+
+_FX_PAIRS = [
+    {"symbol": "EURUSD=X", "label": "EUR/USD", "decimals": 4},
+    {"symbol": "USDJPY=X", "label": "USD/JPY", "decimals": 2},
+    {"symbol": "GBPUSD=X", "label": "GBP/USD", "decimals": 4},
+    {"symbol": "DX-Y.NYB", "label": "DXY",     "decimals": 2},
+]
+
+
+@router.get("/fx")
+def get_fx():
+    """Live FX rates: EUR/USD, USD/JPY, GBP/USD, and US Dollar Index (DXY)."""
+    results: dict[str, dict | None] = {}
+    with ThreadPoolExecutor(max_workers=4) as pool:
+        futures = {pool.submit(_fetch_quote_safe, p["symbol"]): p for p in _FX_PAIRS}
+        for future in as_completed(futures, timeout=10):
+            pair = futures[future]
+            results[pair["symbol"]] = future.result()
+
+    fx_out = []
+    for pair in _FX_PAIRS:
+        q = results.get(pair["symbol"])
+        price = q.get("price") if q else None
+        change = q.get("change_pct") if q else None
+        fx_out.append({
+            "label":      pair["label"],
+            "price":      round(price, pair["decimals"]) if price is not None else None,
+            "change_pct": round(change * 100, 2)         if change is not None else None,
+        })
+
+    return {"fx": fx_out}
