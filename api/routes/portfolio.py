@@ -320,10 +320,27 @@ def _build_risk_categories(holdings: list, sector_weights: dict, cash_pct: float
 
 
 def _compute_health_score(categories: list) -> int:
-    """Derive health score (0–100) from risk category severities."""
-    criticals    = sum(1 for r in categories if r["severity"] == "critical")
-    warnings_cnt = sum(1 for r in categories if r["severity"] == "warning")
-    return max(0, 100 - (warnings_cnt * 10) - (criticals * 20))
+    """
+    Derive health score (0–100) as a weighted average of individual category scores.
+
+    Each category already has a calibrated score (0–100) that encodes severity.
+    Averaging these is fairer than a flat penalty per severity label, which would
+    ignore a score of 96 on Beta just because one category is 'critical'.
+
+    Critical categories are down-weighted (×0.7) so a single breach doesn't
+    dominate, but all categories still contribute meaningfully.
+    """
+    if not categories:
+        return 50
+
+    total = 0.0
+    weight_sum = 0.0
+    for r in categories:
+        w = 0.7 if r["severity"] == "critical" else 1.0
+        total      += r["score"] * w
+        weight_sum += w
+
+    return round(total / weight_sum) if weight_sum else 50
 
 
 # ── Module-level cache for expensive risk stats (volatility / Sharpe / max DD) ─
