@@ -535,6 +535,9 @@ export interface PortfolioRiskData {
     top_position:     string
     top_position_pct: number
     portfolio_beta:   number
+    volatility?:      number | null
+    sharpe_ratio?:    number | null
+    max_drawdown?:    number | null
   }
   prices_live: boolean
 }
@@ -697,10 +700,11 @@ export interface ValuationResult {
   sector:             string
   bucket:             string
   models_run:         Record<string, {
-    fair_value:  number | null
-    confidence:  number
-    name?:       string
-    warnings?:   string[]
+    fair_value:   number | null
+    confidence:   number
+    name?:        string
+    warnings?:    string[]
+    inputs_used?: Record<string, number | string | null | boolean>
   }>
   fair_value_low:     number
   fair_value_base:    number

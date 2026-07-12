@@ -319,6 +319,105 @@ def _build_risk_categories(holdings: list, sector_weights: dict, cash_pct: float
     ]
 
 
+def _compute_health_score(categories: list) -> int:
+    """Derive health score (0–100) from risk category severities."""
+    criticals    = sum(1 for r in categories if r["severity"] == "critical")
+    warnings_cnt = sum(1 for r in categories if r["severity"] == "warning")
+    return max(0, 100 - (warnings_cnt * 10) - (criticals * 20))
+
+
+# ── Module-level cache for expensive risk stats (volatility / Sharpe / max DD) ─
+_risk_stats_cache: dict = {"data": None, "ts": 0.0}
+_RISK_STATS_TTL = 3600  # seconds
+
+
+def _compute_portfolio_risk_stats(base_holdings: list, cash: float) -> dict:
+    """
+    Fetch 3-month candles and compute annualised volatility, Sharpe ratio,
+    and max drawdown from the daily portfolio value series.
+    Results are module-level cached for 1 hour.
+    """
+    import time, math
+    import statistics as _stats_mod
+
+    if _risk_stats_cache["data"] and (time.time() - _risk_stats_cache["ts"]) < _RISK_STATS_TTL:
+        return _risk_stats_cache["data"]
+
+    tickers = [h["ticker"] for h in base_holdings]
+    candle_map: dict[str, list] = {}
+    with ThreadPoolExecutor(max_workers=min(len(tickers), 8)) as pool:
+        futures = {pool.submit(market_data_service.get_candles, tk, "3m"): tk for tk in tickers}
+        for future in as_completed(futures, timeout=30):
+            tk = futures[future]
+            try:    candle_map[tk] = future.result() or []
+            except: candle_map[tk] = []
+
+    ticker_prices: dict[str, dict[str, float]] = {}
+    all_dates: set[str] = set()
+    for tk, candles in candle_map.items():
+        by_date = {c["date"]: c["close"] for c in candles if c.get("date") and c.get("close")}
+        ticker_prices[tk] = by_date
+        all_dates.update(by_date.keys())
+
+    empty = {"volatility": None, "sharpe_ratio": None, "max_drawdown": None}
+    if not all_dates:
+        return empty
+
+    # Seed carry-forward price from each ticker's earliest available date
+    last_price: dict[str, float] = {}
+    for h in base_holdings:
+        tk = h["ticker"]
+        dates = sorted(ticker_prices.get(tk, {}).keys())
+        if dates:
+            last_price[tk] = ticker_prices[tk][dates[0]]
+
+    series: list[float] = []
+    for date in sorted(all_dates):
+        for h in base_holdings:
+            tk = h["ticker"]
+            if date in ticker_prices.get(tk, {}):
+                last_price[tk] = ticker_prices[tk][date]
+        day_value = cash + sum(
+            last_price.get(h["ticker"], 0) * h["shares"]
+            for h in base_holdings
+            if last_price.get(h["ticker"])
+        )
+        series.append(day_value)
+
+    if len(series) < 10:
+        return empty
+
+    daily_returns = [
+        (series[i] - series[i - 1]) / series[i - 1]
+        for i in range(1, len(series)) if series[i - 1] > 0
+    ]
+
+    volatility = sharpe = None
+    if len(daily_returns) >= 10:
+        std_r = _stats_mod.stdev(daily_returns)
+        if std_r > 0:
+            volatility = round(std_r * math.sqrt(252) * 100, 1)
+            mean_r     = _stats_mod.mean(daily_returns)
+            rf_daily   = 0.045 / 252
+            sharpe     = round((mean_r - rf_daily) / std_r * math.sqrt(252), 2)
+
+    # Max drawdown (peak-to-trough decline as a negative %)
+    max_dd = 0.0
+    peak   = series[0]
+    for v in series:
+        if v > peak:
+            peak = v
+        dd = (v - peak) / peak * 100
+        if dd < max_dd:
+            max_dd = dd
+    max_drawdown = round(max_dd, 1) if max_dd < -0.01 else None
+
+    result = {"volatility": volatility, "sharpe_ratio": sharpe, "max_drawdown": max_drawdown}
+    _risk_stats_cache["data"] = result
+    _risk_stats_cache["ts"]   = time.time()
+    return result
+
+
 def _build_risk_alerts(holdings: list, sector_weights: dict, cash_pct: float) -> list:
     """
     Auto-generate risk alerts from live portfolio metrics.
@@ -397,6 +496,10 @@ def get_portfolio():
     total_gain  = sum(h["unrealised_pnl"] for h in holdings)
     total_gain_pct = round(total_gain / total_cost * 100, 2) if total_cost else 0
 
+    # Compute health score dynamically so it matches the Risk Centre
+    _cats        = _build_risk_categories(holdings, sector_weights, cash_pct)
+    _health      = _compute_health_score(_cats)
+
     return {
         "nzd_rate": _get_nzd_rate(),
         "summary": {
@@ -409,7 +512,7 @@ def get_portfolio():
             "total_gain":            round(total_gain, 2),
             "total_gain_pct":        total_gain_pct,
             "num_holdings":          len(holdings),
-            "health_score":          PORTFOLIO_SUMMARY.get("health_score", 70),
+            "health_score":          _health,
             "prices_live":           prices_live,
         },
         "holdings": [
@@ -457,10 +560,8 @@ def get_portfolio_risk():
 
     categories   = _build_risk_categories(holdings, sector_weights, cash_pct)
     alerts       = _build_risk_alerts(holdings, sector_weights, cash_pct)
-
-    criticals    = sum(1 for r in categories if r["severity"] == "critical")
-    warnings_cnt = sum(1 for r in categories if r["severity"] == "warning")
-    health_score = max(0, 100 - (warnings_cnt * 10) - (criticals * 20))
+    health_score = _compute_health_score(categories)
+    risk_stats   = _compute_portfolio_risk_stats(_get_base_holdings(), cash)
 
     top_pos = max(holdings, key=lambda h: h.get("weight", 0)) if holdings else {}
 
@@ -476,6 +577,9 @@ def get_portfolio_risk():
             "top_position":      top_pos.get("ticker", ""),
             "top_position_pct":  top_pos.get("weight", 0),
             "portfolio_beta":    PORTFOLIO_SUMMARY.get("portfolio_beta", 1.0),
+            "volatility":        risk_stats.get("volatility"),
+            "sharpe_ratio":      risk_stats.get("sharpe_ratio"),
+            "max_drawdown":      risk_stats.get("max_drawdown"),
         },
         "prices_live": prices_live,
     }

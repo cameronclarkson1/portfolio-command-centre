@@ -122,9 +122,9 @@ export function RiskPage({ apiData }: { apiData: PortfolioRiskData | null }) {
             <BarChart3 className="h-4 w-4 text-muted-foreground" />
           </div>
           <p className="mt-2 text-2xl font-semibold text-foreground">
-            {riskMetrics.volatility > 0 ? `${riskMetrics.volatility}%` : '—'}
+            {apiData?.metrics.volatility != null ? `${apiData.metrics.volatility}%` : '—'}
           </p>
-          <p className="mt-1 text-xs text-muted-foreground">Annualized</p>
+          <p className="mt-1 text-xs text-muted-foreground">Annualized · 3M</p>
         </div>
 
         <div className="rounded-xl border border-border bg-card p-4 shadow-sm">
@@ -132,10 +132,15 @@ export function RiskPage({ apiData }: { apiData: PortfolioRiskData | null }) {
             <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Sharpe</span>
             <Target className="h-4 w-4 text-muted-foreground" />
           </div>
-          <p className="mt-2 text-2xl font-semibold text-foreground">
-            {riskMetrics.sharpeRatio > 0 ? riskMetrics.sharpeRatio.toFixed(2) : '—'}
+          <p className={cn(
+            'mt-2 text-2xl font-semibold',
+            apiData?.metrics.sharpe_ratio != null
+              ? apiData.metrics.sharpe_ratio >= 1 ? 'text-success' : apiData.metrics.sharpe_ratio >= 0 ? 'text-foreground' : 'text-destructive'
+              : 'text-foreground'
+          )}>
+            {apiData?.metrics.sharpe_ratio != null ? apiData.metrics.sharpe_ratio.toFixed(2) : '—'}
           </p>
-          <p className="mt-1 text-xs text-muted-foreground">Risk-adjusted return</p>
+          <p className="mt-1 text-xs text-muted-foreground">Risk-adjusted · 3M</p>
         </div>
 
         <div className="rounded-xl border border-border bg-card p-4 shadow-sm">
@@ -145,11 +150,11 @@ export function RiskPage({ apiData }: { apiData: PortfolioRiskData | null }) {
           </div>
           <p className={cn(
             'mt-2 text-2xl font-semibold',
-            riskMetrics.maxDrawdown < 0 ? 'text-destructive' : 'text-foreground'
+            apiData?.metrics.max_drawdown != null && apiData.metrics.max_drawdown < 0 ? 'text-destructive' : 'text-foreground'
           )}>
-            {riskMetrics.maxDrawdown !== 0 ? `${riskMetrics.maxDrawdown}%` : '—'}
+            {apiData?.metrics.max_drawdown != null ? `${apiData.metrics.max_drawdown}%` : '—'}
           </p>
-          <p className="mt-1 text-xs text-muted-foreground">This year</p>
+          <p className="mt-1 text-xs text-muted-foreground">3M peak-to-trough</p>
         </div>
       </div>
 

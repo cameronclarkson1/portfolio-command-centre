@@ -71,7 +71,7 @@ _UNIVERSE_TTL = 86_400  # refresh once per day
 
 def _fetch_wikipedia_universe() -> list[str]:
     """
-    Fetch S&P 500 + Dow 30 components from Wikipedia.
+    Fetch S&P 500 + Dow 30 + NASDAQ-100 components from Wikipedia.
     Returns sorted deduplicated list of tickers, or [] on failure.
     FMP starter plan doesn't expose constituent endpoints, so Wikipedia
     is the free alternative for keeping the universe up to date.
@@ -97,7 +97,7 @@ def _fetch_wikipedia_universe() -> list[str]:
     except Exception as exc:
         print(f"[scanner] Wikipedia S&P 500 fetch failed: {exc}")
 
-    # Dow 30 — Wikipedia table[1] has a 'Symbol' column
+    # Dow 30 — Wikipedia table has a 'Symbol' column
     try:
         r = _req.get(
             "https://en.wikipedia.org/wiki/Dow_Jones_Industrial_Average",
@@ -114,12 +114,30 @@ def _fetch_wikipedia_universe() -> list[str]:
     except Exception as exc:
         print(f"[scanner] Wikipedia Dow 30 fetch failed: {exc}")
 
+    # NASDAQ-100 — Wikipedia table has a 'Ticker' column
+    try:
+        r = _req.get(
+            "https://en.wikipedia.org/wiki/Nasdaq-100",
+            headers=headers, timeout=15,
+        )
+        r.raise_for_status()
+        tables = _pd.read_html(_StringIO(r.text))
+        for t in tables:
+            col = next((c for c in t.columns if "ticker" in str(c).lower() or "symbol" in str(c).lower()), None)
+            if col:
+                symbols = t[col].dropna().tolist()
+                tickers.update(s.strip().upper() for s in symbols if s.strip() and not s.strip().startswith("#"))
+                print(f"[scanner] Wikipedia NASDAQ-100: {len(symbols)} tickers")
+                break
+    except Exception as exc:
+        print(f"[scanner] Wikipedia NASDAQ-100 fetch failed: {exc}")
+
     return sorted(tickers)
 
 
 def _get_universe() -> list[str]:
     """
-    Return the full S&P 500 + Dow 30 universe (~503 unique tickers).
+    Return the full S&P 500 + Dow 30 + NASDAQ-100 universe (~600 unique tickers).
     Fetched from Wikipedia on first call, then cached for 24 hours.
     Falls back to the hardcoded list if Wikipedia is unreachable.
     """

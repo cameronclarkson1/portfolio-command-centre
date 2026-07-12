@@ -19,6 +19,9 @@ import {
   CheckCircle2,
   Newspaper,
   CalendarDays,
+  ChevronDown,
+  ChevronUp,
+  Info,
 } from 'lucide-react'
 import {
   SectionHeader,
@@ -377,10 +380,142 @@ export function ResearchPage({ initialTicker }: { initialTicker?: string }) {
   )
 }
 
+// ── DCF Assumptions Panel (P4.1 + P4.2) ─────────────────────────────────────
+
+function fmtPct(v: number | null | undefined, dec = 1): string {
+  if (v == null) return '—'
+  return `${(v * 100).toFixed(dec)}%`
+}
+
+function fmtB(v: number | null | undefined): string {
+  if (v == null) return '—'
+  const abs = Math.abs(v)
+  if (abs >= 1e12) return `$${(v / 1e12).toFixed(1)}T`
+  if (abs >= 1e9)  return `$${(v / 1e9).toFixed(1)}B`
+  if (abs >= 1e6)  return `$${(v / 1e6).toFixed(0)}M`
+  return `$${v.toFixed(0)}`
+}
+
+function DcfAssumptionsPanel({ inp, price }: {
+  inp: Record<string, number | string | null | boolean>
+  price: number
+}) {
+  const wacc        = inp.wacc        as number | null
+  const termG       = inp.terminal_growth as number | null
+  const fcfMargin   = inp.fcf_margin  as number | null
+  const growthSrc   = inp.growth_source as string | null
+  const g_y1        = inp.g_y1        as number | null
+  const g_y2        = inp.g_y2        as number | null
+  const g_y3_y5     = inp.g_y3_y5_avg as number | null
+  const g_y6_y10    = inp.g_y6_y10_avg as number | null
+  const pv12        = inp.pv_years_1_2 as number | null
+  const pv310       = inp.pv_years_3_10 as number | null
+  const pvTerm      = inp.pv_terminal  as number | null
+  const termPct     = inp.terminal_pct as number | null
+  const impliedG    = inp.implied_growth as number | null
+
+  const growthStages = [
+    { label: 'Year 1',    value: g_y1 },
+    { label: 'Year 2',    value: g_y2 },
+    { label: 'Year 3–5',  value: g_y3_y5 },
+    { label: 'Year 6–10', value: g_y6_y10 },
+    { label: 'Terminal',  value: termG },
+  ]
+  const maxG = Math.max(...growthStages.map(s => s.value ?? 0), 0.01)
+
+  return (
+    <div className="mt-2 mb-1 rounded-lg bg-muted/30 border border-border p-3 text-xs space-y-3">
+      {/* Key parameters */}
+      <div className="grid grid-cols-2 gap-x-6 gap-y-1">
+        <div className="flex justify-between">
+          <span className="text-muted-foreground">WACC (Discount Rate)</span>
+          <span className="font-medium text-foreground">{fmtPct(wacc)}</span>
+        </div>
+        <div className="flex justify-between">
+          <span className="text-muted-foreground">Terminal Growth Rate</span>
+          <span className="font-medium text-foreground">{fmtPct(termG)}</span>
+        </div>
+        {fcfMargin != null && (
+          <div className="flex justify-between">
+            <span className="text-muted-foreground">FCF Margin (projection base)</span>
+            <span className="font-medium text-foreground">{fmtPct(fcfMargin)} × revenue</span>
+          </div>
+        )}
+        {growthSrc && (
+          <div className="flex justify-between">
+            <span className="text-muted-foreground">Growth Source</span>
+            <span className="font-medium text-foreground capitalize">{growthSrc}</span>
+          </div>
+        )}
+      </div>
+
+      {/* Growth rate waterfall */}
+      <div>
+        <p className="text-muted-foreground mb-1.5 font-medium uppercase tracking-wide text-[10px]">Revenue Growth by Stage</p>
+        <div className="space-y-1.5">
+          {growthStages.map(({ label, value }) => {
+            if (value == null) return null
+            const pct = Math.max(0, (value / maxG) * 100)
+            const color = value >= 0.12 ? 'bg-success/70' : value >= 0.05 ? 'bg-primary/60' : 'bg-muted-foreground/40'
+            return (
+              <div key={label} className="flex items-center gap-2">
+                <span className="text-muted-foreground w-16 shrink-0">{label}</span>
+                <div className="flex-1 h-2 bg-muted rounded-full overflow-hidden">
+                  <div className={cn('h-full rounded-full', color)} style={{ width: `${pct}%` }} />
+                </div>
+                <span className="font-medium text-foreground w-10 text-right">{fmtPct(value)}</span>
+              </div>
+            )
+          })}
+        </div>
+      </div>
+
+      {/* Value breakdown */}
+      {(pv12 != null || pvTerm != null) && (
+        <div className="pt-2 border-t border-border">
+          <p className="text-muted-foreground mb-1.5 font-medium uppercase tracking-wide text-[10px]">Present Value Breakdown</p>
+          <div className="flex flex-wrap gap-x-4 gap-y-1 text-muted-foreground">
+            {pv12   != null && <span>Years 1–2: <span className="font-medium text-foreground">{fmtB(pv12)}</span></span>}
+            {pv310  != null && <span>Years 3–10: <span className="font-medium text-foreground">{fmtB(pv310)}</span></span>}
+            {pvTerm != null && <span>Terminal Value: <span className="font-medium text-foreground">{fmtB(pvTerm)}</span>{termPct != null ? ` (${(termPct * 100).toFixed(0)}% of total)` : ''}</span>}
+          </div>
+        </div>
+      )}
+
+      {/* P4.2 — Implied growth */}
+      {impliedG != null && price > 0 && g_y1 != null && (
+        <div className={cn(
+          'flex items-start gap-2 rounded-md px-3 py-2 border',
+          impliedG < g_y1
+            ? 'bg-gold/5 border-gold/20'
+            : 'bg-success/5 border-success/20'
+        )}>
+          <Info className="h-3.5 w-3.5 mt-0.5 shrink-0 text-primary" />
+          <p className="leading-snug">
+            <span className="font-medium text-foreground">Implied growth at current price ({formatCurrency(price)}): </span>
+            <span className={cn('font-bold', impliedG < g_y1 ? 'text-gold-foreground' : 'text-success')}>
+              {fmtPct(impliedG)}
+            </span>
+            <span className="text-muted-foreground"> — our base case assumes </span>
+            <span className="font-bold text-foreground">{fmtPct(g_y1)}</span>
+            <span className="text-muted-foreground"> in Year 1. </span>
+            {impliedG < g_y1
+              ? 'The market is pricing in slower growth than our model — the stock looks undervalued if our estimates hold.'
+              : 'The market is pricing in faster growth than our model — the stock looks expensive unless growth accelerates beyond our forecast.'}
+          </p>
+        </div>
+      )}
+    </div>
+  )
+}
+
+
 // ── Valuation Tab ─────────────────────────────────────────────────────────────
 
 function ValuationTab({ research }: { research: ResearchData }) {
   const val = research.valuation
+  const [expandedModel, setExpandedModel] = useState<string | null>(null)
+
   if (!val) {
     return (
       <div className="rounded-xl border border-border bg-card p-8 text-center shadow-sm">
@@ -402,6 +537,23 @@ function ValuationTab({ research }: { research: ResearchData }) {
 
   const modelEntries = Object.entries(val.models_run).filter(([, m]) => m.fair_value != null)
   const price        = research.price ?? 0
+
+  // ── P4.3 — Margin-of-Safety band geometry ────────────────────────────────
+  const low    = val.fair_value_low
+  const base   = val.fair_value_base
+  const high   = val.fair_value_high
+  const buyBelow = base * 0.85  // 15% margin of safety
+  const rangeSpan = high - low
+
+  function posOnBar(v: number): number {
+    if (rangeSpan <= 0) return 50
+    return Math.min(100, Math.max(0, ((v - low) / rangeSpan) * 100))
+  }
+
+  const buyBelowPct  = posOnBar(buyBelow)
+  const basePct      = posOnBar(base)
+  const pricePct     = price > 0 ? posOnBar(price) : null
+  const priceInRange = price > 0 && price >= low && price <= high
 
   return (
     <div className="space-y-4">
@@ -433,18 +585,56 @@ function ValuationTab({ research }: { research: ResearchData }) {
           </div>
         </div>
 
-        {price > 0 && (
-          <div className="mt-4">
-            <div className="flex justify-between text-xs text-muted-foreground mb-1">
-              <span>Current: {formatCurrency(price)}</span>
-              <span>Fair Value: {formatCurrency(val.fair_value_base)}</span>
+        {/* P4.3 — Margin-of-Safety band */}
+        {price > 0 && rangeSpan > 0 && (
+          <div className="mt-5">
+            <div className="flex items-center justify-between text-[10px] text-muted-foreground mb-1.5">
+              <span>Price vs Fair Value Range</span>
+              <span className="font-medium text-foreground">
+                Buy below {formatCurrency(buyBelow)} <span className="font-normal text-muted-foreground">(15% MoS)</span>
+              </span>
             </div>
-            <div className="h-2 bg-muted rounded-full overflow-hidden">
-              <div
-                className={cn('h-full rounded-full', isUp ? 'bg-success' : 'bg-destructive')}
-                style={{ width: `${Math.min((price / val.fair_value_base) * 100, 110)}%` }}
-              />
+            {/* Segmented bar */}
+            <div className="relative h-3 rounded-full overflow-hidden flex">
+              {/* Buy zone: low → buy-below (green) */}
+              <div className="bg-success/40" style={{ width: `${buyBelowPct}%` }} />
+              {/* Fair zone: buy-below → base (yellow) */}
+              <div className="bg-gold/40" style={{ width: `${basePct - buyBelowPct}%` }} />
+              {/* Caution zone: base → high (red) */}
+              <div className="bg-destructive/30 flex-1" />
             </div>
+            {/* Current price pin */}
+            {pricePct != null && (
+              <div className="relative h-4 mt-0.5" style={{ marginLeft: 0, marginRight: 0 }}>
+                <div
+                  className={cn('absolute top-0 w-0.5 h-4 rounded-full', price <= buyBelow ? 'bg-success' : price <= base ? 'bg-gold' : 'bg-destructive')}
+                  style={{ left: `${pricePct}%`, transform: 'translateX(-50%)' }}
+                />
+                <div
+                  className="absolute -top-0.5 text-[9px] font-medium whitespace-nowrap"
+                  style={{
+                    left: `${pricePct}%`,
+                    transform: pricePct > 75 ? 'translateX(-100%)' : pricePct < 25 ? 'translateX(0)' : 'translateX(-50%)',
+                    color: price <= buyBelow ? 'var(--success)' : price <= base ? 'var(--gold-foreground)' : 'var(--destructive)',
+                  }}
+                >
+                  {formatCurrency(price)}
+                </div>
+              </div>
+            )}
+            {/* Zone labels */}
+            <div className="flex text-[9px] text-muted-foreground mt-3">
+              <span style={{ width: `${buyBelowPct}%` }} className="text-success font-medium">Buy Zone</span>
+              <span style={{ width: `${basePct - buyBelowPct}%` }} className="text-gold-foreground text-center font-medium">Fair</span>
+              <span className="flex-1 text-right text-destructive/70 font-medium">Caution</span>
+            </div>
+            {!priceInRange && price > 0 && (
+              <p className="text-[10px] text-muted-foreground mt-1">
+                {price < low
+                  ? `Current price is below the bear case — model may be missing a risk factor.`
+                  : `Current price exceeds the bull case — significantly above all model estimates.`}
+              </p>
+            )}
           </div>
         )}
 
@@ -470,34 +660,62 @@ function ValuationTab({ research }: { research: ResearchData }) {
         )}
       </div>
 
-      {/* Models breakdown */}
+      {/* Models breakdown — P4.1: expandable DCF assumptions */}
       {modelEntries.length > 0 && (
         <div className="rounded-xl border border-border bg-card p-4 shadow-sm">
           <SectionHeader title="Models Used" />
-          <p className="mt-1 text-xs text-muted-foreground">{val.bucket} bucket</p>
+          {val.why_these_models && (
+            <p className="mt-1 text-xs text-muted-foreground leading-relaxed">{val.why_these_models}</p>
+          )}
           <div className="mt-3 divide-y divide-border">
-            {modelEntries.map(([key, model]) => (
-              <div key={key} className="flex items-center justify-between py-2.5">
-                <div>
-                  <p className="text-sm font-medium text-foreground">{MODEL_LABELS[key] ?? key.toUpperCase()}</p>
-                  <div className="flex items-center gap-2 mt-0.5">
-                    <div className="w-16 h-1 bg-muted rounded-full overflow-hidden">
-                      <div className="h-full bg-primary rounded-full" style={{ width: `${model.confidence}%` }} />
+            {modelEntries.map(([key, model]) => {
+              const hasDcfDetail = key === 'dcf' && model.inputs_used && Object.keys(model.inputs_used).length > 0
+              const isExpanded   = expandedModel === key
+              return (
+                <div key={key}>
+                  <div
+                    className={cn('flex items-center justify-between py-2.5', hasDcfDetail && 'cursor-pointer hover:bg-muted/20 -mx-1 px-1 rounded-md')}
+                    onClick={() => hasDcfDetail && setExpandedModel(isExpanded ? null : key)}
+                  >
+                    <div className="flex-1">
+                      <div className="flex items-center gap-1.5">
+                        <p className="text-sm font-medium text-foreground">{MODEL_LABELS[key] ?? key.toUpperCase()}</p>
+                        {hasDcfDetail && (
+                          <span className="text-[10px] text-primary border border-primary/30 rounded px-1 py-0.5 leading-none">
+                            {isExpanded ? 'hide' : 'assumptions'}
+                          </span>
+                        )}
+                      </div>
+                      <div className="flex items-center gap-2 mt-0.5">
+                        <div className="w-16 h-1 bg-muted rounded-full overflow-hidden">
+                          <div className="h-full bg-primary rounded-full" style={{ width: `${model.confidence}%` }} />
+                        </div>
+                        <p className="text-xs text-muted-foreground">{model.confidence.toFixed(0)}% confidence</p>
+                      </div>
                     </div>
-                    <p className="text-xs text-muted-foreground">{model.confidence.toFixed(0)}% confidence</p>
+                    <div className="flex items-center gap-2">
+                      <div className="text-right">
+                        <p className="text-sm font-semibold text-foreground">{formatCurrency(model.fair_value!)}</p>
+                        {price > 0 && (
+                          <p className={cn('text-xs font-medium', model.fair_value! > price ? 'text-success' : 'text-destructive')}>
+                            {model.fair_value! > price ? '+' : ''}
+                            {((model.fair_value! - price) / price * 100).toFixed(2)}%
+                          </p>
+                        )}
+                      </div>
+                      {hasDcfDetail && (
+                        isExpanded
+                          ? <ChevronUp className="h-4 w-4 text-muted-foreground shrink-0" />
+                          : <ChevronDown className="h-4 w-4 text-muted-foreground shrink-0" />
+                      )}
+                    </div>
                   </div>
-                </div>
-                <div className="text-right">
-                  <p className="text-sm font-semibold text-foreground">{formatCurrency(model.fair_value!)}</p>
-                  {price > 0 && (
-                    <p className={cn('text-xs font-medium', model.fair_value! > price ? 'text-success' : 'text-destructive')}>
-                      {model.fair_value! > price ? '+' : ''}
-                      {((model.fair_value! - price) / price * 100).toFixed(2)}%
-                    </p>
+                  {hasDcfDetail && isExpanded && (
+                    <DcfAssumptionsPanel inp={model.inputs_used!} price={price} />
                   )}
                 </div>
-              </div>
-            ))}
+              )
+            })}
           </div>
         </div>
       )}

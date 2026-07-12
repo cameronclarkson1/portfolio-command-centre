@@ -37,7 +37,7 @@ function toRelative(iso: string | null): string {
   return `${Math.floor(hrs / 24)}d ago`
 }
 
-type SortKey = 'score' | 'ev_ebitda' | 'roic' | 'rev_growth' | 'market_cap'
+type SortKey = 'score' | 'ev_ebitda' | 'roic' | 'rev_growth' | 'market_cap' | 'pe_ratio' | 'net_margin' | 'current_ratio'
 
 // ── Opportunity card ──────────────────────────────────────────────────────────
 
@@ -238,11 +238,14 @@ export function OpportunitiesPage({ initialResults, initialStatus }: Opportuniti
     .filter(o => sectorFilter === 'All' || o.sector === sectorFilter)
     .slice()
     .sort((a, b) => {
-      if (sortKey === 'score')      return b.score - a.score
-      if (sortKey === 'ev_ebitda')  return (a.ev_ebitda ?? 999) - (b.ev_ebitda ?? 999)
-      if (sortKey === 'roic')       return (b.roic ?? -999) - (a.roic ?? -999)
-      if (sortKey === 'rev_growth') return (b.rev_growth ?? -999) - (a.rev_growth ?? -999)
-      if (sortKey === 'market_cap') return (b.market_cap ?? 0) - (a.market_cap ?? 0)
+      if (sortKey === 'score')         return b.score - a.score
+      if (sortKey === 'ev_ebitda')     return (a.ev_ebitda ?? 999) - (b.ev_ebitda ?? 999)
+      if (sortKey === 'roic')          return (b.roic ?? -999) - (a.roic ?? -999)
+      if (sortKey === 'rev_growth')    return (b.rev_growth ?? -999) - (a.rev_growth ?? -999)
+      if (sortKey === 'market_cap')    return (b.market_cap ?? 0) - (a.market_cap ?? 0)
+      if (sortKey === 'pe_ratio')      return (a.pe_ratio ?? 999) - (b.pe_ratio ?? 999)
+      if (sortKey === 'net_margin')    return (b.net_margin ?? -999) - (a.net_margin ?? -999)
+      if (sortKey === 'current_ratio') return (b.current_ratio ?? 0) - (a.current_ratio ?? 0)
       return 0
     })
 
@@ -257,7 +260,7 @@ export function OpportunitiesPage({ initialResults, initialStatus }: Opportuniti
             Best Opportunities
           </h1>
           <p className="text-sm text-muted-foreground mt-0.5">
-            Daily scan of S&amp;P 500 · Dow Jones · NASDAQ-100 — ranked by composite score
+            Daily scan of S&amp;P 500 · Dow Jones · NASDAQ-100 (~600 stocks) — ranked by composite score
           </p>
         </div>
         <button
@@ -281,9 +284,10 @@ export function OpportunitiesPage({ initialResults, initialStatus }: Opportuniti
         <p>
           <span className="font-semibold text-foreground">How to use this page:</span>{' '}
           The composite score reflects <span className="font-medium text-foreground">quality + sector-relative valuation + growth + safety</span>.
-          It ranks which stocks in the universe are most compelling <em>right now</em> — not a buy signal by itself.
+          It is a <span className="font-medium text-foreground">relative ranking</span> — the best stock in today&apos;s scan scores 100, the weakest scores 0.
+          This means the same stock may show a different number here than on the Research page, which uses a separate absolute scoring model.
           Use the <Link href="/research" className="font-medium text-primary underline underline-offset-2">Stock Research</Link> tab
-          to run a full 9-model fair value analysis on any stock that catches your eye.
+          to run a full fair value analysis on any stock that catches your eye.
         </p>
       </div>
 
@@ -340,7 +344,7 @@ export function OpportunitiesPage({ initialResults, initialStatus }: Opportuniti
           <Loader2 className="h-10 w-10 animate-spin text-primary" />
           <div>
             <p className="font-medium text-foreground">Scanning exchanges…</p>
-            <p className="text-sm text-muted-foreground mt-1">Analysing ~140 large-cap stocks. Takes 2–3 minutes.</p>
+            <p className="text-sm text-muted-foreground mt-1">Analysing ~600 large-cap stocks. Takes 3–5 minutes.</p>
           </div>
         </div>
       )}
@@ -387,11 +391,14 @@ export function OpportunitiesPage({ initialResults, initialStatus }: Opportuniti
           <div className="ml-auto flex items-center gap-1.5">
             <span className="text-xs text-muted-foreground">Sort:</span>
             {([
-              ['score',      'Score'],
-              ['ev_ebitda',  'EV/EBITDA'],
-              ['roic',       'ROIC'],
-              ['rev_growth', 'Growth'],
-              ['market_cap', 'Mkt Cap'],
+              ['score',         'Score'],
+              ['roic',          'ROIC'],
+              ['ev_ebitda',     'EV/EBITDA'],
+              ['pe_ratio',      'P/E'],
+              ['net_margin',    'Net Margin'],
+              ['rev_growth',    'Growth'],
+              ['current_ratio', 'Cur. Ratio'],
+              ['market_cap',    'Mkt Cap'],
             ] as [SortKey, string][]).map(([key, label]) => (
               <button
                 key={key}

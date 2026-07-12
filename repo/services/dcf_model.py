@@ -40,6 +40,92 @@ def _clamp(value: float, lo: float, hi: float) -> float:
     return max(lo, min(hi, value))
 
 
+def _fv_at_growth(
+    g_y1: float,
+    *,
+    fcf: float,
+    revenue_ttm: float | None,
+    fcf_margin: float | None,
+    use_margin_method: bool,
+    sustainable_g: float,
+    terminal_g: float,
+    wacc: float,
+    net_debt: float,
+    shares_out: float,
+) -> float:
+    """Compute DCF fair value per share for a given year-1 growth rate (all other params fixed)."""
+    g_y2 = _clamp(g_y1 * 0.80 + sustainable_g * 0.20, -0.30, _MAX_GROWTH)
+    g_y3 = _clamp(g_y2 * 0.60 + sustainable_g * 0.40, -0.20, _MAX_GROWTH)
+    g_y4 = _clamp(g_y2 * 0.30 + sustainable_g * 0.70, -0.10, _MAX_GROWTH)
+    g_y5 = _clamp(g_y2 * 0.10 + sustainable_g * 0.90, terminal_g, _MAX_GROWTH)
+    stage3 = [_clamp(sustainable_g * (1 - i / 4) + terminal_g * (i / 4), terminal_g, _MAX_GROWTH) for i in range(5)]
+    all_rates = [g_y1, g_y2, g_y3, g_y4, g_y5] + stage3
+
+    pv_fcfs = []
+    if use_margin_method and fcf_margin and revenue_ttm:
+        rev = revenue_ttm
+        for yr, g in enumerate(all_rates, 1):
+            rev *= (1 + g)
+            pv_fcfs.append(rev * fcf_margin / (1 + wacc) ** yr)
+        tv_base = rev * fcf_margin
+    else:
+        cf = fcf
+        for yr, g in enumerate(all_rates, 1):
+            cf *= (1 + g)
+            pv_fcfs.append(cf / (1 + wacc) ** yr)
+        tv_base = cf
+
+    pv_tv = 0.0
+    if wacc > terminal_g:
+        pv_tv = tv_base * (1 + terminal_g) / (wacc - terminal_g) / (1 + wacc) ** 10
+
+    ev = sum(pv_fcfs) + pv_tv
+    return (ev - net_debt) / shares_out if shares_out else 0.0
+
+
+def _compute_implied_growth(
+    price: float,
+    *,
+    fcf: float,
+    revenue_ttm: float | None,
+    fcf_margin: float | None,
+    use_margin_method: bool,
+    sustainable_g: float,
+    terminal_g: float,
+    wacc: float,
+    net_debt: float,
+    shares_out: float,
+) -> float | None:
+    """
+    Binary-search for the year-1 growth rate that makes DCF fair value == market price.
+    Returns None if the price is outside the [g=-30%, g=+60%] solvable range.
+    """
+    kwargs = dict(
+        fcf=fcf, revenue_ttm=revenue_ttm, fcf_margin=fcf_margin,
+        use_margin_method=use_margin_method, sustainable_g=sustainable_g,
+        terminal_g=terminal_g, wacc=wacc, net_debt=net_debt, shares_out=shares_out,
+    )
+    lo, hi = -0.30, 0.60
+    fv_lo = _fv_at_growth(lo, **kwargs)
+    fv_hi = _fv_at_growth(hi, **kwargs)
+
+    # Price must lie between the two extremes to be solvable
+    if not (min(fv_lo, fv_hi) < price < max(fv_lo, fv_hi)):
+        return None
+
+    for _ in range(60):  # 60 iterations → sub-cent accuracy
+        mid = (lo + hi) / 2
+        fv_mid = _fv_at_growth(mid, **kwargs)
+        if abs(fv_mid - price) < 0.01:
+            return round(mid, 4)
+        if (fv_lo < fv_hi and fv_mid < price) or (fv_lo > fv_hi and fv_mid > price):
+            lo, fv_lo = mid, fv_mid
+        else:
+            hi = mid
+
+    return round((lo + hi) / 2, 4)
+
+
 def run_dcf(ticker: str, bucket: str, inputs: dict | None = None, price: float = 0) -> dict:
     """
     Run a 3-stage, 10-year DCF anchored to analyst consensus revenue estimates.
@@ -214,6 +300,19 @@ def run_dcf(ticker: str, bucket: str, inputs: dict | None = None, price: float =
             )
             confidence = min(confidence, 25.0)
 
+    # Reverse DCF — what growth rate does the current price imply?
+    implied_growth: float | None = None
+    if price and price > 0 and shares_out and fcf:
+        try:
+            implied_growth = _compute_implied_growth(
+                price,
+                fcf=fcf, revenue_ttm=revenue_ttm, fcf_margin=fcf_margin,
+                use_margin_method=use_margin_method, sustainable_g=sustainable_g,
+                terminal_g=terminal_g, wacc=wacc, net_debt=net_debt, shares_out=shares_out,
+            )
+        except Exception:
+            pass
+
     return {
         "model":      "dcf",
         "name":       "Discounted Cash Flow (3-stage, 10-year)",
@@ -237,6 +336,7 @@ def run_dcf(ticker: str, bucket: str, inputs: dict | None = None, price: float =
             "pv_years_3_10":   round(sum(pv_fcfs[2:]), 0),
             "pv_terminal":     round(pv_terminal, 0),
             "terminal_pct":    round(terminal_pct, 3),
+            "implied_growth":  implied_growth,
         },
         "warnings": warnings,
     }

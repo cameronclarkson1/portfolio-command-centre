@@ -109,7 +109,7 @@ export function DashboardPage({ liveData }: DashboardPageProps) {
   const dailyChangePct     = ps?.daily_change_pct     ?? portfolioData.dailyChangePercent
   const cashBalance        = ps?.cash                 ?? portfolioData.cashBalance
   const investedCapital    = ps?.invested             ?? portfolioData.investedCapital
-  const healthScore        = ps?.health_score         ?? portfolioData.portfolioHealthScore
+  const healthScore        = pr?.health_score ?? ps?.health_score ?? portfolioData.portfolioHealthScore
   const portfolioBeta      = pr?.metrics.portfolio_beta ?? portfolioData.beta
   // Weekly P&L derived from last 5 trading days of performance series
   const weeklyChange = (() => {
