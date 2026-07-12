@@ -162,13 +162,21 @@ def _refresh_one(ticker: str) -> dict:
     )
     scores = compute_scores(d, confidence)
 
+    # Recompute upside_pct from live price — the cached valuation may have been
+    # computed without a price (upside_pct=None when price=0 is falsy in blend).
+    fv_base = val.get("fair_value_base")
+    if fv_base and price:
+        upside_pct = round((fv_base - price) / price, 4)
+    else:
+        upside_pct = val.get("upside_pct")
+
     return {
         "ticker":     ticker,
         "price":      round(price, 2) if price else None,
         "change_pct": price_data.get("change_pct"),
-        "fair_value": round(val.get("fair_value_base", 0), 2) if val.get("fair_value_base") else None,
-        "buy_below":  round(val.get("fair_value_low",  0), 2) if val.get("fair_value_low")  else None,
-        "upside_pct": val.get("upside_pct"),
+        "fair_value": round(fv_base, 2) if fv_base else None,
+        "buy_below":  round(val.get("fair_value_low", 0), 2) if val.get("fair_value_low") else None,
+        "upside_pct": upside_pct,
         "scores":     scores,
         "error":      None,
     }

@@ -72,10 +72,25 @@ def _get_company_name(ticker: str) -> str | None:
         return None
 
 
-def _extract_margins(statements: dict | None) -> dict | None:
-    """Extract latest gross / operating / net margin from income statement."""
+def _extract_margins(statements: dict | None, sector: str = "") -> dict | None:
+    """Extract latest gross / operating / net margin from income statement.
+
+    For REITs, GAAP operating income includes unrealized property gains and
+    disposition proceeds that can exceed rental revenue, making margin >100%.
+    We return None for those fields and add a note rather than print nonsense.
+    """
     if not statements or not statements.get("income"):
         return None
+
+    is_reit = "real estate" in sector.lower()
+
+    if is_reit:
+        return {
+            "gross":     None,
+            "operating": None,
+            "net":       None,
+            "note":      "Margin ratios not meaningful for REITs — GAAP income includes unrealized property gains. Use NOI/FFO metrics instead.",
+        }
 
     latest = statements["income"][0]  # most recent period first
     revenue = latest.get("revenue") or 0
@@ -90,7 +105,25 @@ def _extract_margins(statements: dict | None) -> dict | None:
         "gross":     round(gross_profit / revenue * 100, 1) if gross_profit else None,
         "operating": round(operating    / revenue * 100, 1) if operating    else None,
         "net":       round(net_income   / revenue * 100, 1) if net_income   else None,
+        "note":      None,
     }
+
+
+def _recompute_upside(val: dict, price: float) -> dict:
+    """
+    Return a new valuation dict with upside_pct and valuation_rating recomputed
+    from the current live price.  Never mutates the cached original.
+    """
+    fv = val.get("fair_value_base")
+    if not fv or not price:
+        return val
+    up = round((fv - price) / price, 4)
+    if up > 0.20:    rating = "Undervalued"
+    elif up > 0.05:  rating = "Slightly Undervalued"
+    elif up > -0.05: rating = "Fairly Valued"
+    elif up > -0.20: rating = "Slightly Overvalued"
+    else:            rating = "Overvalued"
+    return {**val, "upside_pct": up, "valuation_rating": rating}
 
 
 @router.get("/{ticker}")
@@ -104,13 +137,17 @@ def get_research(ticker: str, price: float = Query(None)):
     ticker = ticker.strip().upper()
 
     # ── Fetch live price first (fast, 4 s timeout handled by market_data_service)
-    change_pct = 0.0
+    change_pct         = 0.0
+    price_source       = None
+    price_fallback_used = False
     if price is None:
         try:
             pd = market_data_service.get_live_price(ticker)
             if pd and pd.get("price"):
-                price      = pd["price"]
-                change_pct = pd.get("change_pct", 0.0) or 0.0
+                price               = pd["price"]
+                change_pct          = pd.get("change_pct", 0.0) or 0.0
+                price_source        = pd.get("source")
+                price_fallback_used = bool(pd.get("fallback_used", False))
         except Exception:
             pass
 
@@ -146,12 +183,20 @@ def get_research(ticker: str, price: float = Query(None)):
     avg_target = None   # price targets no longer available from FMP stable API
 
     # ── Post-process financial statements ────────────────────────────────────
-    statements   = results.get("statements")
+    statements    = results.get("statements")
     income_series = _extract_income_series(statements)
-    margins      = _extract_margins(statements)
+    # Derive sector for REIT margin check — use valuation result if available
+    _sector = (results.get("valuation") or {}).get("sector", "")
+    margins  = _extract_margins(statements, sector=_sector)
 
     # ── Scoring ───────────────────────────────────────────────────────────────
+    # Recompute upside_pct + valuation_rating from live price — the cached
+    # valuation may have been computed without a price (upside_pct=None,
+    # rating="Insufficient data").  Never mutates the cached dict.
     valuation_result = results.get("valuation")
+    if valuation_result and price:
+        valuation_result = _recompute_upside(valuation_result, price)
+
     ratios_result    = results.get("ratios")
     confidence       = (valuation_result or {}).get("overall_confidence")
 
@@ -177,11 +222,13 @@ def get_research(ticker: str, price: float = Query(None)):
     company_profile = results.get("company_profile") or None
 
     return {
-        "ticker":           ticker,
-        "company_name":     company_name,
-        "company_profile":  company_profile,
-        "price":        price,
-        "change_pct":   change_pct,
+        "ticker":               ticker,
+        "company_name":         company_name,
+        "company_profile":      company_profile,
+        "price":                price,
+        "change_pct":           change_pct,
+        "price_source":         price_source,
+        "price_fallback_used":  price_fallback_used,
 
         # Valuation engine result (fair value low/base/high, models, confidence)
         "valuation": valuation_result,

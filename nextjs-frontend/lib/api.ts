@@ -620,11 +620,13 @@ export interface CompanyProfile {
 }
 
 export interface ResearchData {
-  ticker:          string
-  company_name:    string | null
-  company_profile: CompanyProfile | null
-  price:           number | null
-  change_pct:      number
+  ticker:               string
+  company_name:         string | null
+  company_profile:      CompanyProfile | null
+  price:                number | null
+  change_pct:           number
+  price_source?:        string | null
+  price_fallback_used?: boolean
 
   // Valuation engine (9-model sector-aware)
   valuation: ValuationResult | null
@@ -650,7 +652,7 @@ export interface ResearchData {
   income_series: { year: string; revenue_b: number; eps: number }[]
 
   // Margin percentages from latest income statement
-  margins: { gross: number | null; operating: number | null; net: number | null } | null
+  margins: { gross: number | null; operating: number | null; net: number | null; note?: string | null } | null
 
   // Composite scoring (Quality / Growth / Valuation / Safety)
   scores: ScoreData | null

@@ -277,6 +277,11 @@ export function ResearchPage({ initialTicker }: { initialTicker?: string }) {
                         {changePct >= 0 ? '+' : ''}{changePct.toFixed(2)}% today
                       </span>
                     </div>
+                    {research?.price_fallback_used && (
+                      <p className="text-[10px] text-gold-foreground mt-0.5">
+                        ⚠ Prices delayed · via {research.price_source ?? 'fallback'}
+                      </p>
+                    )}
                   </div>
                 )}
 
@@ -1203,21 +1208,29 @@ function FinancialsTab({ research }: { research: ResearchData }) {
       {research.margins && (
         <div className="rounded-xl border border-border bg-card p-4 shadow-sm">
           <SectionHeader title="Margin Analysis (Latest Year)" />
-          <div className="mt-4 space-y-4">
-            {(Object.entries(research.margins) as [string, number | null][]).map(([key, value]) => (
-              value != null && (
-                <div key={key}>
-                  <div className="flex justify-between mb-1">
-                    <span className="text-xs text-muted-foreground capitalize">{key} Margin</span>
-                    <span className="text-xs font-medium text-foreground">{value.toFixed(2)}%</span>
+          {research.margins.note ? (
+            <p className="mt-3 text-xs text-muted-foreground leading-relaxed italic">
+              {research.margins.note}
+            </p>
+          ) : (
+            <div className="mt-4 space-y-4">
+              {(['gross', 'operating', 'net'] as const).map((key) => {
+                const value = research.margins![key]
+                if (value == null) return null
+                return (
+                  <div key={key}>
+                    <div className="flex justify-between mb-1">
+                      <span className="text-xs text-muted-foreground capitalize">{key} Margin</span>
+                      <span className="text-xs font-medium text-foreground">{value.toFixed(1)}%</span>
+                    </div>
+                    <div className="h-2 bg-muted rounded-full overflow-hidden">
+                      <div className="h-full bg-primary rounded-full" style={{ width: `${Math.min(Math.max(value, 0), 100)}%` }} />
+                    </div>
                   </div>
-                  <div className="h-2 bg-muted rounded-full overflow-hidden">
-                    <div className="h-full bg-primary rounded-full" style={{ width: `${Math.max(value, 0)}%` }} />
-                  </div>
-                </div>
-              )
-            ))}
-          </div>
+                )
+              })}
+            </div>
+          )}
         </div>
       )}
 

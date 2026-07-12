@@ -173,8 +173,30 @@ def get_key_ratios(ticker: str) -> dict | None:
     finnhub_m  = finnhub_metrics or {}
 
     # Combine: FMP as primary, Finnhub fills gaps.
-    # revenue_per_share and fcf_per_share come from FMP key-metrics and are used
-    # as fallbacks in the valuation models when full financial statements are unavailable.
+    # debt_equity and fcf_per_share are not available in FMP stable standard plan
+    # (explicitly None in fmp_provider), so we compute them from financial statements.
+    stmts_for_ratios = get_financial_statements(ticker) or {}
+    _balance  = stmts_for_ratios.get("balance",  [{}])
+    _cashflow = stmts_for_ratios.get("cashflow", [{}])
+    _income   = stmts_for_ratios.get("income",   [{}])
+
+    # Debt/Equity — latest balance sheet
+    _de_computed = None
+    if _balance:
+        _bl = _balance[0]
+        _total_debt   = _bl.get("total_debt")
+        _total_equity = _bl.get("total_equity")
+        if _total_debt is not None and _total_equity and _total_equity > 0:
+            _de_computed = round(_total_debt / _total_equity, 2)
+
+    # FCF/Share — TTM free cash flow divided by diluted shares
+    _fcf_ps_computed = None
+    _fcf_ttm = sum(q.get("free_cash_flow") or 0 for q in _cashflow[:4])
+    _shares   = next((q.get("shares_diluted") or q.get("shares_basic")
+                      for q in _income[:4] if q.get("shares_diluted") or q.get("shares_basic")), None)
+    if _fcf_ttm and _shares and _shares > 0:
+        _fcf_ps_computed = round(_fcf_ttm / _shares, 2)
+
     result = {
         "pe_ratio":           fmp_m.get("pe_ratio")      or finnhub_m.get("pe_ttm"),
         "ev_ebitda":          fmp_m.get("ev_ebitda"),
@@ -182,16 +204,16 @@ def get_key_ratios(ticker: str) -> dict | None:
         "pb_ratio":           fmp_m.get("pb_ratio")       or finnhub_m.get("pb_quarterly"),
         "roic":               fmp_m.get("roic")            or finnhub_m.get("roa_ttm"),
         "roe":                fmp_m.get("roe")             or finnhub_m.get("roe_ttm"),
-        "debt_equity":        fmp_m.get("debt_to_equity"),
+        "debt_equity":        _de_computed,
         "payout_ratio":       fmp_m.get("payout_ratio"),
         "revenue_per_share":  fmp_m.get("revenue_per_share"),
-        "fcf_per_share":      fmp_m.get("fcf_per_share"),
+        "fcf_per_share":      _fcf_ps_computed,
         "dividend_yield":     finnhub_m.get("dividend_yield"),
         "beta":               finnhub_m.get("beta"),
         "52_week_high":       finnhub_m.get("52_week_high"),
         "52_week_low":        finnhub_m.get("52_week_low"),
         "revenue_growth_yoy": _normalise_growth(finnhub_m.get("revenue_growth_yoy")),
-        "source":             "fmp+finnhub",
+        "source":             "fmp+finnhub+statements",
         "confidence":         82.0,
     }
 
