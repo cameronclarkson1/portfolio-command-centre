@@ -34,6 +34,7 @@ from routes.health       import router as health_router
 from routes.watchlist_api    import router as watchlist_router
 from routes.sharesight_auth  import router as sharesight_auth_router
 from routes.scanner          import router as scanner_router
+from routes.events           import router as events_router
 
 # ── APScheduler — daily market-close scan ────────────────────────────────────
 
@@ -98,6 +99,7 @@ app.include_router(health_router,     prefix="/api/health",     tags=["health"])
 app.include_router(watchlist_router,      prefix="/api/watchlist",        tags=["watchlist"])
 app.include_router(sharesight_auth_router, prefix="/auth/sharesight",     tags=["auth"])
 app.include_router(scanner_router,         prefix="/api/scanner",          tags=["scanner"])
+app.include_router(events_router,          prefix="/api/events",           tags=["events"])
 
 
 @app.get("/api/health")

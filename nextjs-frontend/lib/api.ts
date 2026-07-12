@@ -110,6 +110,13 @@ export interface EarningsItem {
   eps_estimate: number | null
 }
 
+export interface MacroEvent {
+  date:        string          // ISO: "2026-07-15"
+  event:       string
+  time:        string
+  importance:  'high' | 'medium'
+}
+
 export interface LiveMarketsData {
   marketIndices:    MarketIndexData[]    | null
   sectorPerformance: SectorPerfData[]   | null
@@ -425,6 +432,12 @@ export async function fetchIntelligenceData(): Promise<LiveIntelligenceData> {
 }
 
 export { fetchPortfolioEarnings }
+
+export async function fetchMacroEvents(): Promise<MacroEvent[] | null> {
+  const raw = await apiFetch('/api/events/macro') as { events: MacroEvent[] } | null
+  if (!raw || !Array.isArray(raw.events)) return null
+  return raw.events
+}
 
 /**
  * Fetches live prices for a set of tickers (used by Watchlist).

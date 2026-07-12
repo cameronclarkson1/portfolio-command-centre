@@ -3,8 +3,8 @@
 import { useState } from 'react'
 import { Clock, Star } from 'lucide-react'
 import { SectionHeader, EventTypeBadge } from '@/components/ui-components'
-import { upcomingEvents, earningsCalendar as mockEarnings } from '@/lib/mock-data'
-import { type EarningsItem } from '@/lib/api'
+import { upcomingEvents as mockUpcoming, earningsCalendar as mockEarnings } from '@/lib/mock-data'
+import { type EarningsItem, type MacroEvent, type DividendEntry } from '@/lib/api'
 import { cn } from '@/lib/utils'
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
@@ -14,31 +14,41 @@ function fmtDate(iso: string): string {
   return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', timeZone: 'UTC' })
 }
 
-// ── Additional events data ────────────────────────────────────────────────────
+// ── Portfolio tickers — used to flag events as "In Portfolio" ─────────────────
 
-const macroEvents = [
-  { date: 'May 21',   event: 'FOMC Minutes',         time: '2:00 PM ET',  importance: 'high'   as const },
-  { date: 'May 22',   event: 'US CPI (Apr)',          time: '8:30 AM ET',  importance: 'high'   as const },
-  { date: 'May 30',   event: 'US PCE Inflation',      time: '8:30 AM ET',  importance: 'high'   as const },
-  { date: 'Jun 4',    event: 'US Jobs Report (May)',   time: '8:30 AM ET',  importance: 'high'   as const },
-  { date: 'Jun 11-12',event: 'FOMC Meeting',          time: 'All Day',     importance: 'high'   as const },
-  { date: 'Jun 12',   event: 'US CPI (May)',           time: '8:30 AM ET',  importance: 'medium' as const },
-]
+const PORTFOLIO_TICKERS = new Set([
+  'AVGO', 'BABA', 'BAC', 'GOOG', 'JNJ', 'KO', 'MCD', 'META',
+  'MO',   'MU',   'NEM', 'NVDA', 'O',   'SCHD', 'V', 'VOO', 'VZ', 'WFC',
+])
 
-const dividendEvents = [
-  { ticker: 'V',    name: 'Visa Inc.',       exDate: 'May 16', payDate: 'Jun 3',  amount: 0.59, yield: 0.85, inPortfolio: true  },
-  { ticker: 'AAPL', name: 'Apple Inc.',      exDate: 'May 9',  payDate: 'May 15', amount: 0.25, yield: 0.53, inPortfolio: true  },
-  { ticker: 'MSFT', name: 'Microsoft',       exDate: 'May 15', payDate: 'Jun 12', amount: 0.75, yield: 0.71, inPortfolio: false },
-  { ticker: 'JPM',  name: 'JPMorgan Chase',  exDate: 'Jun 5',  payDate: 'Jun 30', amount: 1.25, yield: 2.52, inPortfolio: true  },
-]
-
-// ── Page component ─────────────────────────────────────────────────────────────
+// ── Types ─────────────────────────────────────────────────────────────────────
 
 type FilterType = 'all' | 'earnings' | 'macro' | 'dividend'
 
-export function EventsPage({ apiEarnings }: { apiEarnings?: EarningsItem[] | null }) {
+interface EventRow {
+  date:        string        // display: "Jul 15"
+  isoDate:     string        // for sorting: "2026-07-15"
+  type:        'earnings' | 'macro'
+  ticker:      string | null
+  description: string
+  timing:      string
+  inPortfolio: boolean
+}
+
+// ── Page component ─────────────────────────────────────────────────────────────
+
+export function EventsPage({
+  apiEarnings,
+  apiMacro,
+  apiDividends,
+}: {
+  apiEarnings?:  EarningsItem[]  | null
+  apiMacro?:     MacroEvent[]    | null
+  apiDividends?: DividendEntry[] | null
+}) {
   const [filter, setFilter] = useState<FilterType>('all')
 
+  // ── Earnings calendar detail table ────────────────────────────────────────
   const earningsCalendar = apiEarnings ?? mockEarnings.map(e => ({
     ticker:       e.symbol,
     name:         e.name,
@@ -47,15 +57,77 @@ export function EventsPage({ apiEarnings }: { apiEarnings?: EarningsItem[] | nul
     eps_estimate: parseFloat(e.estimate.replace('$', '')) || null,
   }))
 
-  const filterTabs: { key: FilterType; label: string; count: number }[] = [
-    { key: 'all',      label: 'All Events', count: upcomingEvents.length + dividendEvents.length },
-    { key: 'earnings', label: 'Earnings',   count: earningsCalendar.length },
-    { key: 'macro',    label: 'Macro',      count: macroEvents.length },
-    { key: 'dividend', label: 'Dividends',  count: dividendEvents.length },
-  ]
+  // ── Unified events timeline (earnings + macro, sorted by date) ────────────
+  const eventTimeline: EventRow[] = []
 
-  const portfolioEarnings = upcomingEvents.filter(e => e.type === 'earnings' && e.inPortfolio)
-  const portfolioDividends = dividendEvents.filter(d => d.inPortfolio)
+  if (apiEarnings && apiEarnings.length > 0) {
+    apiEarnings.forEach(e => {
+      eventTimeline.push({
+        date:        fmtDate(e.date),
+        isoDate:     e.date,
+        type:        'earnings',
+        ticker:      e.ticker,
+        description: `${e.name} Earnings`,
+        timing:      e.hour === 'amc' ? 'After Close' : 'Before Open',
+        inPortfolio: PORTFOLIO_TICKERS.has(e.ticker),
+      })
+    })
+  }
+
+  if (apiMacro && apiMacro.length > 0) {
+    apiMacro.forEach(m => {
+      eventTimeline.push({
+        date:        fmtDate(m.date),
+        isoDate:     m.date,
+        type:        'macro',
+        ticker:      null,
+        description: m.event,
+        timing:      m.time,
+        inPortfolio: false,
+      })
+    })
+  }
+
+  eventTimeline.sort((a, b) => a.isoDate.localeCompare(b.isoDate))
+
+  // Fall back to mock data if the API returned nothing for both sources
+  const displayTimeline: EventRow[] = eventTimeline.length > 0
+    ? eventTimeline
+    : mockUpcoming.map(e => ({ ...e, isoDate: '' }))
+
+  // ── Macro sidebar list (first 8 macro events) ─────────────────────────────
+  const macroSidebar = apiMacro
+    ? apiMacro.slice(0, 8).map(m => ({
+        date:       fmtDate(m.date),
+        event:      m.event,
+        time:       m.time,
+        importance: m.importance,
+      }))
+    : []
+
+  // ── Dividend table rows ───────────────────────────────────────────────────
+  const dividendRows = apiDividends
+    ? apiDividends.map(d => ({
+        ticker:      d.ticker,
+        name:        d.name,
+        exDate:      d.ex_div_date ? fmtDate(d.ex_div_date) : '—',
+        payDate:     d.pay_date    ? fmtDate(d.pay_date)    : '—',
+        amount:      d.quarterly_div,
+        yieldPct:    d.yield_pct ?? 0,
+        inPortfolio: d.in_portfolio,
+      }))
+    : []
+
+  // ── Summary counts for sidebar ────────────────────────────────────────────
+  const portfolioEarnings  = displayTimeline.filter(e => e.type === 'earnings' && e.inPortfolio)
+  const portfolioDividends = dividendRows.filter(d => d.inPortfolio)
+
+  const filterTabs: { key: FilterType; label: string; count: number }[] = [
+    { key: 'all',      label: 'All Events', count: displayTimeline.length + dividendRows.length },
+    { key: 'earnings', label: 'Earnings',   count: earningsCalendar.length },
+    { key: 'macro',    label: 'Macro',      count: macroSidebar.length },
+    { key: 'dividend', label: 'Dividends',  count: dividendRows.length },
+  ]
 
   return (
     <div className="px-4 py-6 lg:px-8 lg:py-8 space-y-6 max-w-[1600px] mx-auto">
@@ -101,8 +173,9 @@ export function EventsPage({ apiEarnings }: { apiEarnings?: EarningsItem[] | nul
             <div className="rounded-xl border border-border bg-card p-4 shadow-sm">
               <SectionHeader title="Upcoming Events" />
               <div className="mt-4 divide-y divide-border">
-                {upcomingEvents
+                {displayTimeline
                   .filter(e => filter === 'all' || e.type === filter)
+                  .slice(0, 15)
                   .map((event, i) => (
                     <div key={i} className="flex items-center gap-4 py-3">
                       <div className="w-14 flex-shrink-0 text-center">
@@ -125,6 +198,9 @@ export function EventsPage({ apiEarnings }: { apiEarnings?: EarningsItem[] | nul
                       </div>
                     </div>
                   ))}
+                {displayTimeline.filter(e => filter === 'all' || e.type === filter).length === 0 && (
+                  <p className="py-6 text-sm text-center text-muted-foreground">No upcoming events</p>
+                )}
               </div>
             </div>
           )}
@@ -146,9 +222,9 @@ export function EventsPage({ apiEarnings }: { apiEarnings?: EarningsItem[] | nul
                   </thead>
                   <tbody>
                     {earningsCalendar.map((e, i) => {
-                      const isAmc = e.hour === 'amc'
+                      const isAmc     = e.hour === 'amc'
                       const dateLabel = e.date.includes('-') ? fmtDate(e.date) : e.date
-                      const epsLabel = e.eps_estimate != null ? `$${e.eps_estimate.toFixed(2)}` : '—'
+                      const epsLabel  = e.eps_estimate != null ? `$${e.eps_estimate.toFixed(2)}` : '—'
                       return (
                         <tr key={i} className="border-b border-border last:border-0">
                           <td className="py-3">
@@ -173,11 +249,18 @@ export function EventsPage({ apiEarnings }: { apiEarnings?: EarningsItem[] | nul
                           </td>
                           <td className="py-3 text-right font-semibold text-foreground">{epsLabel}</td>
                           <td className="py-3 text-center">
-                            <Star className="h-3.5 w-3.5 text-primary fill-primary inline" />
+                            {PORTFOLIO_TICKERS.has(e.ticker) && (
+                              <Star className="h-3.5 w-3.5 text-primary fill-primary inline" />
+                            )}
                           </td>
                         </tr>
                       )
                     })}
+                    {earningsCalendar.length === 0 && (
+                      <tr>
+                        <td colSpan={5} className="py-6 text-center text-muted-foreground">No upcoming earnings</td>
+                      </tr>
+                    )}
                   </tbody>
                 </table>
               </div>
@@ -200,7 +283,7 @@ export function EventsPage({ apiEarnings }: { apiEarnings?: EarningsItem[] | nul
                     </tr>
                   </thead>
                   <tbody>
-                    {dividendEvents.map((d, i) => (
+                    {dividendRows.map((d, i) => (
                       <tr key={i} className="border-b border-border last:border-0">
                         <td className="py-3">
                           <div className="flex items-center gap-2.5">
@@ -217,11 +300,18 @@ export function EventsPage({ apiEarnings }: { apiEarnings?: EarningsItem[] | nul
                           </div>
                         </td>
                         <td className="py-3 text-right font-semibold text-success">${d.amount.toFixed(2)}</td>
-                        <td className="py-3 text-right text-muted-foreground">{d.yield}%</td>
+                        <td className="py-3 text-right text-muted-foreground">{d.yieldPct.toFixed(2)}%</td>
                         <td className="py-3 text-right font-medium text-foreground">{d.exDate}</td>
                         <td className="py-3 text-right text-muted-foreground">{d.payDate}</td>
                       </tr>
                     ))}
+                    {dividendRows.length === 0 && (
+                      <tr>
+                        <td colSpan={5} className="py-6 text-center text-muted-foreground">
+                          Loading dividends...
+                        </td>
+                      </tr>
+                    )}
                   </tbody>
                 </table>
               </div>
@@ -236,7 +326,7 @@ export function EventsPage({ apiEarnings }: { apiEarnings?: EarningsItem[] | nul
           <div className="rounded-xl border border-border bg-card p-4 shadow-sm">
             <SectionHeader title="This Week" />
             <div className="mt-3 divide-y divide-border">
-              {upcomingEvents.slice(0, 4).map((e, i) => (
+              {displayTimeline.slice(0, 4).map((e, i) => (
                 <div key={i} className="flex items-start gap-2.5 py-2.5">
                   <EventTypeBadge type={e.type} />
                   <div className="flex-1 min-w-0">
@@ -247,6 +337,9 @@ export function EventsPage({ apiEarnings }: { apiEarnings?: EarningsItem[] | nul
                   </div>
                 </div>
               ))}
+              {displayTimeline.length === 0 && (
+                <p className="py-3 text-xs text-center text-muted-foreground">No upcoming events</p>
+              )}
             </div>
           </div>
 
@@ -254,7 +347,7 @@ export function EventsPage({ apiEarnings }: { apiEarnings?: EarningsItem[] | nul
           <div className="rounded-xl border border-border bg-card p-4 shadow-sm">
             <SectionHeader title="Key Macro Dates" />
             <div className="mt-3 divide-y divide-border">
-              {macroEvents.map((m, i) => (
+              {macroSidebar.map((m, i) => (
                 <div key={i} className="flex items-center justify-between py-2.5">
                   <div className="min-w-0 flex-1">
                     <p className="text-xs font-medium text-foreground truncate">{m.event}</p>
@@ -273,6 +366,9 @@ export function EventsPage({ apiEarnings }: { apiEarnings?: EarningsItem[] | nul
                   </div>
                 </div>
               ))}
+              {macroSidebar.length === 0 && (
+                <p className="py-3 text-xs text-center text-muted-foreground">Loading macro calendar...</p>
+              )}
             </div>
           </div>
 
