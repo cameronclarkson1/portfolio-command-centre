@@ -98,7 +98,7 @@ export function MarketsPage({ liveData }: { liveData?: LiveMarketsData }) {
                   'text-xs font-medium',
                   index.change >= 0 ? 'text-success' : 'text-destructive'
                 )}>
-                  {index.change >= 0 ? '+' : ''}{index.change}%
+                  {index.change >= 0 ? '+' : ''}{index.change.toFixed(2)}%
                 </span>
                 <span className="text-xs text-muted-foreground">
                   YTD: {index.ytd != null ? `${index.ytd > 0 ? '+' : ''}${index.ytd}%` : '—'}
@@ -245,15 +245,7 @@ export function MarketsPage({ liveData }: { liveData?: LiveMarketsData }) {
               {bondYields.map((bond) => (
                 <div key={bond.name} className="flex items-center justify-between">
                   <span className="text-sm text-muted-foreground">{bond.name}</span>
-                  <div className="flex items-center gap-2">
-                    <span className="text-sm font-semibold text-foreground">{bond.yield}%</span>
-                    <span className={cn(
-                      'text-xs',
-                      bond.change >= 0 ? 'text-success' : 'text-destructive'
-                    )}>
-                      {bond.change >= 0 ? '+' : ''}{bond.change.toFixed(2)}
-                    </span>
-                  </div>
+                  <span className="text-sm font-semibold text-foreground">{bond.yield.toFixed(2)}%</span>
                 </div>
               ))}
             </div>
