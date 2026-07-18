@@ -203,7 +203,7 @@ def select_models(
 
     candidates: dict[str, bool] = {
         "pe":  eps_ttm > 0 or bool(pe_ratio and pe_ratio > 0),
-        "ddm": div_yield > 0,
+        "ddm": div_yield >= 0.005,  # require ≥0.5% yield — prevents DDM on token/zero-div payers
         "pcf": op_cf_ttm > 0,
         "pb":  equity > 0 and bucket in _asset_heavy,
     }
