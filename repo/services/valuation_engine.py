@@ -81,8 +81,8 @@ def _run_model(model_key: str, bucket: str, ticker: str,
         elif model_key == "pb":         return run_pb(bucket, ratios, statements, price)
         elif model_key == "pcf":        return run_pcf(bucket, ratios, statements, price)
         elif model_key == "ddm":        return run_ddm(ticker, bucket, ratios, statements, price)
-        elif model_key == "pffo":       return run_pffo(ratios, statements)
-        elif model_key == "paffo":      return run_paffo(ratios, statements)
+        elif model_key == "pffo":       return run_pffo(ratios, statements, price=price, ticker=ticker)
+        elif model_key == "paffo":      return run_paffo(ratios, statements, price=price, ticker=ticker)
         elif model_key == "analyst_pt": return run_analyst_pt(bucket, val_inputs)
         else:
             return {"model": model_key, "name": model_key, "fair_value": None,

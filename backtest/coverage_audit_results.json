@@ -1,0 +1,2268 @@
+{
+  "coverage": [
+    {
+      "bucket": "reit",
+      "primary_coverage_pct": 33.3,
+      "model_detail": {
+        "pffo": 0.0,
+        "pb": 100.0,
+        "paffo": 0.0
+      }
+    },
+    {
+      "bucket": "insurance",
+      "primary_coverage_pct": 93.3,
+      "model_detail": {
+        "ddm": 80.0,
+        "pb": 100.0,
+        "pe": 100.0
+      }
+    },
+    {
+      "bucket": "technology",
+      "primary_coverage_pct": 100.0,
+      "model_detail": {
+        "ev_ebitda": 100.0,
+        "ev_sales": 100.0,
+        "dcf": 100.0
+      }
+    },
+    {
+      "bucket": "consumer_discretionary",
+      "primary_coverage_pct": 100.0,
+      "model_detail": {
+        "dcf": 100.0,
+        "ev_ebitda": 100.0,
+        "pe": 100.0
+      }
+    },
+    {
+      "bucket": "consumer_staples",
+      "primary_coverage_pct": 100.0,
+      "model_detail": {
+        "dcf": 100.0,
+        "ddm": 100.0,
+        "pe": 100.0
+      }
+    },
+    {
+      "bucket": "financials",
+      "primary_coverage_pct": 100.0,
+      "model_detail": {
+        "ddm": 100.0,
+        "pb": 100.0,
+        "pe": 100.0
+      }
+    },
+    {
+      "bucket": "utilities",
+      "primary_coverage_pct": 100.0,
+      "model_detail": {
+        "ddm": 100.0,
+        "ev_ebitda": 100.0,
+        "pe": 100.0
+      }
+    },
+    {
+      "bucket": "energy",
+      "primary_coverage_pct": 100.0,
+      "model_detail": {
+        "ev_ebitda": 100.0,
+        "pcf": 100.0,
+        "dcf": 100.0
+      }
+    },
+    {
+      "bucket": "materials",
+      "primary_coverage_pct": 100.0,
+      "model_detail": {
+        "ev_ebitda": 100.0,
+        "pb": 100.0,
+        "pcf": 100.0
+      }
+    },
+    {
+      "bucket": "industrials",
+      "primary_coverage_pct": 100.0,
+      "model_detail": {
+        "dcf": 100.0,
+        "ev_ebitda": 100.0,
+        "pe": 100.0
+      }
+    },
+    {
+      "bucket": "healthcare",
+      "primary_coverage_pct": 100.0,
+      "model_detail": {
+        "dcf": 100.0,
+        "ev_sales": 100.0,
+        "pe": 100.0
+      }
+    },
+    {
+      "bucket": "communication",
+      "primary_coverage_pct": 100.0,
+      "model_detail": {
+        "dcf": 100.0,
+        "ev_ebitda": 100.0,
+        "pe": 100.0
+      }
+    }
+  ],
+  "root_causes": {
+    "RC3: Both FMP and yfinance statement fetch failed": [
+      "AMZN.pcf",
+      "SO.pcf",
+      "D.pcf"
+    ],
+    "RC1: FMP income-stmt 403 -> yfinance field mismatch (net_income/shares_outstanding)": [
+      "VICI.pffo",
+      "VICI.paffo",
+      "O.pffo",
+      "O.paffo",
+      "SPG.pffo",
+      "SPG.paffo",
+      "AMT.pffo",
+      "AMT.paffo",
+      "PLD.pffo",
+      "PLD.paffo"
+    ]
+  },
+  "ticker_results": [
+    {
+      "ticker": "AAPL",
+      "name": "Apple",
+      "bucket": "technology",
+      "price": 315.32,
+      "fair_value_base": 233.28,
+      "rating": "Overvalued",
+      "confidence": 45.6,
+      "models": {
+        "dcf": {
+          "fair_value": 243.27,
+          "classification": "OK",
+          "reason_code": ""
+        },
+        "ev_sales": {
+          "fair_value": 225.99,
+          "classification": "OK",
+          "reason_code": ""
+        },
+        "ev_ebitda": {
+          "fair_value": 268.14,
+          "classification": "OK",
+          "reason_code": ""
+        },
+        "pe": {
+          "fair_value": 290.15,
+          "classification": "OK",
+          "reason_code": ""
+        },
+        "ddm": {
+          "fair_value": 16.68,
+          "classification": "OK",
+          "reason_code": ""
+        },
+        "pcf": {
+          "fair_value": 122.5,
+          "classification": "OK",
+          "reason_code": ""
+        }
+      }
+    },
+    {
+      "ticker": "MSFT",
+      "name": "Microsoft",
+      "bucket": "technology",
+      "price": 385.1,
+      "fair_value_base": 547.66,
+      "rating": "Undervalued",
+      "confidence": 46.1,
+      "models": {
+        "dcf": {
+          "fair_value": 329.12,
+          "classification": "OK",
+          "reason_code": ""
+        },
+        "ev_sales": {
+          "fair_value": 509.01,
+          "classification": "OK",
+          "reason_code": ""
+        },
+        "ev_ebitda": {
+          "fair_value": 810.74,
+          "classification": "OK",
+          "reason_code": ""
+        },
+        "pe": {
+          "fair_value": 719.5,
+          "classification": "OK",
+          "reason_code": ""
+        },
+        "ddm": {
+          "fair_value": 53.63,
+          "classification": "OK",
+          "reason_code": ""
+        },
+        "pcf": {
+          "fair_value": 137.06,
+          "classification": "OK",
+          "reason_code": ""
+        }
+      }
+    },
+    {
+      "ticker": "NVDA",
+      "name": "NVIDIA",
+      "bucket": "technology",
+      "price": 210.96,
+      "fair_value_base": 171.23,
+      "rating": "Slightly Overvalued",
+      "confidence": 45.0,
+      "models": {
+        "dcf": {
+          "fair_value": 223.25,
+          "classification": "OK",
+          "reason_code": ""
+        },
+        "ev_sales": {
+          "fair_value": 84.2,
+          "classification": "OK",
+          "reason_code": ""
+        },
+        "ev_ebitda": {
+          "fair_value": 197.81,
+          "classification": "OK",
+          "reason_code": ""
+        },
+        "pe": {
+          "fair_value": 229.6,
+          "classification": "OK",
+          "reason_code": ""
+        },
+        "ddm": {
+          "fair_value": 0.33,
+          "classification": "OK",
+          "reason_code": ""
+        },
+        "pcf": {
+          "fair_value": 68.32,
+          "classification": "OK",
+          "reason_code": ""
+        }
+      }
+    },
+    {
+      "ticker": "ADBE",
+      "name": "Adobe",
+      "bucket": "technology",
+      "price": 223.64,
+      "fair_value_base": 744.66,
+      "rating": "Undervalued",
+      "confidence": 45.9,
+      "models": {
+        "dcf": {
+          "fair_value": 713.84,
+          "classification": "OK",
+          "reason_code": ""
+        },
+        "ev_sales": {
+          "fair_value": 778.18,
+          "classification": "OK",
+          "reason_code": ""
+        },
+        "ev_ebitda": {
+          "fair_value": 766.05,
+          "classification": "OK",
+          "reason_code": ""
+        },
+        "pe": {
+          "fair_value": 766.5,
+          "classification": "OK",
+          "reason_code": ""
+        },
+        "pcf": {
+          "fair_value": 370.16,
+          "classification": "OK",
+          "reason_code": ""
+        }
+      }
+    },
+    {
+      "ticker": "CRM",
+      "name": "Salesforce",
+      "bucket": "technology",
+      "price": 163.32,
+      "fair_value_base": 320.28,
+      "rating": "Undervalued",
+      "confidence": 45.6,
+      "models": {
+        "dcf": {
+          "fair_value": 432.05,
+          "classification": "OK",
+          "reason_code": ""
+        },
+        "ev_sales": {
+          "fair_value": 350.63,
+          "classification": "OK",
+          "reason_code": ""
+        },
+        "ev_ebitda": {
+          "fair_value": 280.4,
+          "classification": "OK",
+          "reason_code": ""
+        },
+        "pe": {
+          "fair_value": 240.16,
+          "classification": "OK",
+          "reason_code": ""
+        },
+        "ddm": {
+          "fair_value": 28.18,
+          "classification": "OK",
+          "reason_code": ""
+        },
+        "pcf": {
+          "fair_value": 235.62,
+          "classification": "OK",
+          "reason_code": ""
+        }
+      }
+    },
+    {
+      "ticker": "AMZN",
+      "name": "Amazon",
+      "bucket": "consumer_discretionary",
+      "price": 245.34,
+      "fair_value_base": 198.27,
+      "rating": "Slightly Overvalued",
+      "confidence": 51.8,
+      "models": {
+        "dcf": {
+          "fair_value": -16.83,
+          "classification": "OK",
+          "reason_code": ""
+        },
+        "pe": {
+          "fair_value": 193.57,
+          "classification": "OK",
+          "reason_code": ""
+        },
+        "ev_ebitda": {
+          "fair_value": 204.94,
+          "classification": "OK",
+          "reason_code": ""
+        },
+        "pcf": {
+          "fair_value": null,
+          "classification": "BROKEN",
+          "reason_code": "RC3: Both FMP and yfinance statement fetch failed"
+        }
+      }
+    },
+    {
+      "ticker": "MCD",
+      "name": "McDonald's",
+      "bucket": "consumer_discretionary",
+      "price": 274.6,
+      "fair_value_base": 286.9,
+      "rating": "Fairly Valued",
+      "confidence": 47.9,
+      "models": {
+        "dcf": {
+          "fair_value": 152.13,
+          "classification": "OK",
+          "reason_code": ""
+        },
+        "pe": {
+          "fair_value": 395.52,
+          "classification": "OK",
+          "reason_code": ""
+        },
+        "ev_ebitda": {
+          "fair_value": 342.91,
+          "classification": "OK",
+          "reason_code": ""
+        },
+        "ddm": {
+          "fair_value": 264.47,
+          "classification": "OK",
+          "reason_code": ""
+        },
+        "pcf": {
+          "fair_value": 118.44,
+          "classification": "OK",
+          "reason_code": ""
+        }
+      }
+    },
+    {
+      "ticker": "NKE",
+      "name": "Nike",
+      "bucket": "consumer_discretionary",
+      "price": 44.37,
+      "fair_value_base": 30.82,
+      "rating": "Overvalued",
+      "confidence": 47.9,
+      "models": {
+        "dcf": {
+          "fair_value": 14.88,
+          "classification": "OK",
+          "reason_code": ""
+        },
+        "pe": {
+          "fair_value": 47.88,
+          "classification": "OK",
+          "reason_code": ""
+        },
+        "ev_ebitda": {
+          "fair_value": 35.35,
+          "classification": "OK",
+          "reason_code": ""
+        },
+        "ddm": {
+          "fair_value": 24.63,
+          "classification": "OK",
+          "reason_code": ""
+        },
+        "pcf": {
+          "fair_value": 5.52,
+          "classification": "OK",
+          "reason_code": ""
+        }
+      }
+    },
+    {
+      "ticker": "LOW",
+      "name": "Lowe's",
+      "bucket": "consumer_discretionary",
+      "price": 211.63,
+      "fair_value_base": 261.5,
+      "rating": "Undervalued",
+      "confidence": 46.6,
+      "models": {
+        "dcf": {
+          "fair_value": 238.81,
+          "classification": "OK",
+          "reason_code": ""
+        },
+        "pe": {
+          "fair_value": 325.6,
+          "classification": "OK",
+          "reason_code": ""
+        },
+        "ev_ebitda": {
+          "fair_value": 277.1,
+          "classification": "OK",
+          "reason_code": ""
+        },
+        "ddm": {
+          "fair_value": 94.84,
+          "classification": "OK",
+          "reason_code": ""
+        },
+        "pcf": {
+          "fair_value": 163.32,
+          "classification": "OK",
+          "reason_code": ""
+        }
+      }
+    },
+    {
+      "ticker": "SBUX",
+      "name": "Starbucks",
+      "bucket": "consumer_discretionary",
+      "price": 106.01,
+      "fair_value_base": 38.09,
+      "rating": "Overvalued",
+      "confidence": 47.2,
+      "models": {
+        "dcf": {
+          "fair_value": 34.9,
+          "classification": "OK",
+          "reason_code": ""
+        },
+        "pe": {
+          "fair_value": 31.68,
+          "classification": "OK",
+          "reason_code": ""
+        },
+        "ev_ebitda": {
+          "fair_value": 49.47,
+          "classification": "OK",
+          "reason_code": ""
+        },
+        "ddm": {
+          "fair_value": 43.04,
+          "classification": "OK",
+          "reason_code": ""
+        },
+        "pcf": {
+          "fair_value": 28.56,
+          "classification": "OK",
+          "reason_code": ""
+        }
+      }
+    },
+    {
+      "ticker": "KO",
+      "name": "Coca-Cola",
+      "bucket": "consumer_staples",
+      "price": 83.49,
+      "fair_value_base": 69.61,
+      "rating": "Slightly Overvalued",
+      "confidence": 47.1,
+      "models": {
+        "dcf": {
+          "fair_value": 52.96,
+          "classification": "OK",
+          "reason_code": ""
+        },
+        "pe": {
+          "fair_value": 66.35,
+          "classification": "OK",
+          "reason_code": ""
+        },
+        "ddm": {
+          "fair_value": 106.2,
+          "classification": "OK",
+          "reason_code": ""
+        },
+        "pcf": {
+          "fair_value": 40.74,
+          "classification": "OK",
+          "reason_code": ""
+        }
+      }
+    },
+    {
+      "ticker": "PG",
+      "name": "Procter & Gamble",
+      "bucket": "consumer_staples",
+      "price": 147.04,
+      "fair_value_base": 142.68,
+      "rating": "Fairly Valued",
+      "confidence": 47.1,
+      "models": {
+        "dcf": {
+          "fair_value": 110.42,
+          "classification": "OK",
+          "reason_code": ""
+        },
+        "pe": {
+          "fair_value": 165.66,
+          "classification": "OK",
+          "reason_code": ""
+        },
+        "ddm": {
+          "fair_value": 172.46,
+          "classification": "OK",
+          "reason_code": ""
+        },
+        "pcf": {
+          "fair_value": 87.08,
+          "classification": "OK",
+          "reason_code": ""
+        }
+      }
+    },
+    {
+      "ticker": "WMT",
+      "name": "Walmart",
+      "bucket": "consumer_staples",
+      "price": 113.9,
+      "fair_value_base": 28.19,
+      "rating": "Overvalued",
+      "confidence": 44.9,
+      "models": {
+        "dcf": {
+          "fair_value": 25.94,
+          "classification": "OK",
+          "reason_code": ""
+        },
+        "pe": {
+          "fair_value": 56.71,
+          "classification": "OK",
+          "reason_code": ""
+        },
+        "ddm": {
+          "fair_value": 25.45,
+          "classification": "OK",
+          "reason_code": ""
+        },
+        "pcf": {
+          "fair_value": 21.98,
+          "classification": "OK",
+          "reason_code": ""
+        }
+      }
+    },
+    {
+      "ticker": "MO",
+      "name": "Altria",
+      "bucket": "consumer_staples",
+      "price": 71.79,
+      "fair_value_base": 116.37,
+      "rating": "Undervalued",
+      "confidence": 51.0,
+      "models": {
+        "dcf": {
+          "fair_value": 24.87,
+          "classification": "OK",
+          "reason_code": ""
+        },
+        "pe": {
+          "fair_value": 119.5,
+          "classification": "OK",
+          "reason_code": ""
+        },
+        "ddm": {
+          "fair_value": 130.6,
+          "classification": "OK",
+          "reason_code": ""
+        },
+        "pcf": {
+          "fair_value": 72.1,
+          "classification": "OK",
+          "reason_code": ""
+        }
+      }
+    },
+    {
+      "ticker": "CL",
+      "name": "Colgate-Palmolive",
+      "bucket": "consumer_staples",
+      "price": 92.24,
+      "fair_value_base": 80.69,
+      "rating": "Slightly Overvalued",
+      "confidence": 53.1,
+      "models": {
+        "dcf": {
+          "fair_value": 86.93,
+          "classification": "OK",
+          "reason_code": ""
+        },
+        "pe": {
+          "fair_value": 64.85,
+          "classification": "OK",
+          "reason_code": ""
+        },
+        "ddm": {
+          "fair_value": 101.24,
+          "classification": "OK",
+          "reason_code": ""
+        },
+        "pcf": {
+          "fair_value": 65.52,
+          "classification": "OK",
+          "reason_code": ""
+        }
+      }
+    },
+    {
+      "ticker": "JPM",
+      "name": "JPMorgan Chase",
+      "bucket": "financials",
+      "price": 336.47,
+      "fair_value_base": 193.76,
+      "rating": "Overvalued",
+      "confidence": 51.6,
+      "models": {
+        "pb": {
+          "fair_value": 195.46,
+          "classification": "OK",
+          "reason_code": ""
+        },
+        "pe": {
+          "fair_value": 205.02,
+          "classification": "OK",
+          "reason_code": ""
+        },
+        "ddm": {
+          "fair_value": 134.4,
+          "classification": "OK",
+          "reason_code": ""
+        },
+        "pcf": {
+          "fair_value": 706.3,
+          "classification": "OK",
+          "reason_code": ""
+        }
+      }
+    },
+    {
+      "ticker": "BAC",
+      "name": "Bank of America",
+      "bucket": "financials",
+      "price": 59.67,
+      "fair_value_base": 50.57,
+      "rating": "Slightly Overvalued",
+      "confidence": 51.2,
+      "models": {
+        "pb": {
+          "fair_value": 60.8,
+          "classification": "OK",
+          "reason_code": ""
+        },
+        "pe": {
+          "fair_value": 40.08,
+          "classification": "OK",
+          "reason_code": ""
+        },
+        "ddm": {
+          "fair_value": 23.37,
+          "classification": "OK",
+          "reason_code": ""
+        },
+        "pcf": {
+          "fair_value": 106.82,
+          "classification": "OK",
+          "reason_code": ""
+        }
+      }
+    },
+    {
+      "ticker": "WFC",
+      "name": "Wells Fargo",
+      "bucket": "financials",
+      "price": 87.16,
+      "fair_value_base": 66.24,
+      "rating": "Overvalued",
+      "confidence": 51.6,
+      "models": {
+        "pb": {
+          "fair_value": 83.17,
+          "classification": "OK",
+          "reason_code": ""
+        },
+        "pe": {
+          "fair_value": 64.68,
+          "classification": "OK",
+          "reason_code": ""
+        },
+        "ddm": {
+          "fair_value": 47.47,
+          "classification": "OK",
+          "reason_code": ""
+        },
+        "pcf": {
+          "fair_value": 5.18,
+          "classification": "OK",
+          "reason_code": ""
+        }
+      }
+    },
+    {
+      "ticker": "GS",
+      "name": "Goldman Sachs",
+      "bucket": "financials",
+      "price": 1055.1801,
+      "fair_value_base": 503.68,
+      "rating": "Overvalued",
+      "confidence": 51.8,
+      "models": {
+        "pb": {
+          "fair_value": 597.96,
+          "classification": "OK",
+          "reason_code": ""
+        },
+        "pe": {
+          "fair_value": 543.31,
+          "classification": "OK",
+          "reason_code": ""
+        },
+        "ddm": {
+          "fair_value": 304.31,
+          "classification": "OK",
+          "reason_code": ""
+        }
+      }
+    },
+    {
+      "ticker": "MS",
+      "name": "Morgan Stanley",
+      "bucket": "financials",
+      "price": 222.28,
+      "fair_value_base": 98.83,
+      "rating": "Overvalued",
+      "confidence": 57.8,
+      "models": {
+        "pb": {
+          "fair_value": 107.61,
+          "classification": "OK",
+          "reason_code": ""
+        },
+        "pe": {
+          "fair_value": 109.07,
+          "classification": "OK",
+          "reason_code": ""
+        },
+        "ddm": {
+          "fair_value": 71.11,
+          "classification": "OK",
+          "reason_code": ""
+        }
+      }
+    },
+    {
+      "ticker": "BRK-B",
+      "name": "Berkshire Hathaway B",
+      "bucket": "insurance",
+      "price": 493.71,
+      "fair_value_base": 362.43,
+      "rating": "Overvalued",
+      "confidence": 50.1,
+      "models": {
+        "pb": {
+          "fair_value": 471.94,
+          "classification": "OK",
+          "reason_code": ""
+        },
+        "pe": {
+          "fair_value": 302.31,
+          "classification": "OK",
+          "reason_code": ""
+        },
+        "ddm": {
+          "fair_value": null,
+          "classification": "CORRECT",
+          "reason_code": "correct-na:no dividend"
+        },
+        "pcf": {
+          "fair_value": 154.98,
+          "classification": "OK",
+          "reason_code": ""
+        }
+      }
+    },
+    {
+      "ticker": "AIG",
+      "name": "AIG",
+      "bucket": "insurance",
+      "price": 79.17,
+      "fair_value_base": 75.63,
+      "rating": "Fairly Valued",
+      "confidence": 50.7,
+      "models": {
+        "pb": {
+          "fair_value": 104.33,
+          "classification": "OK",
+          "reason_code": ""
+        },
+        "pe": {
+          "fair_value": 54.34,
+          "classification": "OK",
+          "reason_code": ""
+        },
+        "ddm": {
+          "fair_value": 55.5,
+          "classification": "OK",
+          "reason_code": ""
+        },
+        "pcf": {
+          "fair_value": 91.0,
+          "classification": "OK",
+          "reason_code": ""
+        }
+      }
+    },
+    {
+      "ticker": "PRU",
+      "name": "Prudential",
+      "bucket": "insurance",
+      "price": 115.37,
+      "fair_value_base": 115.47,
+      "rating": "Fairly Valued",
+      "confidence": 51.6,
+      "models": {
+        "pb": {
+          "fair_value": 128.12,
+          "classification": "OK",
+          "reason_code": ""
+        },
+        "pe": {
+          "fair_value": 88.47,
+          "classification": "OK",
+          "reason_code": ""
+        },
+        "ddm": {
+          "fair_value": 111.81,
+          "classification": "OK",
+          "reason_code": ""
+        },
+        "pcf": {
+          "fair_value": 392.14,
+          "classification": "OK",
+          "reason_code": ""
+        }
+      }
+    },
+    {
+      "ticker": "MET",
+      "name": "MetLife",
+      "bucket": "insurance",
+      "price": 91.65,
+      "fair_value_base": 59.61,
+      "rating": "Overvalued",
+      "confidence": 51.6,
+      "models": {
+        "pb": {
+          "fair_value": 58.34,
+          "classification": "OK",
+          "reason_code": ""
+        },
+        "pe": {
+          "fair_value": 46.71,
+          "classification": "OK",
+          "reason_code": ""
+        },
+        "ddm": {
+          "fair_value": 56.13,
+          "classification": "OK",
+          "reason_code": ""
+        },
+        "pcf": {
+          "fair_value": 352.94,
+          "classification": "OK",
+          "reason_code": ""
+        }
+      }
+    },
+    {
+      "ticker": "TRV",
+      "name": "Travelers",
+      "bucket": "insurance",
+      "price": 338.92,
+      "fair_value_base": 335.47,
+      "rating": "Fairly Valued",
+      "confidence": 51.2,
+      "models": {
+        "pb": {
+          "fair_value": 205.04,
+          "classification": "OK",
+          "reason_code": ""
+        },
+        "pe": {
+          "fair_value": 481.23,
+          "classification": "OK",
+          "reason_code": ""
+        },
+        "ddm": {
+          "fair_value": 151.36,
+          "classification": "OK",
+          "reason_code": ""
+        },
+        "pcf": {
+          "fair_value": 733.6,
+          "classification": "OK",
+          "reason_code": ""
+        }
+      }
+    },
+    {
+      "ticker": "VICI",
+      "name": "VICI Properties",
+      "bucket": "reit",
+      "price": 26.01,
+      "fair_value_base": 40.67,
+      "rating": "Undervalued",
+      "confidence": 54.7,
+      "models": {
+        "pffo": {
+          "fair_value": null,
+          "classification": "BROKEN",
+          "reason_code": "RC1: FMP income-stmt 403 -> yfinance field mismatch (net_income/shares_outstanding)"
+        },
+        "paffo": {
+          "fair_value": null,
+          "classification": "BROKEN",
+          "reason_code": "RC1: FMP income-stmt 403 -> yfinance field mismatch (net_income/shares_outstanding)"
+        },
+        "pb": {
+          "fair_value": 47.49,
+          "classification": "OK",
+          "reason_code": ""
+        },
+        "ddm": {
+          "fair_value": 33.41,
+          "classification": "OK",
+          "reason_code": ""
+        },
+        "pcf": {
+          "fair_value": 33.46,
+          "classification": "OK",
+          "reason_code": ""
+        }
+      }
+    },
+    {
+      "ticker": "O",
+      "name": "Realty Income",
+      "bucket": "reit",
+      "price": 63.31,
+      "fair_value_base": 69.65,
+      "rating": "Slightly Undervalued",
+      "confidence": 60.0,
+      "models": {
+        "pffo": {
+          "fair_value": null,
+          "classification": "BROKEN",
+          "reason_code": "RC1: FMP income-stmt 403 -> yfinance field mismatch (net_income/shares_outstanding)"
+        },
+        "paffo": {
+          "fair_value": null,
+          "classification": "BROKEN",
+          "reason_code": "RC1: FMP income-stmt 403 -> yfinance field mismatch (net_income/shares_outstanding)"
+        },
+        "pb": {
+          "fair_value": 77.88,
+          "classification": "OK",
+          "reason_code": ""
+        },
+        "ddm": {
+          "fair_value": 59.47,
+          "classification": "OK",
+          "reason_code": ""
+        },
+        "pcf": {
+          "fair_value": 62.72,
+          "classification": "OK",
+          "reason_code": ""
+        }
+      }
+    },
+    {
+      "ticker": "SPG",
+      "name": "Simon Property",
+      "bucket": "reit",
+      "price": 218.77,
+      "fair_value_base": 102.59,
+      "rating": "Overvalued",
+      "confidence": 47.7,
+      "models": {
+        "pffo": {
+          "fair_value": null,
+          "classification": "BROKEN",
+          "reason_code": "RC1: FMP income-stmt 403 -> yfinance field mismatch (net_income/shares_outstanding)"
+        },
+        "paffo": {
+          "fair_value": null,
+          "classification": "BROKEN",
+          "reason_code": "RC1: FMP income-stmt 403 -> yfinance field mismatch (net_income/shares_outstanding)"
+        },
+        "pb": {
+          "fair_value": 26.99,
+          "classification": "OK",
+          "reason_code": ""
+        },
+        "ddm": {
+          "fair_value": 100.75,
+          "classification": "OK",
+          "reason_code": ""
+        },
+        "pcf": {
+          "fair_value": 140.98,
+          "classification": "OK",
+          "reason_code": ""
+        }
+      }
+    },
+    {
+      "ticker": "AMT",
+      "name": "American Tower",
+      "bucket": "reit",
+      "price": 168.59,
+      "fair_value_base": 93.48,
+      "rating": "Overvalued",
+      "confidence": 47.7,
+      "models": {
+        "pffo": {
+          "fair_value": null,
+          "classification": "BROKEN",
+          "reason_code": "RC1: FMP income-stmt 403 -> yfinance field mismatch (net_income/shares_outstanding)"
+        },
+        "paffo": {
+          "fair_value": null,
+          "classification": "BROKEN",
+          "reason_code": "RC1: FMP income-stmt 403 -> yfinance field mismatch (net_income/shares_outstanding)"
+        },
+        "pb": {
+          "fair_value": 14.08,
+          "classification": "OK",
+          "reason_code": ""
+        },
+        "ddm": {
+          "fair_value": 108.08,
+          "classification": "OK",
+          "reason_code": ""
+        },
+        "pcf": {
+          "fair_value": 113.12,
+          "classification": "OK",
+          "reason_code": ""
+        }
+      }
+    },
+    {
+      "ticker": "PLD",
+      "name": "Prologis",
+      "bucket": "reit",
+      "price": 140.87,
+      "fair_value_base": 80.36,
+      "rating": "Overvalued",
+      "confidence": 48.7,
+      "models": {
+        "pffo": {
+          "fair_value": null,
+          "classification": "BROKEN",
+          "reason_code": "RC1: FMP income-stmt 403 -> yfinance field mismatch (net_income/shares_outstanding)"
+        },
+        "paffo": {
+          "fair_value": null,
+          "classification": "BROKEN",
+          "reason_code": "RC1: FMP income-stmt 403 -> yfinance field mismatch (net_income/shares_outstanding)"
+        },
+        "pb": {
+          "fair_value": 100.57,
+          "classification": "OK",
+          "reason_code": ""
+        },
+        "ddm": {
+          "fair_value": 47.7,
+          "classification": "OK",
+          "reason_code": ""
+        },
+        "pcf": {
+          "fair_value": 72.94,
+          "classification": "OK",
+          "reason_code": ""
+        }
+      }
+    },
+    {
+      "ticker": "NEE",
+      "name": "NextEra Energy",
+      "bucket": "utilities",
+      "price": 87.96,
+      "fair_value_base": 41.78,
+      "rating": "Overvalued",
+      "confidence": 51.9,
+      "models": {
+        "ddm": {
+          "fair_value": 45.97,
+          "classification": "OK",
+          "reason_code": ""
+        },
+        "pe": {
+          "fair_value": 56.88,
+          "classification": "OK",
+          "reason_code": ""
+        },
+        "ev_ebitda": {
+          "fair_value": 23.52,
+          "classification": "OK",
+          "reason_code": ""
+        },
+        "pcf": {
+          "fair_value": 16.95,
+          "classification": "OK",
+          "reason_code": ""
+        },
+        "pb": {
+          "fair_value": 39.65,
+          "classification": "OK",
+          "reason_code": ""
+        }
+      }
+    },
+    {
+      "ticker": "DUK",
+      "name": "Duke Energy",
+      "bucket": "utilities",
+      "price": 125.48,
+      "fair_value_base": 100.81,
+      "rating": "Slightly Overvalued",
+      "confidence": 50.9,
+      "models": {
+        "ddm": {
+          "fair_value": 123.14,
+          "classification": "OK",
+          "reason_code": ""
+        },
+        "pe": {
+          "fair_value": 93.38,
+          "classification": "OK",
+          "reason_code": ""
+        },
+        "ev_ebitda": {
+          "fair_value": 64.88,
+          "classification": "OK",
+          "reason_code": ""
+        },
+        "pcf": {
+          "fair_value": 127.2,
+          "classification": "OK",
+          "reason_code": ""
+        },
+        "pb": {
+          "fair_value": 104.86,
+          "classification": "OK",
+          "reason_code": ""
+        }
+      }
+    },
+    {
+      "ticker": "SO",
+      "name": "Southern Company",
+      "bucket": "utilities",
+      "price": 95.61,
+      "fair_value_base": 63.15,
+      "rating": "Overvalued",
+      "confidence": 52.1,
+      "models": {
+        "ddm": {
+          "fair_value": 83.74,
+          "classification": "OK",
+          "reason_code": ""
+        },
+        "pe": {
+          "fair_value": 57.52,
+          "classification": "OK",
+          "reason_code": ""
+        },
+        "ev_ebitda": {
+          "fair_value": 47.42,
+          "classification": "OK",
+          "reason_code": ""
+        },
+        "pcf": {
+          "fair_value": null,
+          "classification": "BROKEN",
+          "reason_code": "RC3: Both FMP and yfinance statement fetch failed"
+        },
+        "pb": {
+          "fair_value": 49.36,
+          "classification": "OK",
+          "reason_code": ""
+        }
+      }
+    },
+    {
+      "ticker": "D",
+      "name": "Dominion Energy",
+      "bucket": "utilities",
+      "price": 70.08,
+      "fair_value_base": 47.76,
+      "rating": "Overvalued",
+      "confidence": 52.4,
+      "models": {
+        "ddm": {
+          "fair_value": 53.24,
+          "classification": "OK",
+          "reason_code": ""
+        },
+        "pe": {
+          "fair_value": 45.9,
+          "classification": "OK",
+          "reason_code": ""
+        },
+        "ev_ebitda": {
+          "fair_value": 14.95,
+          "classification": "OK",
+          "reason_code": ""
+        },
+        "pcf": {
+          "fair_value": null,
+          "classification": "BROKEN",
+          "reason_code": "RC3: Both FMP and yfinance statement fetch failed"
+        },
+        "pb": {
+          "fair_value": 49.68,
+          "classification": "OK",
+          "reason_code": ""
+        }
+      }
+    },
+    {
+      "ticker": "AEP",
+      "name": "American Electric Power",
+      "bucket": "utilities",
+      "price": 135.43,
+      "fair_value_base": 85.43,
+      "rating": "Overvalued",
+      "confidence": 51.9,
+      "models": {
+        "ddm": {
+          "fair_value": 88.45,
+          "classification": "OK",
+          "reason_code": ""
+        },
+        "pe": {
+          "fair_value": 102.83,
+          "classification": "OK",
+          "reason_code": ""
+        },
+        "ev_ebitda": {
+          "fair_value": 52.17,
+          "classification": "OK",
+          "reason_code": ""
+        },
+        "pcf": {
+          "fair_value": 209.85,
+          "classification": "OK",
+          "reason_code": ""
+        },
+        "pb": {
+          "fair_value": 87.22,
+          "classification": "OK",
+          "reason_code": ""
+        }
+      }
+    },
+    {
+      "ticker": "XOM",
+      "name": "Exxon Mobil",
+      "bucket": "energy",
+      "price": 138.88,
+      "fair_value_base": 79.54,
+      "rating": "Overvalued",
+      "confidence": 46.2,
+      "models": {
+        "dcf": {
+          "fair_value": 51.33,
+          "classification": "OK",
+          "reason_code": ""
+        },
+        "ev_ebitda": {
+          "fair_value": 94.65,
+          "classification": "OK",
+          "reason_code": ""
+        },
+        "pcf": {
+          "fair_value": 35.92,
+          "classification": "OK",
+          "reason_code": ""
+        },
+        "pe": {
+          "fair_value": 58.41,
+          "classification": "OK",
+          "reason_code": ""
+        },
+        "ddm": {
+          "fair_value": 270.18,
+          "classification": "OK",
+          "reason_code": ""
+        },
+        "pb": {
+          "fair_value": 212.85,
+          "classification": "OK",
+          "reason_code": ""
+        }
+      }
+    },
+    {
+      "ticker": "CVX",
+      "name": "Chevron",
+      "bucket": "energy",
+      "price": 176.4,
+      "fair_value_base": 86.46,
+      "rating": "Overvalued",
+      "confidence": 45.2,
+      "models": {
+        "dcf": {
+          "fair_value": 74.84,
+          "classification": "OK",
+          "reason_code": ""
+        },
+        "ev_ebitda": {
+          "fair_value": 105.15,
+          "classification": "OK",
+          "reason_code": ""
+        },
+        "pcf": {
+          "fair_value": 53.84,
+          "classification": "OK",
+          "reason_code": ""
+        },
+        "pe": {
+          "fair_value": 47.48,
+          "classification": "OK",
+          "reason_code": ""
+        },
+        "ddm": {
+          "fair_value": 205.21,
+          "classification": "OK",
+          "reason_code": ""
+        },
+        "pb": {
+          "fair_value": 323.78,
+          "classification": "OK",
+          "reason_code": ""
+        }
+      }
+    },
+    {
+      "ticker": "COP",
+      "name": "ConocoPhillips",
+      "bucket": "energy",
+      "price": 109.04,
+      "fair_value_base": 149.34,
+      "rating": "Undervalued",
+      "confidence": 48.4,
+      "models": {
+        "dcf": {
+          "fair_value": 565.12,
+          "classification": "OK",
+          "reason_code": ""
+        },
+        "ev_ebitda": {
+          "fair_value": 131.55,
+          "classification": "OK",
+          "reason_code": ""
+        },
+        "pcf": {
+          "fair_value": 100.48,
+          "classification": "OK",
+          "reason_code": ""
+        },
+        "pe": {
+          "fair_value": 58.9,
+          "classification": "OK",
+          "reason_code": ""
+        },
+        "ddm": {
+          "fair_value": 254.3,
+          "classification": "OK",
+          "reason_code": ""
+        },
+        "pb": {
+          "fair_value": 184.41,
+          "classification": "OK",
+          "reason_code": ""
+        }
+      }
+    },
+    {
+      "ticker": "EOG",
+      "name": "EOG Resources",
+      "bucket": "energy",
+      "price": 134.1,
+      "fair_value_base": 227.33,
+      "rating": "Undervalued",
+      "confidence": 46.1,
+      "models": {
+        "dcf": {
+          "fair_value": 326.95,
+          "classification": "OK",
+          "reason_code": ""
+        },
+        "ev_ebitda": {
+          "fair_value": 219.29,
+          "classification": "OK",
+          "reason_code": ""
+        },
+        "pcf": {
+          "fair_value": 60.96,
+          "classification": "OK",
+          "reason_code": ""
+        },
+        "pe": {
+          "fair_value": 141.04,
+          "classification": "OK",
+          "reason_code": ""
+        },
+        "ddm": {
+          "fair_value": 191.93,
+          "classification": "OK",
+          "reason_code": ""
+        },
+        "pb": {
+          "fair_value": 202.2,
+          "classification": "OK",
+          "reason_code": ""
+        }
+      }
+    },
+    {
+      "ticker": "SLB",
+      "name": "Schlumberger",
+      "bucket": "energy",
+      "price": 47.76,
+      "fair_value_base": 27.45,
+      "rating": "Overvalued",
+      "confidence": 45.9,
+      "models": {
+        "dcf": {
+          "fair_value": 14.87,
+          "classification": "OK",
+          "reason_code": ""
+        },
+        "ev_ebitda": {
+          "fair_value": 38.86,
+          "classification": "OK",
+          "reason_code": ""
+        },
+        "pcf": {
+          "fair_value": 24.72,
+          "classification": "OK",
+          "reason_code": ""
+        },
+        "pe": {
+          "fair_value": 28.98,
+          "classification": "OK",
+          "reason_code": ""
+        },
+        "ddm": {
+          "fair_value": 23.95,
+          "classification": "OK",
+          "reason_code": ""
+        },
+        "pb": {
+          "fair_value": 60.47,
+          "classification": "OK",
+          "reason_code": ""
+        }
+      }
+    },
+    {
+      "ticker": "LIN",
+      "name": "Linde",
+      "bucket": "materials",
+      "price": 529.79,
+      "fair_value_base": 185.01,
+      "rating": "Overvalued",
+      "confidence": 48.6,
+      "models": {
+        "ev_ebitda": {
+          "fair_value": 236.45,
+          "classification": "OK",
+          "reason_code": ""
+        },
+        "pcf": {
+          "fair_value": 131.16,
+          "classification": "OK",
+          "reason_code": ""
+        },
+        "pb": {
+          "fair_value": 165.41,
+          "classification": "OK",
+          "reason_code": ""
+        },
+        "pe": {
+          "fair_value": 227.1,
+          "classification": "OK",
+          "reason_code": ""
+        },
+        "ddm": {
+          "fair_value": 141.42,
+          "classification": "OK",
+          "reason_code": ""
+        }
+      }
+    },
+    {
+      "ticker": "APD",
+      "name": "Air Products",
+      "bucket": "materials",
+      "price": 299.53,
+      "fair_value_base": 97.0,
+      "rating": "Overvalued",
+      "confidence": 48.6,
+      "models": {
+        "ev_ebitda": {
+          "fair_value": 74.64,
+          "classification": "OK",
+          "reason_code": ""
+        },
+        "pcf": {
+          "fair_value": 59.64,
+          "classification": "OK",
+          "reason_code": ""
+        },
+        "pb": {
+          "fair_value": 140.42,
+          "classification": "OK",
+          "reason_code": ""
+        },
+        "pe": {
+          "fair_value": 105.86,
+          "classification": "OK",
+          "reason_code": ""
+        },
+        "ddm": {
+          "fair_value": 158.39,
+          "classification": "OK",
+          "reason_code": ""
+        }
+      }
+    },
+    {
+      "ticker": "NEM",
+      "name": "Newmont",
+      "bucket": "materials",
+      "price": 95.29,
+      "fair_value_base": 151.55,
+      "rating": "Undervalued",
+      "confidence": 47.7,
+      "models": {
+        "ev_ebitda": {
+          "fair_value": 186.23,
+          "classification": "OK",
+          "reason_code": ""
+        },
+        "pcf": {
+          "fair_value": 135.48,
+          "classification": "OK",
+          "reason_code": ""
+        },
+        "pb": {
+          "fair_value": 64.26,
+          "classification": "OK",
+          "reason_code": ""
+        },
+        "pe": {
+          "fair_value": 137.0,
+          "classification": "OK",
+          "reason_code": ""
+        },
+        "ddm": {
+          "fair_value": 33.14,
+          "classification": "OK",
+          "reason_code": ""
+        }
+      }
+    },
+    {
+      "ticker": "FCX",
+      "name": "Freeport-McMoRan",
+      "bucket": "materials",
+      "price": 61.52,
+      "fair_value_base": 38.77,
+      "rating": "Overvalued",
+      "confidence": 47.0,
+      "models": {
+        "ev_ebitda": {
+          "fair_value": 57.36,
+          "classification": "OK",
+          "reason_code": ""
+        },
+        "pcf": {
+          "fair_value": 51.96,
+          "classification": "OK",
+          "reason_code": ""
+        },
+        "pb": {
+          "fair_value": 27.02,
+          "classification": "OK",
+          "reason_code": ""
+        },
+        "pe": {
+          "fair_value": 26.32,
+          "classification": "OK",
+          "reason_code": ""
+        },
+        "ddm": {
+          "fair_value": 7.65,
+          "classification": "OK",
+          "reason_code": ""
+        }
+      }
+    },
+    {
+      "ticker": "PPG",
+      "name": "PPG Industries",
+      "bucket": "materials",
+      "price": 116.76,
+      "fair_value_base": 94.05,
+      "rating": "Slightly Overvalued",
+      "confidence": 48.6,
+      "models": {
+        "ev_ebitda": {
+          "fair_value": 131.04,
+          "classification": "OK",
+          "reason_code": ""
+        },
+        "pcf": {
+          "fair_value": 65.64,
+          "classification": "OK",
+          "reason_code": ""
+        },
+        "pb": {
+          "fair_value": 72.23,
+          "classification": "OK",
+          "reason_code": ""
+        },
+        "pe": {
+          "fair_value": 132.35,
+          "classification": "OK",
+          "reason_code": ""
+        },
+        "ddm": {
+          "fair_value": 46.32,
+          "classification": "OK",
+          "reason_code": ""
+        }
+      }
+    },
+    {
+      "ticker": "HON",
+      "name": "Honeywell",
+      "bucket": "industrials",
+      "price": 226.42,
+      "fair_value_base": 206.67,
+      "rating": "Slightly Overvalued",
+      "confidence": 53.4,
+      "models": {
+        "dcf": {
+          "fair_value": 174.84,
+          "classification": "OK",
+          "reason_code": ""
+        },
+        "ev_ebitda": {
+          "fair_value": 204.57,
+          "classification": "OK",
+          "reason_code": ""
+        },
+        "pe": {
+          "fair_value": 263.38,
+          "classification": "OK",
+          "reason_code": ""
+        },
+        "ddm": {
+          "fair_value": 172.55,
+          "classification": "OK",
+          "reason_code": ""
+        },
+        "pcf": {
+          "fair_value": 180.46,
+          "classification": "OK",
+          "reason_code": ""
+        },
+        "pb": {
+          "fair_value": 233.68,
+          "classification": "OK",
+          "reason_code": ""
+        }
+      }
+    },
+    {
+      "ticker": "CAT",
+      "name": "Caterpillar",
+      "bucket": "industrials",
+      "price": 952.41,
+      "fair_value_base": 436.99,
+      "rating": "Overvalued",
+      "confidence": 46.6,
+      "models": {
+        "dcf": {
+          "fair_value": 597.0,
+          "classification": "OK",
+          "reason_code": ""
+        },
+        "ev_ebitda": {
+          "fair_value": 384.43,
+          "classification": "OK",
+          "reason_code": ""
+        },
+        "pe": {
+          "fair_value": 413.69,
+          "classification": "OK",
+          "reason_code": ""
+        },
+        "ddm": {
+          "fair_value": 68.07,
+          "classification": "OK",
+          "reason_code": ""
+        },
+        "pcf": {
+          "fair_value": 344.12,
+          "classification": "OK",
+          "reason_code": ""
+        },
+        "pb": {
+          "fair_value": 140.21,
+          "classification": "OK",
+          "reason_code": ""
+        }
+      }
+    },
+    {
+      "ticker": "UPS",
+      "name": "United Parcel Service",
+      "bucket": "industrials",
+      "price": 112.47,
+      "fair_value_base": 102.58,
+      "rating": "Slightly Overvalued",
+      "confidence": 47.4,
+      "models": {
+        "dcf": {
+          "fair_value": 54.99,
+          "classification": "OK",
+          "reason_code": ""
+        },
+        "ev_ebitda": {
+          "fair_value": 152.58,
+          "classification": "OK",
+          "reason_code": ""
+        },
+        "pe": {
+          "fair_value": 121.32,
+          "classification": "OK",
+          "reason_code": ""
+        },
+        "ddm": {
+          "fair_value": 105.12,
+          "classification": "OK",
+          "reason_code": ""
+        },
+        "pcf": {
+          "fair_value": 74.34,
+          "classification": "OK",
+          "reason_code": ""
+        },
+        "pb": {
+          "fair_value": 64.91,
+          "classification": "OK",
+          "reason_code": ""
+        }
+      }
+    },
+    {
+      "ticker": "GE",
+      "name": "GE Aerospace",
+      "bucket": "industrials",
+      "price": 359.27,
+      "fair_value_base": 115.71,
+      "rating": "Overvalued",
+      "confidence": 50.1,
+      "models": {
+        "dcf": {
+          "fair_value": 278.85,
+          "classification": "OK",
+          "reason_code": ""
+        },
+        "ev_ebitda": {
+          "fair_value": 125.5,
+          "classification": "OK",
+          "reason_code": ""
+        },
+        "pe": {
+          "fair_value": 143.44,
+          "classification": "OK",
+          "reason_code": ""
+        },
+        "ddm": {
+          "fair_value": 18.62,
+          "classification": "OK",
+          "reason_code": ""
+        },
+        "pcf": {
+          "fair_value": 99.54,
+          "classification": "OK",
+          "reason_code": ""
+        },
+        "pb": {
+          "fair_value": 60.24,
+          "classification": "OK",
+          "reason_code": ""
+        }
+      }
+    },
+    {
+      "ticker": "MMM",
+      "name": "3M",
+      "bucket": "industrials",
+      "price": 157.52,
+      "fair_value_base": 104.3,
+      "rating": "Overvalued",
+      "confidence": 49.5,
+      "models": {
+        "dcf": {
+          "fair_value": 166.08,
+          "classification": "OK",
+          "reason_code": ""
+        },
+        "ev_ebitda": {
+          "fair_value": 132.0,
+          "classification": "OK",
+          "reason_code": ""
+        },
+        "pe": {
+          "fair_value": 107.53,
+          "classification": "OK",
+          "reason_code": ""
+        },
+        "ddm": {
+          "fair_value": 51.17,
+          "classification": "OK",
+          "reason_code": ""
+        },
+        "pcf": {
+          "fair_value": 54.18,
+          "classification": "OK",
+          "reason_code": ""
+        },
+        "pb": {
+          "fair_value": 21.43,
+          "classification": "OK",
+          "reason_code": ""
+        }
+      }
+    },
+    {
+      "ticker": "JNJ",
+      "name": "Johnson & Johnson",
+      "bucket": "healthcare",
+      "price": 256.98,
+      "fair_value_base": 179.53,
+      "rating": "Overvalued",
+      "confidence": 46.2,
+      "models": {
+        "dcf": {
+          "fair_value": 186.77,
+          "classification": "OK",
+          "reason_code": ""
+        },
+        "pe": {
+          "fair_value": 167.33,
+          "classification": "OK",
+          "reason_code": ""
+        },
+        "ev_sales": {
+          "fair_value": 155.84,
+          "classification": "OK",
+          "reason_code": ""
+        },
+        "ddm": {
+          "fair_value": 300.2,
+          "classification": "OK",
+          "reason_code": ""
+        },
+        "pcf": {
+          "fair_value": 101.92,
+          "classification": "OK",
+          "reason_code": ""
+        }
+      }
+    },
+    {
+      "ticker": "UNH",
+      "name": "UnitedHealth Group",
+      "bucket": "healthcare",
+      "price": 424.62,
+      "fair_value_base": 407.99,
+      "rating": "Fairly Valued",
+      "confidence": 46.3,
+      "models": {
+        "dcf": {
+          "fair_value": 588.25,
+          "classification": "OK",
+          "reason_code": ""
+        },
+        "pe": {
+          "fair_value": 245.33,
+          "classification": "OK",
+          "reason_code": ""
+        },
+        "ev_sales": {
+          "fair_value": 1180.62,
+          "classification": "OK",
+          "reason_code": ""
+        },
+        "ddm": {
+          "fair_value": 228.32,
+          "classification": "OK",
+          "reason_code": ""
+        },
+        "pcf": {
+          "fair_value": 302.54,
+          "classification": "OK",
+          "reason_code": ""
+        }
+      }
+    },
+    {
+      "ticker": "PFE",
+      "name": "Pfizer",
+      "bucket": "healthcare",
+      "price": 24.17,
+      "fair_value_base": 29.63,
+      "rating": "Undervalued",
+      "confidence": 47.7,
+      "models": {
+        "dcf": {
+          "fair_value": 82.37,
+          "classification": "OK",
+          "reason_code": ""
+        },
+        "pe": {
+          "fair_value": 20.44,
+          "classification": "OK",
+          "reason_code": ""
+        },
+        "ev_sales": {
+          "fair_value": 27.72,
+          "classification": "OK",
+          "reason_code": ""
+        },
+        "ddm": {
+          "fair_value": 84.53,
+          "classification": "OK",
+          "reason_code": ""
+        },
+        "pcf": {
+          "fair_value": 23.1,
+          "classification": "OK",
+          "reason_code": ""
+        }
+      }
+    },
+    {
+      "ticker": "ABBV",
+      "name": "AbbVie",
+      "bucket": "healthcare",
+      "price": 248.08,
+      "fair_value_base": 153.33,
+      "rating": "Overvalued",
+      "confidence": 45.1,
+      "models": {
+        "dcf": {
+          "fair_value": 335.51,
+          "classification": "OK",
+          "reason_code": ""
+        },
+        "pe": {
+          "fair_value": 38.14,
+          "classification": "OK",
+          "reason_code": ""
+        },
+        "ev_sales": {
+          "fair_value": 112.95,
+          "classification": "OK",
+          "reason_code": ""
+        },
+        "ddm": {
+          "fair_value": 342.52,
+          "classification": "OK",
+          "reason_code": ""
+        },
+        "pcf": {
+          "fair_value": 164.64,
+          "classification": "OK",
+          "reason_code": ""
+        }
+      }
+    },
+    {
+      "ticker": "MRK",
+      "name": "Merck",
+      "bucket": "healthcare",
+      "price": 123.54,
+      "fair_value_base": 122.33,
+      "rating": "Fairly Valued",
+      "confidence": 48.3,
+      "models": {
+        "dcf": {
+          "fair_value": 307.89,
+          "classification": "OK",
+          "reason_code": ""
+        },
+        "pe": {
+          "fair_value": 80.1,
+          "classification": "OK",
+          "reason_code": ""
+        },
+        "ev_sales": {
+          "fair_value": 114.96,
+          "classification": "OK",
+          "reason_code": ""
+        },
+        "ddm": {
+          "fair_value": 205.43,
+          "classification": "OK",
+          "reason_code": ""
+        },
+        "pcf": {
+          "fair_value": 79.94,
+          "classification": "OK",
+          "reason_code": ""
+        }
+      }
+    },
+    {
+      "ticker": "GOOGL",
+      "name": "Alphabet",
+      "bucket": "communication",
+      "price": 357.18,
+      "fair_value_base": 221.26,
+      "rating": "Overvalued",
+      "confidence": 42.4,
+      "models": {
+        "dcf": {
+          "fair_value": 177.85,
+          "classification": "OK",
+          "reason_code": ""
+        },
+        "ev_ebitda": {
+          "fair_value": 398.02,
+          "classification": "OK",
+          "reason_code": ""
+        },
+        "pe": {
+          "fair_value": 413.09,
+          "classification": "OK",
+          "reason_code": ""
+        },
+        "ddm": {
+          "fair_value": 10.25,
+          "classification": "OK",
+          "reason_code": ""
+        },
+        "pcf": {
+          "fair_value": 73.64,
+          "classification": "OK",
+          "reason_code": ""
+        }
+      }
+    },
+    {
+      "ticker": "META",
+      "name": "Meta Platforms",
+      "bucket": "communication",
+      "price": 669.21,
+      "fair_value_base": 867.94,
+      "rating": "Undervalued",
+      "confidence": 45.9,
+      "models": {
+        "dcf": {
+          "fair_value": 857.74,
+          "classification": "OK",
+          "reason_code": ""
+        },
+        "ev_ebitda": {
+          "fair_value": 970.71,
+          "classification": "OK",
+          "reason_code": ""
+        },
+        "pe": {
+          "fair_value": 872.35,
+          "classification": "OK",
+          "reason_code": ""
+        },
+        "ddm": {
+          "fair_value": 25.85,
+          "classification": "OK",
+          "reason_code": ""
+        },
+        "pcf": {
+          "fair_value": 263.48,
+          "classification": "OK",
+          "reason_code": ""
+        }
+      }
+    },
+    {
+      "ticker": "DIS",
+      "name": "Disney",
+      "bucket": "communication",
+      "price": 95.62,
+      "fair_value_base": 74.85,
+      "rating": "Overvalued",
+      "confidence": 45.0,
+      "models": {
+        "dcf": {
+          "fair_value": 56.55,
+          "classification": "OK",
+          "reason_code": ""
+        },
+        "ev_ebitda": {
+          "fair_value": 95.77,
+          "classification": "OK",
+          "reason_code": ""
+        },
+        "pe": {
+          "fair_value": 113.31,
+          "classification": "OK",
+          "reason_code": ""
+        },
+        "ddm": {
+          "fair_value": 14.26,
+          "classification": "OK",
+          "reason_code": ""
+        },
+        "pcf": {
+          "fair_value": 56.14,
+          "classification": "OK",
+          "reason_code": ""
+        }
+      }
+    },
+    {
+      "ticker": "NFLX",
+      "name": "Netflix",
+      "bucket": "communication",
+      "price": 73.37,
+      "fair_value_base": 96.91,
+      "rating": "Undervalued",
+      "confidence": 46.9,
+      "models": {
+        "dcf": {
+          "fair_value": 92.29,
+          "classification": "OK",
+          "reason_code": ""
+        },
+        "ev_ebitda": {
+          "fair_value": 117.73,
+          "classification": "OK",
+          "reason_code": ""
+        },
+        "pe": {
+          "fair_value": 79.0,
+          "classification": "OK",
+          "reason_code": ""
+        },
+        "pcf": {
+          "fair_value": 38.78,
+          "classification": "OK",
+          "reason_code": ""
+        }
+      }
+    },
+    {
+      "ticker": "VZ",
+      "name": "Verizon",
+      "bucket": "communication",
+      "price": 42.12,
+      "fair_value_base": 58.55,
+      "rating": "Undervalued",
+      "confidence": 50.2,
+      "models": {
+        "dcf": {
+          "fair_value": 202.0,
+          "classification": "OK",
+          "reason_code": ""
+        },
+        "ev_ebitda": {
+          "fair_value": 21.33,
+          "classification": "OK",
+          "reason_code": ""
+        },
+        "pe": {
+          "fair_value": 46.74,
+          "classification": "OK",
+          "reason_code": ""
+        },
+        "ddm": {
+          "fair_value": 93.06,
+          "classification": "OK",
+          "reason_code": ""
+        },
+        "pcf": {
+          "fair_value": 66.64,
+          "classification": "OK",
+          "reason_code": ""
+        }
+      }
+    }
+  ]
+}

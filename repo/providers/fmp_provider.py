@@ -223,6 +223,7 @@ def get_key_metrics(ticker: str, limit: int = 1) -> list[dict]:
             "roa":               m.get("returnOnAssets"),
             "current_ratio":     m.get("currentRatio"),
             "enterprise_value":  m.get("enterpriseValue"),
+            "market_cap":        m.get("marketCap"),
             # Not available in stable standard plan — filled by Finnhub in get_key_ratios()
             "pe_ratio":          None,
             "pb_ratio":          None,

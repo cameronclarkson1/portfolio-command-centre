@@ -213,6 +213,7 @@ def get_key_ratios(ticker: str) -> dict | None:
         "52_week_high":       finnhub_m.get("52_week_high"),
         "52_week_low":        finnhub_m.get("52_week_low"),
         "revenue_growth_yoy": _normalise_growth(finnhub_m.get("revenue_growth_yoy")),
+        "market_cap":         fmp_m.get("market_cap"),
         "source":             "fmp+finnhub+statements",
         "confidence":         82.0,
     }

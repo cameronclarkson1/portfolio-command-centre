@@ -1,0 +1,26 @@
+{
+  "price": {
+    "AAPL": {
+      "start": "1980-12-12",
+      "end": "2026-07-10",
+      "years": 45.6,
+      "dividends": true,
+      "rows": 11485
+    },
+    "KO": {
+      "start": "1962-01-02",
+      "end": "2026-07-10",
+      "years": 64.5,
+      "dividends": true,
+      "rows": 16238
+    },
+    "VICI": {
+      "start": "2018-01-02",
+      "end": "2026-07-10",
+      "years": 8.5,
+      "dividends": true,
+      "rows": 2141
+    }
+  },
+  "fundamentals": {}
+}

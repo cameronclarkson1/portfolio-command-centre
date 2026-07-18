@@ -448,9 +448,8 @@ def run_pcf(bucket: str, ratios: dict, statements: dict, price: float = 0) -> di
     Falls back to FCF-per-share from FMP key metrics when statements are unavailable."""
     benchmark  = PCF_BENCHMARKS.get(bucket, PCF_BENCHMARKS["default"])
     ttm_cf     = _ttm_cashflow(statements)
-    bal        = _latest_balance(statements)
     op_cf      = ttm_cf.get("operating_cash_flow")
-    shares_out = bal.get("shares_outstanding")
+    shares_out = _get_shares(statements)
 
     warnings = []
     if op_cf and op_cf > 0 and shares_out:

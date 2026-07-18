@@ -1,0 +1,712 @@
+﻿========================================================================
+COVERAGE AUDIT — Full-universe valuation model coverage by sector
+========================================================================
+
+--- TECHNOLOGY ---
+  [ 1/60] AAPL     Apple  OK=6  broken=-  correct_na=-
+  [ 2/60] MSFT     Microsoft  OK=6  broken=-  correct_na=-
+  [ 3/60] NVDA     NVIDIA  OK=6  broken=-  correct_na=-
+  [ 4/60] ADBE     Adobe  OK=5  broken=-  correct_na=-
+  [ 5/60] CRM      Salesforce  OK=6  broken=-  correct_na=-
+
+--- CONSUMER_DISCRETIONARY ---
+  [ 6/60] AMZN     Amazon  OK=3  broken=['pcf']  correct_na=-
+  [ 7/60] MCD      McDonald's  OK=5  broken=-  correct_na=-
+  [ 8/60] NKE      Nike  OK=5  broken=-  correct_na=-
+  [ 9/60] LOW      Lowe's  OK=5  broken=-  correct_na=-
+  [10/60] SBUX     Starbucks  OK=5  broken=-  correct_na=-
+
+--- CONSUMER_STAPLES ---
+  [11/60] KO       Coca-Cola  OK=4  broken=-  correct_na=-
+  [12/60] PG       Procter & Gamble  [20:49:11] INFO     providers.fmp_provider — → FMP [PG]  /key-metrics?symbol=PG
+[20:49:12] INFO     providers.finnhub_provider — → Finnhub [PG]  /stock/metric?symbol=PG
+[20:49:13] INFO     providers.fmp_provider — → FMP [PG]  /income-statement?symbol=PG
+[20:49:14] INFO     providers.fmp_provider — → FMP [PG]  /balance-sheet-statement?symbol=PG
+[20:49:15] INFO     providers.fmp_provider — → FMP [PG]  /cash-flow-statement?symbol=PG
+[20:49:17] INFO     providers.fmp_provider — → FMP [PG]  /analyst-estimates?symbol=PG
+[20:49:18] WARNING  services.fundamentals_service — Analyst estimates unavailable for PG: 400 Client Error: Bad Request for url: https://financialmodelingprep.com/stable/analyst-estimates?apikey=mXVQfW4StedYEumbDj6qT7nonMiRyqNU&symbol=PG&limit=3
+[20:49:18] WARNING  services.fundamentals_service — Analyst estimates unavailable for PG: 400 Client Error: Bad Request for url: https://financialmodelingprep.com/stable/analyst-estimates?apikey=mXVQfW4StedYEumbDj6qT7nonMiRyqNU&symbol=PG&limit=3
+[20:49:18] INFO     providers.fmp_provider — → FMP [PG]  /price-target-consensus?symbol=PG
+OK=4  broken=-  correct_na=-
+  [13/60] WMT      Walmart  [20:49:20] INFO     providers.fmp_provider — → FMP [WMT]  /profile?symbol=WMT
+[20:49:21] INFO     providers.fmp_provider — → FMP [WMT]  /key-metrics?symbol=WMT
+[20:49:22] INFO     providers.finnhub_provider — → Finnhub [WMT]  /stock/metric?symbol=WMT
+[20:49:23] INFO     providers.fmp_provider — → FMP [WMT]  /income-statement?symbol=WMT
+[20:49:24] INFO     providers.fmp_provider — → FMP [WMT]  /balance-sheet-statement?symbol=WMT
+[20:49:26] INFO     providers.fmp_provider — → FMP [WMT]  /cash-flow-statement?symbol=WMT
+[20:49:27] INFO     providers.fmp_provider — → FMP [WMT]  /analyst-estimates?symbol=WMT
+[20:49:28] WARNING  services.fundamentals_service — Analyst estimates unavailable for WMT: 400 Client Error: Bad Request for url: https://financialmodelingprep.com/stable/analyst-estimates?apikey=mXVQfW4StedYEumbDj6qT7nonMiRyqNU&symbol=WMT&limit=3
+[20:49:28] WARNING  services.fundamentals_service — Analyst estimates unavailable for WMT: 400 Client Error: Bad Request for url: https://financialmodelingprep.com/stable/analyst-estimates?apikey=mXVQfW4StedYEumbDj6qT7nonMiRyqNU&symbol=WMT&limit=3
+[20:49:28] INFO     providers.fmp_provider — → FMP [WMT]  /price-target-consensus?symbol=WMT
+OK=4  broken=-  correct_na=-
+  [14/60] MO       Altria  [20:49:30] INFO     providers.fmp_provider — → FMP [MO]  /profile?symbol=MO
+[20:49:32] INFO     providers.fmp_provider — → FMP [MO]  /key-metrics?symbol=MO
+[20:49:33] INFO     providers.finnhub_provider — → Finnhub [MO]  /stock/metric?symbol=MO
+[20:49:34] INFO     providers.fmp_provider — → FMP [MO]  /income-statement?symbol=MO
+[20:49:35] INFO     providers.fmp_provider — → FMP [MO]  /balance-sheet-statement?symbol=MO
+[20:49:36] INFO     providers.fmp_provider — → FMP [MO]  /cash-flow-statement?symbol=MO
+[20:49:37] INFO     providers.fmp_provider — → FMP [MO]  /analyst-estimates?symbol=MO
+[20:49:39] WARNING  services.fundamentals_service — Analyst estimates unavailable for MO: 400 Client Error: Bad Request for url: https://financialmodelingprep.com/stable/analyst-estimates?apikey=mXVQfW4StedYEumbDj6qT7nonMiRyqNU&symbol=MO&limit=3
+[20:49:39] WARNING  services.fundamentals_service — Analyst estimates unavailable for MO: 400 Client Error: Bad Request for url: https://financialmodelingprep.com/stable/analyst-estimates?apikey=mXVQfW4StedYEumbDj6qT7nonMiRyqNU&symbol=MO&limit=3
+[20:49:39] INFO     providers.fmp_provider — → FMP [MO]  /price-target-consensus?symbol=MO
+OK=4  broken=-  correct_na=-
+  [15/60] CL       Colgate-Palmolive  [20:49:41] INFO     providers.fmp_provider — → FMP [CL]  /profile?symbol=CL
+[20:49:42] INFO     providers.fmp_provider — → FMP [CL]  /key-metrics?symbol=CL
+[20:49:43] INFO     providers.finnhub_provider — → Finnhub [CL]  /stock/metric?symbol=CL
+[20:49:44] INFO     providers.fmp_provider — → FMP [CL]  /income-statement?symbol=CL
+[20:49:45] INFO     providers.fmp_provider — → FMP [CL]  /balance-sheet-statement?symbol=CL
+[20:49:46] INFO     providers.fmp_provider — → FMP [CL]  /cash-flow-statement?symbol=CL
+[20:49:48] INFO     providers.fmp_provider — → FMP [CL]  /analyst-estimates?symbol=CL
+[20:49:49] WARNING  services.fundamentals_service — Analyst estimates unavailable for CL: 400 Client Error: Bad Request for url: https://financialmodelingprep.com/stable/analyst-estimates?apikey=mXVQfW4StedYEumbDj6qT7nonMiRyqNU&symbol=CL&limit=3
+[20:49:49] WARNING  services.fundamentals_service — Analyst estimates unavailable for CL: 400 Client Error: Bad Request for url: https://financialmodelingprep.com/stable/analyst-estimates?apikey=mXVQfW4StedYEumbDj6qT7nonMiRyqNU&symbol=CL&limit=3
+[20:49:49] INFO     providers.fmp_provider — → FMP [CL]  /price-target-consensus?symbol=CL
+OK=4  broken=-  correct_na=-
+
+--- FINANCIALS ---
+  [16/60] JPM      JPMorgan Chase  [20:49:51] INFO     providers.fmp_provider — → FMP [JPM]  /profile?symbol=JPM
+[20:49:52] INFO     providers.fmp_provider — → FMP [JPM]  /key-metrics?symbol=JPM
+[20:49:53] INFO     providers.finnhub_provider — → Finnhub [JPM]  /stock/metric?symbol=JPM
+[20:49:54] INFO     providers.fmp_provider — → FMP [JPM]  /income-statement?symbol=JPM
+[20:49:55] INFO     providers.fmp_provider — → FMP [JPM]  /balance-sheet-statement?symbol=JPM
+[20:49:56] INFO     providers.fmp_provider — → FMP [JPM]  /cash-flow-statement?symbol=JPM
+[20:49:58] INFO     providers.fmp_provider — → FMP [JPM]  /analyst-estimates?symbol=JPM
+[20:49:59] WARNING  services.fundamentals_service — Analyst estimates unavailable for JPM: 400 Client Error: Bad Request for url: https://financialmodelingprep.com/stable/analyst-estimates?apikey=mXVQfW4StedYEumbDj6qT7nonMiRyqNU&symbol=JPM&limit=3
+[20:49:59] WARNING  services.fundamentals_service — Analyst estimates unavailable for JPM: 400 Client Error: Bad Request for url: https://financialmodelingprep.com/stable/analyst-estimates?apikey=mXVQfW4StedYEumbDj6qT7nonMiRyqNU&symbol=JPM&limit=3
+[20:49:59] INFO     providers.fmp_provider — → FMP [JPM]  /price-target-consensus?symbol=JPM
+OK=4  broken=-  correct_na=-
+  [17/60] BAC      Bank of America  [20:50:01] INFO     providers.fmp_provider — → FMP [BAC]  /profile?symbol=BAC
+[20:50:02] INFO     providers.fmp_provider — → FMP [BAC]  /key-metrics?symbol=BAC
+[20:50:03] INFO     providers.finnhub_provider — → Finnhub [BAC]  /stock/metric?symbol=BAC
+[20:50:04] INFO     providers.fmp_provider — → FMP [BAC]  /income-statement?symbol=BAC
+[20:50:05] INFO     providers.fmp_provider — → FMP [BAC]  /balance-sheet-statement?symbol=BAC
+[20:50:07] INFO     providers.fmp_provider — → FMP [BAC]  /cash-flow-statement?symbol=BAC
+[20:50:08] INFO     providers.fmp_provider — → FMP [BAC]  /analyst-estimates?symbol=BAC
+[20:50:09] WARNING  services.fundamentals_service — Analyst estimates unavailable for BAC: 400 Client Error: Bad Request for url: https://financialmodelingprep.com/stable/analyst-estimates?apikey=mXVQfW4StedYEumbDj6qT7nonMiRyqNU&symbol=BAC&limit=3
+[20:50:09] WARNING  services.fundamentals_service — Analyst estimates unavailable for BAC: 400 Client Error: Bad Request for url: https://financialmodelingprep.com/stable/analyst-estimates?apikey=mXVQfW4StedYEumbDj6qT7nonMiRyqNU&symbol=BAC&limit=3
+[20:50:09] INFO     providers.fmp_provider — → FMP [BAC]  /price-target-consensus?symbol=BAC
+OK=4  broken=-  correct_na=-
+  [18/60] WFC      Wells Fargo  [20:50:11] INFO     providers.fmp_provider — → FMP [WFC]  /profile?symbol=WFC
+[20:50:12] INFO     providers.fmp_provider — → FMP [WFC]  /key-metrics?symbol=WFC
+[20:50:14] INFO     providers.finnhub_provider — → Finnhub [WFC]  /stock/metric?symbol=WFC
+[20:50:14] INFO     providers.fmp_provider — → FMP [WFC]  /income-statement?symbol=WFC
+[20:50:15] INFO     providers.fmp_provider — → FMP [WFC]  /balance-sheet-statement?symbol=WFC
+[20:50:17] INFO     providers.fmp_provider — → FMP [WFC]  /cash-flow-statement?symbol=WFC
+[20:50:18] INFO     providers.fmp_provider — → FMP [WFC]  /analyst-estimates?symbol=WFC
+[20:50:19] WARNING  services.fundamentals_service — Analyst estimates unavailable for WFC: 400 Client Error: Bad Request for url: https://financialmodelingprep.com/stable/analyst-estimates?apikey=mXVQfW4StedYEumbDj6qT7nonMiRyqNU&symbol=WFC&limit=3
+[20:50:19] WARNING  services.fundamentals_service — Analyst estimates unavailable for WFC: 400 Client Error: Bad Request for url: https://financialmodelingprep.com/stable/analyst-estimates?apikey=mXVQfW4StedYEumbDj6qT7nonMiRyqNU&symbol=WFC&limit=3
+[20:50:19] INFO     providers.fmp_provider — → FMP [WFC]  /price-target-consensus?symbol=WFC
+OK=4  broken=-  correct_na=-
+  [19/60] GS       Goldman Sachs  [20:50:21] INFO     providers.fmp_provider — → FMP [GS]  /profile?symbol=GS
+[20:50:22] INFO     providers.fmp_provider — → FMP [GS]  /key-metrics?symbol=GS
+[20:50:24] INFO     providers.finnhub_provider — → Finnhub [GS]  /stock/metric?symbol=GS
+[20:50:24] INFO     providers.fmp_provider — → FMP [GS]  /income-statement?symbol=GS
+[20:50:26] INFO     providers.fmp_provider — → FMP [GS]  /balance-sheet-statement?symbol=GS
+[20:50:27] INFO     providers.fmp_provider — → FMP [GS]  /cash-flow-statement?symbol=GS
+[20:50:28] INFO     providers.fmp_provider — → FMP [GS]  /analyst-estimates?symbol=GS
+[20:50:29] WARNING  services.fundamentals_service — Analyst estimates unavailable for GS: 400 Client Error: Bad Request for url: https://financialmodelingprep.com/stable/analyst-estimates?apikey=mXVQfW4StedYEumbDj6qT7nonMiRyqNU&symbol=GS&limit=3
+[20:50:29] WARNING  services.fundamentals_service — Analyst estimates unavailable for GS: 400 Client Error: Bad Request for url: https://financialmodelingprep.com/stable/analyst-estimates?apikey=mXVQfW4StedYEumbDj6qT7nonMiRyqNU&symbol=GS&limit=3
+[20:50:29] INFO     providers.fmp_provider — → FMP [GS]  /price-target-consensus?symbol=GS
+OK=3  broken=-  correct_na=-
+  [20/60] MS       Morgan Stanley  [20:50:31] INFO     providers.fmp_provider — → FMP [MS]  /profile?symbol=MS
+[20:50:33] INFO     providers.fmp_provider — → FMP [MS]  /key-metrics?symbol=MS
+[20:50:34] INFO     providers.finnhub_provider — → Finnhub [MS]  /stock/metric?symbol=MS
+[20:50:34] INFO     providers.fmp_provider — → FMP [MS]  /income-statement?symbol=MS
+[20:50:36] INFO     providers.fmp_provider — → FMP [MS]  /balance-sheet-statement?symbol=MS
+[20:50:37] INFO     providers.fmp_provider — → FMP [MS]  /cash-flow-statement?symbol=MS
+[20:50:38] INFO     providers.fmp_provider — → FMP [MS]  /analyst-estimates?symbol=MS
+[20:50:39] WARNING  services.fundamentals_service — Analyst estimates unavailable for MS: 400 Client Error: Bad Request for url: https://financialmodelingprep.com/stable/analyst-estimates?apikey=mXVQfW4StedYEumbDj6qT7nonMiRyqNU&symbol=MS&limit=3
+[20:50:39] WARNING  services.fundamentals_service — Analyst estimates unavailable for MS: 400 Client Error: Bad Request for url: https://financialmodelingprep.com/stable/analyst-estimates?apikey=mXVQfW4StedYEumbDj6qT7nonMiRyqNU&symbol=MS&limit=3
+[20:50:39] INFO     providers.fmp_provider — → FMP [MS]  /price-target-consensus?symbol=MS
+OK=3  broken=-  correct_na=-
+
+--- INSURANCE ---
+  [21/60] BRK-B    Berkshire Hathaway B  [20:50:42] INFO     providers.fmp_provider — → FMP [BRK-B]  /profile?symbol=BRK-B
+[20:50:43] INFO     providers.fmp_provider — → FMP [BRK-B]  /key-metrics?symbol=BRK-B
+[20:50:44] INFO     providers.finnhub_provider — → Finnhub [BRK-B]  /stock/metric?symbol=BRK-B
+[20:50:45] INFO     providers.fmp_provider — → FMP [BRK-B]  /income-statement?symbol=BRK-B
+[20:50:46] INFO     providers.fmp_provider — → FMP [BRK-B]  /balance-sheet-statement?symbol=BRK-B
+[20:50:47] INFO     providers.fmp_provider — → FMP [BRK-B]  /cash-flow-statement?symbol=BRK-B
+[20:50:48] INFO     providers.fmp_provider — → FMP [BRK-B]  /analyst-estimates?symbol=BRK-B
+[20:50:50] WARNING  services.fundamentals_service — Analyst estimates unavailable for BRK-B: 400 Client Error: Bad Request for url: https://financialmodelingprep.com/stable/analyst-estimates?apikey=mXVQfW4StedYEumbDj6qT7nonMiRyqNU&symbol=BRK-B&limit=3
+[20:50:50] WARNING  services.fundamentals_service — Analyst estimates unavailable for BRK-B: 400 Client Error: Bad Request for url: https://financialmodelingprep.com/stable/analyst-estimates?apikey=mXVQfW4StedYEumbDj6qT7nonMiRyqNU&symbol=BRK-B&limit=3
+[20:50:50] INFO     providers.fmp_provider — → FMP [BRK-B]  /price-target-consensus?symbol=BRK-B
+OK=3  broken=-  correct_na=['ddm']
+  [22/60] AIG      AIG  [20:50:52] INFO     providers.fmp_provider — → FMP [AIG]  /profile?symbol=AIG
+[20:50:53] INFO     providers.fmp_provider — → FMP [AIG]  /key-metrics?symbol=AIG
+[20:50:54] INFO     providers.finnhub_provider — → Finnhub [AIG]  /stock/metric?symbol=AIG
+[20:50:55] INFO     providers.fmp_provider — → FMP [AIG]  /income-statement?symbol=AIG
+[20:50:56] INFO     providers.fmp_provider — → FMP [AIG]  /balance-sheet-statement?symbol=AIG
+[20:50:57] INFO     providers.fmp_provider — → FMP [AIG]  /cash-flow-statement?symbol=AIG
+[20:50:58] INFO     providers.fmp_provider — → FMP [AIG]  /analyst-estimates?symbol=AIG
+[20:51:00] WARNING  services.fundamentals_service — Analyst estimates unavailable for AIG: 400 Client Error: Bad Request for url: https://financialmodelingprep.com/stable/analyst-estimates?apikey=mXVQfW4StedYEumbDj6qT7nonMiRyqNU&symbol=AIG&limit=3
+[20:51:00] WARNING  services.fundamentals_service — Analyst estimates unavailable for AIG: 400 Client Error: Bad Request for url: https://financialmodelingprep.com/stable/analyst-estimates?apikey=mXVQfW4StedYEumbDj6qT7nonMiRyqNU&symbol=AIG&limit=3
+[20:51:00] INFO     providers.fmp_provider — → FMP [AIG]  /price-target-consensus?symbol=AIG
+OK=4  broken=-  correct_na=-
+  [23/60] PRU      Prudential  [20:51:02] INFO     providers.fmp_provider — → FMP [PRU]  /profile?symbol=PRU
+[20:51:03] INFO     providers.fmp_provider — → FMP [PRU]  /key-metrics?symbol=PRU
+[20:51:04] INFO     providers.finnhub_provider — → Finnhub [PRU]  /stock/metric?symbol=PRU
+[20:51:05] INFO     providers.fmp_provider — → FMP [PRU]  /income-statement?symbol=PRU
+[20:51:06] INFO     providers.fmp_provider — → FMP [PRU]  /balance-sheet-statement?symbol=PRU
+[20:51:07] INFO     providers.fmp_provider — → FMP [PRU]  /cash-flow-statement?symbol=PRU
+[20:51:09] INFO     providers.fmp_provider — → FMP [PRU]  /analyst-estimates?symbol=PRU
+[20:51:10] WARNING  services.fundamentals_service — Analyst estimates unavailable for PRU: 400 Client Error: Bad Request for url: https://financialmodelingprep.com/stable/analyst-estimates?apikey=mXVQfW4StedYEumbDj6qT7nonMiRyqNU&symbol=PRU&limit=3
+[20:51:10] WARNING  services.fundamentals_service — Analyst estimates unavailable for PRU: 400 Client Error: Bad Request for url: https://financialmodelingprep.com/stable/analyst-estimates?apikey=mXVQfW4StedYEumbDj6qT7nonMiRyqNU&symbol=PRU&limit=3
+[20:51:10] INFO     providers.fmp_provider — → FMP [PRU]  /price-target-consensus?symbol=PRU
+OK=4  broken=-  correct_na=-
+  [24/60] MET      MetLife  [20:51:12] INFO     providers.fmp_provider — → FMP [MET]  /profile?symbol=MET
+[20:51:13] INFO     providers.fmp_provider — → FMP [MET]  /key-metrics?symbol=MET
+[20:51:14] INFO     providers.finnhub_provider — → Finnhub [MET]  /stock/metric?symbol=MET
+[20:51:15] INFO     providers.fmp_provider — → FMP [MET]  /income-statement?symbol=MET
+[20:51:16] INFO     providers.fmp_provider — → FMP [MET]  /balance-sheet-statement?symbol=MET
+[20:51:17] INFO     providers.fmp_provider — → FMP [MET]  /cash-flow-statement?symbol=MET
+[20:51:19] INFO     providers.fmp_provider — → FMP [MET]  /analyst-estimates?symbol=MET
+[20:51:20] WARNING  services.fundamentals_service — Analyst estimates unavailable for MET: 400 Client Error: Bad Request for url: https://financialmodelingprep.com/stable/analyst-estimates?apikey=mXVQfW4StedYEumbDj6qT7nonMiRyqNU&symbol=MET&limit=3
+[20:51:20] WARNING  services.fundamentals_service — Analyst estimates unavailable for MET: 400 Client Error: Bad Request for url: https://financialmodelingprep.com/stable/analyst-estimates?apikey=mXVQfW4StedYEumbDj6qT7nonMiRyqNU&symbol=MET&limit=3
+[20:51:20] INFO     providers.fmp_provider — → FMP [MET]  /price-target-consensus?symbol=MET
+OK=4  broken=-  correct_na=-
+  [25/60] TRV      Travelers  [20:51:22] INFO     providers.fmp_provider — → FMP [TRV]  /profile?symbol=TRV
+[20:51:23] INFO     providers.fmp_provider — → FMP [TRV]  /key-metrics?symbol=TRV
+[20:51:24] INFO     providers.finnhub_provider — → Finnhub [TRV]  /stock/metric?symbol=TRV
+[20:51:25] INFO     providers.fmp_provider — → FMP [TRV]  /income-statement?symbol=TRV
+[20:51:26] INFO     providers.fmp_provider — → FMP [TRV]  /balance-sheet-statement?symbol=TRV
+[20:51:28] INFO     providers.fmp_provider — → FMP [TRV]  /cash-flow-statement?symbol=TRV
+[20:51:29] INFO     providers.fmp_provider — → FMP [TRV]  /analyst-estimates?symbol=TRV
+[20:51:30] WARNING  services.fundamentals_service — Analyst estimates unavailable for TRV: 400 Client Error: Bad Request for url: https://financialmodelingprep.com/stable/analyst-estimates?apikey=mXVQfW4StedYEumbDj6qT7nonMiRyqNU&symbol=TRV&limit=3
+[20:51:30] WARNING  services.fundamentals_service — Analyst estimates unavailable for TRV: 400 Client Error: Bad Request for url: https://financialmodelingprep.com/stable/analyst-estimates?apikey=mXVQfW4StedYEumbDj6qT7nonMiRyqNU&symbol=TRV&limit=3
+[20:51:30] INFO     providers.fmp_provider — → FMP [TRV]  /price-target-consensus?symbol=TRV
+OK=4  broken=-  correct_na=-
+
+--- REIT ---
+  [26/60] VICI     VICI Properties  OK=3  broken=['pffo', 'paffo']  correct_na=-
+  [27/60] O        Realty Income  [20:51:33] INFO     providers.fmp_provider — → FMP [O]  /profile?symbol=O
+[20:51:34] INFO     providers.fmp_provider — → FMP [O]  /key-metrics?symbol=O
+[20:51:36] INFO     providers.finnhub_provider — → Finnhub [O]  /stock/metric?symbol=O
+[20:51:36] INFO     providers.fmp_provider — → FMP [O]  /income-statement?symbol=O
+[20:51:37] INFO     providers.fmp_provider — → FMP [O]  /balance-sheet-statement?symbol=O
+[20:51:39] INFO     providers.fmp_provider — → FMP [O]  /cash-flow-statement?symbol=O
+[20:51:40] INFO     providers.fmp_provider — → FMP [O]  /analyst-estimates?symbol=O
+[20:51:41] WARNING  services.fundamentals_service — Analyst estimates unavailable for O: 400 Client Error: Bad Request for url: https://financialmodelingprep.com/stable/analyst-estimates?apikey=mXVQfW4StedYEumbDj6qT7nonMiRyqNU&symbol=O&limit=3
+[20:51:41] WARNING  services.fundamentals_service — Analyst estimates unavailable for O: 400 Client Error: Bad Request for url: https://financialmodelingprep.com/stable/analyst-estimates?apikey=mXVQfW4StedYEumbDj6qT7nonMiRyqNU&symbol=O&limit=3
+[20:51:41] INFO     providers.fmp_provider — → FMP [O]  /price-target-consensus?symbol=O
+OK=3  broken=['pffo', 'paffo']  correct_na=-
+  [28/60] SPG      Simon Property  [20:51:43] INFO     providers.fmp_provider — → FMP [SPG]  /profile?symbol=SPG
+[20:51:44] INFO     providers.fmp_provider — → FMP [SPG]  /key-metrics?symbol=SPG
+[20:51:46] INFO     providers.finnhub_provider — → Finnhub [SPG]  /stock/metric?symbol=SPG
+[20:51:46] INFO     providers.fmp_provider — → FMP [SPG]  /income-statement?symbol=SPG
+[20:51:48] INFO     providers.fmp_provider — → FMP [SPG]  /balance-sheet-statement?symbol=SPG
+[20:51:49] INFO     providers.fmp_provider — → FMP [SPG]  /cash-flow-statement?symbol=SPG
+[20:51:50] INFO     providers.fmp_provider — → FMP [SPG]  /analyst-estimates?symbol=SPG
+[20:51:51] WARNING  services.fundamentals_service — Analyst estimates unavailable for SPG: 400 Client Error: Bad Request for url: https://financialmodelingprep.com/stable/analyst-estimates?apikey=mXVQfW4StedYEumbDj6qT7nonMiRyqNU&symbol=SPG&limit=3
+[20:51:51] WARNING  services.fundamentals_service — Analyst estimates unavailable for SPG: 400 Client Error: Bad Request for url: https://financialmodelingprep.com/stable/analyst-estimates?apikey=mXVQfW4StedYEumbDj6qT7nonMiRyqNU&symbol=SPG&limit=3
+[20:51:51] INFO     providers.fmp_provider — → FMP [SPG]  /price-target-consensus?symbol=SPG
+OK=3  broken=['pffo', 'paffo']  correct_na=-
+  [29/60] AMT      American Tower  [20:51:53] INFO     providers.fmp_provider — → FMP [AMT]  /profile?symbol=AMT
+[20:51:54] INFO     providers.fmp_provider — → FMP [AMT]  /key-metrics?symbol=AMT
+[20:51:56] INFO     providers.finnhub_provider — → Finnhub [AMT]  /stock/metric?symbol=AMT
+[20:51:56] INFO     providers.fmp_provider — → FMP [AMT]  /income-statement?symbol=AMT
+[20:51:58] INFO     providers.fmp_provider — → FMP [AMT]  /balance-sheet-statement?symbol=AMT
+[20:51:59] INFO     providers.fmp_provider — → FMP [AMT]  /cash-flow-statement?symbol=AMT
+[20:52:00] INFO     providers.fmp_provider — → FMP [AMT]  /analyst-estimates?symbol=AMT
+[20:52:01] WARNING  services.fundamentals_service — Analyst estimates unavailable for AMT: 400 Client Error: Bad Request for url: https://financialmodelingprep.com/stable/analyst-estimates?apikey=mXVQfW4StedYEumbDj6qT7nonMiRyqNU&symbol=AMT&limit=3
+[20:52:01] WARNING  services.fundamentals_service — Analyst estimates unavailable for AMT: 400 Client Error: Bad Request for url: https://financialmodelingprep.com/stable/analyst-estimates?apikey=mXVQfW4StedYEumbDj6qT7nonMiRyqNU&symbol=AMT&limit=3
+[20:52:01] INFO     providers.fmp_provider — → FMP [AMT]  /price-target-consensus?symbol=AMT
+OK=3  broken=['pffo', 'paffo']  correct_na=-
+  [30/60] PLD      Prologis  [20:52:03] INFO     providers.fmp_provider — → FMP [PLD]  /profile?symbol=PLD
+[20:52:05] INFO     providers.fmp_provider — → FMP [PLD]  /key-metrics?symbol=PLD
+[20:52:06] INFO     providers.finnhub_provider — → Finnhub [PLD]  /stock/metric?symbol=PLD
+[20:52:06] INFO     providers.fmp_provider — → FMP [PLD]  /income-statement?symbol=PLD
+[20:52:08] INFO     providers.fmp_provider — → FMP [PLD]  /balance-sheet-statement?symbol=PLD
+[20:52:09] INFO     providers.fmp_provider — → FMP [PLD]  /cash-flow-statement?symbol=PLD
+[20:52:10] INFO     providers.fmp_provider — → FMP [PLD]  /analyst-estimates?symbol=PLD
+[20:52:11] WARNING  services.fundamentals_service — Analyst estimates unavailable for PLD: 400 Client Error: Bad Request for url: https://financialmodelingprep.com/stable/analyst-estimates?apikey=mXVQfW4StedYEumbDj6qT7nonMiRyqNU&symbol=PLD&limit=3
+[20:52:11] WARNING  services.fundamentals_service — Analyst estimates unavailable for PLD: 400 Client Error: Bad Request for url: https://financialmodelingprep.com/stable/analyst-estimates?apikey=mXVQfW4StedYEumbDj6qT7nonMiRyqNU&symbol=PLD&limit=3
+[20:52:11] INFO     providers.fmp_provider — → FMP [PLD]  /price-target-consensus?symbol=PLD
+OK=3  broken=['pffo', 'paffo']  correct_na=-
+
+--- UTILITIES ---
+  [31/60] NEE      NextEra Energy  [20:52:13] INFO     providers.fmp_provider — → FMP [NEE]  /profile?symbol=NEE
+[20:52:15] INFO     providers.fmp_provider — → FMP [NEE]  /key-metrics?symbol=NEE
+[20:52:16] INFO     providers.finnhub_provider — → Finnhub [NEE]  /stock/metric?symbol=NEE
+[20:52:17] INFO     providers.fmp_provider — → FMP [NEE]  /income-statement?symbol=NEE
+[20:52:18] INFO     providers.fmp_provider — → FMP [NEE]  /balance-sheet-statement?symbol=NEE
+[20:52:19] INFO     providers.fmp_provider — → FMP [NEE]  /cash-flow-statement?symbol=NEE
+[20:52:20] INFO     providers.fmp_provider — → FMP [NEE]  /analyst-estimates?symbol=NEE
+[20:52:22] WARNING  services.fundamentals_service — Analyst estimates unavailable for NEE: 400 Client Error: Bad Request for url: https://financialmodelingprep.com/stable/analyst-estimates?apikey=mXVQfW4StedYEumbDj6qT7nonMiRyqNU&symbol=NEE&limit=3
+[20:52:22] WARNING  services.fundamentals_service — Analyst estimates unavailable for NEE: 400 Client Error: Bad Request for url: https://financialmodelingprep.com/stable/analyst-estimates?apikey=mXVQfW4StedYEumbDj6qT7nonMiRyqNU&symbol=NEE&limit=3
+[20:52:22] INFO     providers.fmp_provider — → FMP [NEE]  /price-target-consensus?symbol=NEE
+OK=5  broken=-  correct_na=-
+  [32/60] DUK      Duke Energy  [20:52:24] INFO     providers.fmp_provider — → FMP [DUK]  /profile?symbol=DUK
+[20:52:25] INFO     providers.fmp_provider — → FMP [DUK]  /key-metrics?symbol=DUK
+[20:52:26] INFO     providers.finnhub_provider — → Finnhub [DUK]  /stock/metric?symbol=DUK
+[20:52:27] INFO     providers.fmp_provider — → FMP [DUK]  /income-statement?symbol=DUK
+[20:52:28] INFO     providers.fmp_provider — → FMP [DUK]  /balance-sheet-statement?symbol=DUK
+[20:52:29] INFO     providers.fmp_provider — → FMP [DUK]  /cash-flow-statement?symbol=DUK
+[20:52:31] INFO     providers.fmp_provider — → FMP [DUK]  /analyst-estimates?symbol=DUK
+[20:52:32] WARNING  services.fundamentals_service — Analyst estimates unavailable for DUK: 400 Client Error: Bad Request for url: https://financialmodelingprep.com/stable/analyst-estimates?apikey=mXVQfW4StedYEumbDj6qT7nonMiRyqNU&symbol=DUK&limit=3
+[20:52:32] WARNING  services.fundamentals_service — Analyst estimates unavailable for DUK: 400 Client Error: Bad Request for url: https://financialmodelingprep.com/stable/analyst-estimates?apikey=mXVQfW4StedYEumbDj6qT7nonMiRyqNU&symbol=DUK&limit=3
+[20:52:32] INFO     providers.fmp_provider — → FMP [DUK]  /price-target-consensus?symbol=DUK
+OK=5  broken=-  correct_na=-
+  [33/60] SO       Southern Company  [20:52:34] INFO     providers.fmp_provider — → FMP [SO]  /profile?symbol=SO
+[20:52:35] INFO     providers.fmp_provider — → FMP [SO]  /key-metrics?symbol=SO
+[20:52:36] INFO     providers.finnhub_provider — → Finnhub [SO]  /stock/metric?symbol=SO
+[20:52:37] INFO     providers.fmp_provider — → FMP [SO]  /income-statement?symbol=SO
+[20:52:38] INFO     providers.fmp_provider — → FMP [SO]  /balance-sheet-statement?symbol=SO
+[20:52:40] INFO     providers.fmp_provider — → FMP [SO]  /cash-flow-statement?symbol=SO
+[20:52:41] INFO     providers.fmp_provider — → FMP [SO]  /analyst-estimates?symbol=SO
+[20:52:42] WARNING  services.fundamentals_service — Analyst estimates unavailable for SO: 400 Client Error: Bad Request for url: https://financialmodelingprep.com/stable/analyst-estimates?apikey=mXVQfW4StedYEumbDj6qT7nonMiRyqNU&symbol=SO&limit=3
+[20:52:42] WARNING  services.fundamentals_service — Analyst estimates unavailable for SO: 400 Client Error: Bad Request for url: https://financialmodelingprep.com/stable/analyst-estimates?apikey=mXVQfW4StedYEumbDj6qT7nonMiRyqNU&symbol=SO&limit=3
+[20:52:42] INFO     providers.fmp_provider — → FMP [SO]  /price-target-consensus?symbol=SO
+OK=4  broken=['pcf']  correct_na=-
+  [34/60] D        Dominion Energy  [20:52:44] INFO     providers.fmp_provider — → FMP [D]  /profile?symbol=D
+[20:52:45] INFO     providers.fmp_provider — → FMP [D]  /key-metrics?symbol=D
+[20:52:46] INFO     providers.finnhub_provider — → Finnhub [D]  /stock/metric?symbol=D
+[20:52:47] INFO     providers.fmp_provider — → FMP [D]  /income-statement?symbol=D
+[20:52:48] INFO     providers.fmp_provider — → FMP [D]  /balance-sheet-statement?symbol=D
+[20:52:50] INFO     providers.fmp_provider — → FMP [D]  /cash-flow-statement?symbol=D
+[20:52:51] INFO     providers.fmp_provider — → FMP [D]  /analyst-estimates?symbol=D
+[20:52:52] WARNING  services.fundamentals_service — Analyst estimates unavailable for D: 400 Client Error: Bad Request for url: https://financialmodelingprep.com/stable/analyst-estimates?apikey=mXVQfW4StedYEumbDj6qT7nonMiRyqNU&symbol=D&limit=3
+[20:52:52] WARNING  services.fundamentals_service — Analyst estimates unavailable for D: 400 Client Error: Bad Request for url: https://financialmodelingprep.com/stable/analyst-estimates?apikey=mXVQfW4StedYEumbDj6qT7nonMiRyqNU&symbol=D&limit=3
+[20:52:52] INFO     providers.fmp_provider — → FMP [D]  /price-target-consensus?symbol=D
+OK=4  broken=['pcf']  correct_na=-
+  [35/60] AEP      American Electric Power  [20:52:54] INFO     providers.fmp_provider — → FMP [AEP]  /profile?symbol=AEP
+[20:52:55] INFO     providers.fmp_provider — → FMP [AEP]  /key-metrics?symbol=AEP
+[20:52:57] INFO     providers.finnhub_provider — → Finnhub [AEP]  /stock/metric?symbol=AEP
+[20:52:57] INFO     providers.fmp_provider — → FMP [AEP]  /income-statement?symbol=AEP
+[20:52:59] INFO     providers.fmp_provider — → FMP [AEP]  /balance-sheet-statement?symbol=AEP
+[20:53:00] INFO     providers.fmp_provider — → FMP [AEP]  /cash-flow-statement?symbol=AEP
+[20:53:01] INFO     providers.fmp_provider — → FMP [AEP]  /analyst-estimates?symbol=AEP
+[20:53:02] WARNING  services.fundamentals_service — Analyst estimates unavailable for AEP: 400 Client Error: Bad Request for url: https://financialmodelingprep.com/stable/analyst-estimates?apikey=mXVQfW4StedYEumbDj6qT7nonMiRyqNU&symbol=AEP&limit=3
+[20:53:02] WARNING  services.fundamentals_service — Analyst estimates unavailable for AEP: 400 Client Error: Bad Request for url: https://financialmodelingprep.com/stable/analyst-estimates?apikey=mXVQfW4StedYEumbDj6qT7nonMiRyqNU&symbol=AEP&limit=3
+[20:53:02] INFO     providers.fmp_provider — → FMP [AEP]  /price-target-consensus?symbol=AEP
+OK=5  broken=-  correct_na=-
+
+--- ENERGY ---
+  [36/60] XOM      Exxon Mobil  [20:53:05] INFO     providers.fmp_provider — → FMP [XOM]  /profile?symbol=XOM
+[20:53:06] INFO     providers.fmp_provider — → FMP [XOM]  /key-metrics?symbol=XOM
+[20:53:07] INFO     providers.finnhub_provider — → Finnhub [XOM]  /stock/metric?symbol=XOM
+[20:53:08] INFO     providers.fmp_provider — → FMP [XOM]  /income-statement?symbol=XOM
+[20:53:09] INFO     providers.fmp_provider — → FMP [XOM]  /balance-sheet-statement?symbol=XOM
+[20:53:10] INFO     providers.fmp_provider — → FMP [XOM]  /cash-flow-statement?symbol=XOM
+[20:53:12] INFO     providers.fmp_provider — → FMP [XOM]  /analyst-estimates?symbol=XOM
+[20:53:13] WARNING  services.fundamentals_service — Analyst estimates unavailable for XOM: 400 Client Error: Bad Request for url: https://financialmodelingprep.com/stable/analyst-estimates?apikey=mXVQfW4StedYEumbDj6qT7nonMiRyqNU&symbol=XOM&limit=3
+[20:53:13] WARNING  services.fundamentals_service — Analyst estimates unavailable for XOM: 400 Client Error: Bad Request for url: https://financialmodelingprep.com/stable/analyst-estimates?apikey=mXVQfW4StedYEumbDj6qT7nonMiRyqNU&symbol=XOM&limit=3
+[20:53:13] INFO     providers.fmp_provider — → FMP [XOM]  /price-target-consensus?symbol=XOM
+OK=6  broken=-  correct_na=-
+  [37/60] CVX      Chevron  [20:53:15] INFO     providers.fmp_provider — → FMP [CVX]  /profile?symbol=CVX
+[20:53:16] INFO     providers.fmp_provider — → FMP [CVX]  /key-metrics?symbol=CVX
+[20:53:17] INFO     providers.finnhub_provider — → Finnhub [CVX]  /stock/metric?symbol=CVX
+[20:53:18] INFO     providers.fmp_provider — → FMP [CVX]  /income-statement?symbol=CVX
+[20:53:19] INFO     providers.fmp_provider — → FMP [CVX]  /balance-sheet-statement?symbol=CVX
+[20:53:21] INFO     providers.fmp_provider — → FMP [CVX]  /cash-flow-statement?symbol=CVX
+[20:53:22] INFO     providers.fmp_provider — → FMP [CVX]  /analyst-estimates?symbol=CVX
+[20:53:23] WARNING  services.fundamentals_service — Analyst estimates unavailable for CVX: 400 Client Error: Bad Request for url: https://financialmodelingprep.com/stable/analyst-estimates?apikey=mXVQfW4StedYEumbDj6qT7nonMiRyqNU&symbol=CVX&limit=3
+[20:53:23] WARNING  services.fundamentals_service — Analyst estimates unavailable for CVX: 400 Client Error: Bad Request for url: https://financialmodelingprep.com/stable/analyst-estimates?apikey=mXVQfW4StedYEumbDj6qT7nonMiRyqNU&symbol=CVX&limit=3
+[20:53:23] INFO     providers.fmp_provider — → FMP [CVX]  /price-target-consensus?symbol=CVX
+OK=6  broken=-  correct_na=-
+  [38/60] COP      ConocoPhillips  [20:53:25] INFO     providers.fmp_provider — → FMP [COP]  /profile?symbol=COP
+[20:53:27] INFO     providers.fmp_provider — → FMP [COP]  /key-metrics?symbol=COP
+[20:53:28] INFO     providers.finnhub_provider — → Finnhub [COP]  /stock/metric?symbol=COP
+[20:53:29] INFO     providers.fmp_provider — → FMP [COP]  /income-statement?symbol=COP
+[20:53:30] INFO     providers.fmp_provider — → FMP [COP]  /balance-sheet-statement?symbol=COP
+[20:53:31] INFO     providers.fmp_provider — → FMP [COP]  /cash-flow-statement?symbol=COP
+[20:53:32] INFO     providers.fmp_provider — → FMP [COP]  /analyst-estimates?symbol=COP
+[20:53:34] WARNING  services.fundamentals_service — Analyst estimates unavailable for COP: 400 Client Error: Bad Request for url: https://financialmodelingprep.com/stable/analyst-estimates?apikey=mXVQfW4StedYEumbDj6qT7nonMiRyqNU&symbol=COP&limit=3
+[20:53:34] WARNING  services.fundamentals_service — Analyst estimates unavailable for COP: 400 Client Error: Bad Request for url: https://financialmodelingprep.com/stable/analyst-estimates?apikey=mXVQfW4StedYEumbDj6qT7nonMiRyqNU&symbol=COP&limit=3
+[20:53:34] INFO     providers.fmp_provider — → FMP [COP]  /price-target-consensus?symbol=COP
+OK=6  broken=-  correct_na=-
+  [39/60] EOG      EOG Resources  [20:53:36] INFO     providers.fmp_provider — → FMP [EOG]  /profile?symbol=EOG
+[20:53:37] INFO     providers.fmp_provider — → FMP [EOG]  /key-metrics?symbol=EOG
+[20:53:38] INFO     providers.finnhub_provider — → Finnhub [EOG]  /stock/metric?symbol=EOG
+[20:53:39] INFO     providers.fmp_provider — → FMP [EOG]  /income-statement?symbol=EOG
+[20:53:40] INFO     providers.fmp_provider — → FMP [EOG]  /balance-sheet-statement?symbol=EOG
+[20:53:41] INFO     providers.fmp_provider — → FMP [EOG]  /cash-flow-statement?symbol=EOG
+[20:53:43] INFO     providers.fmp_provider — → FMP [EOG]  /analyst-estimates?symbol=EOG
+[20:53:44] WARNING  services.fundamentals_service — Analyst estimates unavailable for EOG: 400 Client Error: Bad Request for url: https://financialmodelingprep.com/stable/analyst-estimates?apikey=mXVQfW4StedYEumbDj6qT7nonMiRyqNU&symbol=EOG&limit=3
+[20:53:44] WARNING  services.fundamentals_service — Analyst estimates unavailable for EOG: 400 Client Error: Bad Request for url: https://financialmodelingprep.com/stable/analyst-estimates?apikey=mXVQfW4StedYEumbDj6qT7nonMiRyqNU&symbol=EOG&limit=3
+[20:53:44] INFO     providers.fmp_provider — → FMP [EOG]  /price-target-consensus?symbol=EOG
+OK=6  broken=-  correct_na=-
+  [40/60] SLB      Schlumberger  [20:53:46] INFO     providers.fmp_provider — → FMP [SLB]  /profile?symbol=SLB
+[20:53:47] INFO     providers.fmp_provider — → FMP [SLB]  /key-metrics?symbol=SLB
+[20:53:48] INFO     providers.finnhub_provider — → Finnhub [SLB]  /stock/metric?symbol=SLB
+[20:53:49] INFO     providers.fmp_provider — → FMP [SLB]  /income-statement?symbol=SLB
+[20:53:50] INFO     providers.fmp_provider — → FMP [SLB]  /balance-sheet-statement?symbol=SLB
+[20:53:51] INFO     providers.fmp_provider — → FMP [SLB]  /cash-flow-statement?symbol=SLB
+[20:53:53] INFO     providers.fmp_provider — → FMP [SLB]  /analyst-estimates?symbol=SLB
+[20:53:54] WARNING  services.fundamentals_service — Analyst estimates unavailable for SLB: 400 Client Error: Bad Request for url: https://financialmodelingprep.com/stable/analyst-estimates?apikey=mXVQfW4StedYEumbDj6qT7nonMiRyqNU&symbol=SLB&limit=3
+[20:53:54] WARNING  services.fundamentals_service — Analyst estimates unavailable for SLB: 400 Client Error: Bad Request for url: https://financialmodelingprep.com/stable/analyst-estimates?apikey=mXVQfW4StedYEumbDj6qT7nonMiRyqNU&symbol=SLB&limit=3
+[20:53:54] INFO     providers.fmp_provider — → FMP [SLB]  /price-target-consensus?symbol=SLB
+OK=6  broken=-  correct_na=-
+
+--- MATERIALS ---
+  [41/60] LIN      Linde  [20:53:56] INFO     providers.fmp_provider — → FMP [LIN]  /profile?symbol=LIN
+[20:53:57] INFO     providers.fmp_provider — → FMP [LIN]  /key-metrics?symbol=LIN
+[20:53:58] INFO     providers.finnhub_provider — → Finnhub [LIN]  /stock/metric?symbol=LIN
+[20:53:59] INFO     providers.fmp_provider — → FMP [LIN]  /income-statement?symbol=LIN
+[20:54:00] INFO     providers.fmp_provider — → FMP [LIN]  /balance-sheet-statement?symbol=LIN
+[20:54:02] INFO     providers.fmp_provider — → FMP [LIN]  /cash-flow-statement?symbol=LIN
+[20:54:03] INFO     providers.fmp_provider — → FMP [LIN]  /analyst-estimates?symbol=LIN
+[20:54:04] WARNING  services.fundamentals_service — Analyst estimates unavailable for LIN: 400 Client Error: Bad Request for url: https://financialmodelingprep.com/stable/analyst-estimates?apikey=mXVQfW4StedYEumbDj6qT7nonMiRyqNU&symbol=LIN&limit=3
+[20:54:04] WARNING  services.fundamentals_service — Analyst estimates unavailable for LIN: 400 Client Error: Bad Request for url: https://financialmodelingprep.com/stable/analyst-estimates?apikey=mXVQfW4StedYEumbDj6qT7nonMiRyqNU&symbol=LIN&limit=3
+[20:54:04] INFO     providers.fmp_provider — → FMP [LIN]  /price-target-consensus?symbol=LIN
+OK=5  broken=-  correct_na=-
+  [42/60] APD      Air Products  [20:54:06] INFO     providers.fmp_provider — → FMP [APD]  /profile?symbol=APD
+[20:54:07] INFO     providers.fmp_provider — → FMP [APD]  /key-metrics?symbol=APD
+[20:54:09] INFO     providers.finnhub_provider — → Finnhub [APD]  /stock/metric?symbol=APD
+[20:54:09] INFO     providers.fmp_provider — → FMP [APD]  /income-statement?symbol=APD
+[20:54:11] INFO     providers.fmp_provider — → FMP [APD]  /balance-sheet-statement?symbol=APD
+[20:54:12] INFO     providers.fmp_provider — → FMP [APD]  /cash-flow-statement?symbol=APD
+[20:54:13] INFO     providers.fmp_provider — → FMP [APD]  /analyst-estimates?symbol=APD
+[20:54:14] WARNING  services.fundamentals_service — Analyst estimates unavailable for APD: 400 Client Error: Bad Request for url: https://financialmodelingprep.com/stable/analyst-estimates?apikey=mXVQfW4StedYEumbDj6qT7nonMiRyqNU&symbol=APD&limit=3
+[20:54:14] WARNING  services.fundamentals_service — Analyst estimates unavailable for APD: 400 Client Error: Bad Request for url: https://financialmodelingprep.com/stable/analyst-estimates?apikey=mXVQfW4StedYEumbDj6qT7nonMiRyqNU&symbol=APD&limit=3
+[20:54:14] INFO     providers.fmp_provider — → FMP [APD]  /price-target-consensus?symbol=APD
+OK=5  broken=-  correct_na=-
+  [43/60] NEM      Newmont  [20:54:16] INFO     providers.fmp_provider — → FMP [NEM]  /profile?symbol=NEM
+[20:54:18] INFO     providers.fmp_provider — → FMP [NEM]  /key-metrics?symbol=NEM
+[20:54:19] INFO     providers.finnhub_provider — → Finnhub [NEM]  /stock/metric?symbol=NEM
+[20:54:19] INFO     providers.fmp_provider — → FMP [NEM]  /income-statement?symbol=NEM
+[20:54:21] INFO     providers.fmp_provider — → FMP [NEM]  /balance-sheet-statement?symbol=NEM
+[20:54:22] INFO     providers.fmp_provider — → FMP [NEM]  /cash-flow-statement?symbol=NEM
+[20:54:23] INFO     providers.fmp_provider — → FMP [NEM]  /analyst-estimates?symbol=NEM
+[20:54:24] WARNING  services.fundamentals_service — Analyst estimates unavailable for NEM: 400 Client Error: Bad Request for url: https://financialmodelingprep.com/stable/analyst-estimates?apikey=mXVQfW4StedYEumbDj6qT7nonMiRyqNU&symbol=NEM&limit=3
+[20:54:24] WARNING  services.fundamentals_service — Analyst estimates unavailable for NEM: 400 Client Error: Bad Request for url: https://financialmodelingprep.com/stable/analyst-estimates?apikey=mXVQfW4StedYEumbDj6qT7nonMiRyqNU&symbol=NEM&limit=3
+[20:54:24] INFO     providers.fmp_provider — → FMP [NEM]  /price-target-consensus?symbol=NEM
+OK=5  broken=-  correct_na=-
+  [44/60] FCX      Freeport-McMoRan  [20:54:26] INFO     providers.fmp_provider — → FMP [FCX]  /profile?symbol=FCX
+[20:54:28] INFO     providers.fmp_provider — → FMP [FCX]  /key-metrics?symbol=FCX
+[20:54:29] INFO     providers.finnhub_provider — → Finnhub [FCX]  /stock/metric?symbol=FCX
+[20:54:29] INFO     providers.fmp_provider — → FMP [FCX]  /income-statement?symbol=FCX
+[20:54:31] INFO     providers.fmp_provider — → FMP [FCX]  /balance-sheet-statement?symbol=FCX
+[20:54:32] INFO     providers.fmp_provider — → FMP [FCX]  /cash-flow-statement?symbol=FCX
+[20:54:33] INFO     providers.fmp_provider — → FMP [FCX]  /analyst-estimates?symbol=FCX
+[20:54:34] WARNING  services.fundamentals_service — Analyst estimates unavailable for FCX: 400 Client Error: Bad Request for url: https://financialmodelingprep.com/stable/analyst-estimates?apikey=mXVQfW4StedYEumbDj6qT7nonMiRyqNU&symbol=FCX&limit=3
+[20:54:34] WARNING  services.fundamentals_service — Analyst estimates unavailable for FCX: 400 Client Error: Bad Request for url: https://financialmodelingprep.com/stable/analyst-estimates?apikey=mXVQfW4StedYEumbDj6qT7nonMiRyqNU&symbol=FCX&limit=3
+[20:54:34] INFO     providers.fmp_provider — → FMP [FCX]  /price-target-consensus?symbol=FCX
+OK=5  broken=-  correct_na=-
+  [45/60] PPG      PPG Industries  [20:54:36] INFO     providers.fmp_provider — → FMP [PPG]  /profile?symbol=PPG
+[20:54:38] INFO     providers.fmp_provider — → FMP [PPG]  /key-metrics?symbol=PPG
+[20:54:39] INFO     providers.finnhub_provider — → Finnhub [PPG]  /stock/metric?symbol=PPG
+[20:54:40] INFO     providers.fmp_provider — → FMP [PPG]  /income-statement?symbol=PPG
+[20:54:41] INFO     providers.fmp_provider — → FMP [PPG]  /balance-sheet-statement?symbol=PPG
+[20:54:42] INFO     providers.fmp_provider — → FMP [PPG]  /cash-flow-statement?symbol=PPG
+[20:54:43] INFO     providers.fmp_provider — → FMP [PPG]  /analyst-estimates?symbol=PPG
+[20:54:45] WARNING  services.fundamentals_service — Analyst estimates unavailable for PPG: 400 Client Error: Bad Request for url: https://financialmodelingprep.com/stable/analyst-estimates?apikey=mXVQfW4StedYEumbDj6qT7nonMiRyqNU&symbol=PPG&limit=3
+[20:54:45] WARNING  services.fundamentals_service — Analyst estimates unavailable for PPG: 400 Client Error: Bad Request for url: https://financialmodelingprep.com/stable/analyst-estimates?apikey=mXVQfW4StedYEumbDj6qT7nonMiRyqNU&symbol=PPG&limit=3
+[20:54:45] INFO     providers.fmp_provider — → FMP [PPG]  /price-target-consensus?symbol=PPG
+OK=5  broken=-  correct_na=-
+
+--- INDUSTRIALS ---
+  [46/60] HON      Honeywell  [20:54:47] INFO     providers.fmp_provider — → FMP [HON]  /profile?symbol=HON
+[20:54:48] INFO     providers.fmp_provider — → FMP [HON]  /key-metrics?symbol=HON
+[20:54:49] INFO     providers.finnhub_provider — → Finnhub [HON]  /stock/metric?symbol=HON
+[20:54:50] INFO     providers.fmp_provider — → FMP [HON]  /income-statement?symbol=HON
+[20:54:51] INFO     providers.fmp_provider — → FMP [HON]  /balance-sheet-statement?symbol=HON
+[20:54:52] INFO     providers.fmp_provider — → FMP [HON]  /cash-flow-statement?symbol=HON
+[20:54:54] INFO     providers.fmp_provider — → FMP [HON]  /analyst-estimates?symbol=HON
+[20:54:55] WARNING  services.fundamentals_service — Analyst estimates unavailable for HON: 400 Client Error: Bad Request for url: https://financialmodelingprep.com/stable/analyst-estimates?apikey=mXVQfW4StedYEumbDj6qT7nonMiRyqNU&symbol=HON&limit=3
+[20:54:55] WARNING  services.fundamentals_service — Analyst estimates unavailable for HON: 400 Client Error: Bad Request for url: https://financialmodelingprep.com/stable/analyst-estimates?apikey=mXVQfW4StedYEumbDj6qT7nonMiRyqNU&symbol=HON&limit=3
+[20:54:55] INFO     providers.fmp_provider — → FMP [HON]  /price-target-consensus?symbol=HON
+OK=6  broken=-  correct_na=-
+  [47/60] CAT      Caterpillar  [20:54:57] INFO     providers.fmp_provider — → FMP [CAT]  /profile?symbol=CAT
+[20:54:58] INFO     providers.fmp_provider — → FMP [CAT]  /key-metrics?symbol=CAT
+[20:54:59] INFO     providers.finnhub_provider — → Finnhub [CAT]  /stock/metric?symbol=CAT
+[20:55:00] INFO     providers.fmp_provider — → FMP [CAT]  /income-statement?symbol=CAT
+[20:55:01] INFO     providers.fmp_provider — → FMP [CAT]  /balance-sheet-statement?symbol=CAT
+[20:55:03] INFO     providers.fmp_provider — → FMP [CAT]  /cash-flow-statement?symbol=CAT
+[20:55:04] INFO     providers.fmp_provider — → FMP [CAT]  /analyst-estimates?symbol=CAT
+[20:55:05] WARNING  services.fundamentals_service — Analyst estimates unavailable for CAT: 400 Client Error: Bad Request for url: https://financialmodelingprep.com/stable/analyst-estimates?apikey=mXVQfW4StedYEumbDj6qT7nonMiRyqNU&symbol=CAT&limit=3
+[20:55:05] WARNING  services.fundamentals_service — Analyst estimates unavailable for CAT: 400 Client Error: Bad Request for url: https://financialmodelingprep.com/stable/analyst-estimates?apikey=mXVQfW4StedYEumbDj6qT7nonMiRyqNU&symbol=CAT&limit=3
+[20:55:05] INFO     providers.fmp_provider — → FMP [CAT]  /price-target-consensus?symbol=CAT
+OK=6  broken=-  correct_na=-
+  [48/60] UPS      United Parcel Service  [20:55:07] INFO     providers.fmp_provider — → FMP [UPS]  /profile?symbol=UPS
+[20:55:08] INFO     providers.fmp_provider — → FMP [UPS]  /key-metrics?symbol=UPS
+[20:55:10] INFO     providers.finnhub_provider — → Finnhub [UPS]  /stock/metric?symbol=UPS
+[20:55:10] INFO     providers.fmp_provider — → FMP [UPS]  /income-statement?symbol=UPS
+[20:55:12] INFO     providers.fmp_provider — → FMP [UPS]  /balance-sheet-statement?symbol=UPS
+[20:55:13] INFO     providers.fmp_provider — → FMP [UPS]  /cash-flow-statement?symbol=UPS
+[20:55:14] INFO     providers.fmp_provider — → FMP [UPS]  /analyst-estimates?symbol=UPS
+[20:55:15] WARNING  services.fundamentals_service — Analyst estimates unavailable for UPS: 400 Client Error: Bad Request for url: https://financialmodelingprep.com/stable/analyst-estimates?apikey=mXVQfW4StedYEumbDj6qT7nonMiRyqNU&symbol=UPS&limit=3
+[20:55:15] WARNING  services.fundamentals_service — Analyst estimates unavailable for UPS: 400 Client Error: Bad Request for url: https://financialmodelingprep.com/stable/analyst-estimates?apikey=mXVQfW4StedYEumbDj6qT7nonMiRyqNU&symbol=UPS&limit=3
+[20:55:15] INFO     providers.fmp_provider — → FMP [UPS]  /price-target-consensus?symbol=UPS
+OK=6  broken=-  correct_na=-
+  [49/60] GE       GE Aerospace  [20:55:17] INFO     providers.fmp_provider — → FMP [GE]  /profile?symbol=GE
+[20:55:19] INFO     providers.fmp_provider — → FMP [GE]  /key-metrics?symbol=GE
+[20:55:20] INFO     providers.finnhub_provider — → Finnhub [GE]  /stock/metric?symbol=GE
+[20:55:21] INFO     providers.fmp_provider — → FMP [GE]  /income-statement?symbol=GE
+[20:55:22] INFO     providers.fmp_provider — → FMP [GE]  /balance-sheet-statement?symbol=GE
+[20:55:24] INFO     providers.fmp_provider — → FMP [GE]  /cash-flow-statement?symbol=GE
+[20:55:25] INFO     providers.fmp_provider — → FMP [GE]  /analyst-estimates?symbol=GE
+[20:55:26] WARNING  services.fundamentals_service — Analyst estimates unavailable for GE: 400 Client Error: Bad Request for url: https://financialmodelingprep.com/stable/analyst-estimates?apikey=mXVQfW4StedYEumbDj6qT7nonMiRyqNU&symbol=GE&limit=3
+[20:55:26] WARNING  services.fundamentals_service — Analyst estimates unavailable for GE: 400 Client Error: Bad Request for url: https://financialmodelingprep.com/stable/analyst-estimates?apikey=mXVQfW4StedYEumbDj6qT7nonMiRyqNU&symbol=GE&limit=3
+[20:55:26] INFO     providers.fmp_provider — → FMP [GE]  /price-target-consensus?symbol=GE
+OK=6  broken=-  correct_na=-
+  [50/60] MMM      3M  [20:55:28] INFO     providers.fmp_provider — → FMP [MMM]  /profile?symbol=MMM
+[20:55:30] INFO     providers.fmp_provider — → FMP [MMM]  /key-metrics?symbol=MMM
+[20:55:31] INFO     providers.finnhub_provider — → Finnhub [MMM]  /stock/metric?symbol=MMM
+[20:55:32] INFO     providers.fmp_provider — → FMP [MMM]  /income-statement?symbol=MMM
+[20:55:33] INFO     providers.fmp_provider — → FMP [MMM]  /balance-sheet-statement?symbol=MMM
+[20:55:34] INFO     providers.fmp_provider — → FMP [MMM]  /cash-flow-statement?symbol=MMM
+[20:55:35] INFO     providers.fmp_provider — → FMP [MMM]  /analyst-estimates?symbol=MMM
+[20:55:37] WARNING  services.fundamentals_service — Analyst estimates unavailable for MMM: 400 Client Error: Bad Request for url: https://financialmodelingprep.com/stable/analyst-estimates?apikey=mXVQfW4StedYEumbDj6qT7nonMiRyqNU&symbol=MMM&limit=3
+[20:55:37] WARNING  services.fundamentals_service — Analyst estimates unavailable for MMM: 400 Client Error: Bad Request for url: https://financialmodelingprep.com/stable/analyst-estimates?apikey=mXVQfW4StedYEumbDj6qT7nonMiRyqNU&symbol=MMM&limit=3
+[20:55:37] INFO     providers.fmp_provider — → FMP [MMM]  /price-target-consensus?symbol=MMM
+OK=6  broken=-  correct_na=-
+
+--- HEALTHCARE ---
+  [51/60] JNJ      Johnson & Johnson  [20:55:39] INFO     providers.fmp_provider — → FMP [JNJ]  /profile?symbol=JNJ
+[20:55:40] INFO     providers.fmp_provider — → FMP [JNJ]  /key-metrics?symbol=JNJ
+[20:55:41] INFO     providers.finnhub_provider — → Finnhub [JNJ]  /stock/metric?symbol=JNJ
+[20:55:42] INFO     providers.fmp_provider — → FMP [JNJ]  /income-statement?symbol=JNJ
+[20:55:43] INFO     providers.fmp_provider — → FMP [JNJ]  /balance-sheet-statement?symbol=JNJ
+[20:55:45] INFO     providers.fmp_provider — → FMP [JNJ]  /cash-flow-statement?symbol=JNJ
+[20:55:46] INFO     providers.fmp_provider — → FMP [JNJ]  /analyst-estimates?symbol=JNJ
+[20:55:47] WARNING  services.fundamentals_service — Analyst estimates unavailable for JNJ: 400 Client Error: Bad Request for url: https://financialmodelingprep.com/stable/analyst-estimates?apikey=mXVQfW4StedYEumbDj6qT7nonMiRyqNU&symbol=JNJ&limit=3
+[20:55:47] WARNING  services.fundamentals_service — Analyst estimates unavailable for JNJ: 400 Client Error: Bad Request for url: https://financialmodelingprep.com/stable/analyst-estimates?apikey=mXVQfW4StedYEumbDj6qT7nonMiRyqNU&symbol=JNJ&limit=3
+[20:55:47] INFO     providers.fmp_provider — → FMP [JNJ]  /price-target-consensus?symbol=JNJ
+OK=5  broken=-  correct_na=-
+  [52/60] UNH      UnitedHealth Group  [20:55:49] INFO     providers.fmp_provider — → FMP [UNH]  /profile?symbol=UNH
+[20:55:50] INFO     providers.fmp_provider — → FMP [UNH]  /key-metrics?symbol=UNH
+[20:55:52] INFO     providers.finnhub_provider — → Finnhub [UNH]  /stock/metric?symbol=UNH
+[20:55:52] INFO     providers.fmp_provider — → FMP [UNH]  /income-statement?symbol=UNH
+[20:55:54] INFO     providers.fmp_provider — → FMP [UNH]  /balance-sheet-statement?symbol=UNH
+[20:55:55] INFO     providers.fmp_provider — → FMP [UNH]  /cash-flow-statement?symbol=UNH
+[20:55:56] INFO     providers.fmp_provider — → FMP [UNH]  /analyst-estimates?symbol=UNH
+[20:55:57] WARNING  services.fundamentals_service — Analyst estimates unavailable for UNH: 400 Client Error: Bad Request for url: https://financialmodelingprep.com/stable/analyst-estimates?apikey=mXVQfW4StedYEumbDj6qT7nonMiRyqNU&symbol=UNH&limit=3
+[20:55:57] WARNING  services.fundamentals_service — Analyst estimates unavailable for UNH: 400 Client Error: Bad Request for url: https://financialmodelingprep.com/stable/analyst-estimates?apikey=mXVQfW4StedYEumbDj6qT7nonMiRyqNU&symbol=UNH&limit=3
+[20:55:57] INFO     providers.fmp_provider — → FMP [UNH]  /price-target-consensus?symbol=UNH
+OK=5  broken=-  correct_na=-
+  [53/60] PFE      Pfizer  [20:55:59] INFO     providers.fmp_provider — → FMP [PFE]  /profile?symbol=PFE
+[20:56:01] INFO     providers.fmp_provider — → FMP [PFE]  /key-metrics?symbol=PFE
+[20:56:02] INFO     providers.finnhub_provider — → Finnhub [PFE]  /stock/metric?symbol=PFE
+[20:56:03] INFO     providers.fmp_provider — → FMP [PFE]  /income-statement?symbol=PFE
+[20:56:04] INFO     providers.fmp_provider — → FMP [PFE]  /balance-sheet-statement?symbol=PFE
+[20:56:05] INFO     providers.fmp_provider — → FMP [PFE]  /cash-flow-statement?symbol=PFE
+[20:56:07] INFO     providers.fmp_provider — → FMP [PFE]  /analyst-estimates?symbol=PFE
+[20:56:08] WARNING  services.fundamentals_service — Analyst estimates unavailable for PFE: 400 Client Error: Bad Request for url: https://financialmodelingprep.com/stable/analyst-estimates?apikey=mXVQfW4StedYEumbDj6qT7nonMiRyqNU&symbol=PFE&limit=3
+[20:56:08] WARNING  services.fundamentals_service — Analyst estimates unavailable for PFE: 400 Client Error: Bad Request for url: https://financialmodelingprep.com/stable/analyst-estimates?apikey=mXVQfW4StedYEumbDj6qT7nonMiRyqNU&symbol=PFE&limit=3
+[20:56:08] INFO     providers.fmp_provider — → FMP [PFE]  /price-target-consensus?symbol=PFE
+OK=5  broken=-  correct_na=-
+  [54/60] ABBV     AbbVie  [20:56:10] INFO     providers.fmp_provider — → FMP [ABBV]  /profile?symbol=ABBV
+[20:56:11] INFO     providers.fmp_provider — → FMP [ABBV]  /key-metrics?symbol=ABBV
+[20:56:12] INFO     providers.finnhub_provider — → Finnhub [ABBV]  /stock/metric?symbol=ABBV
+[20:56:13] INFO     providers.fmp_provider — → FMP [ABBV]  /income-statement?symbol=ABBV
+[20:56:14] INFO     providers.fmp_provider — → FMP [ABBV]  /balance-sheet-statement?symbol=ABBV
+[20:56:15] INFO     providers.fmp_provider — → FMP [ABBV]  /cash-flow-statement?symbol=ABBV
+[20:56:17] INFO     providers.fmp_provider — → FMP [ABBV]  /analyst-estimates?symbol=ABBV
+[20:56:18] WARNING  services.fundamentals_service — Analyst estimates unavailable for ABBV: 400 Client Error: Bad Request for url: https://financialmodelingprep.com/stable/analyst-estimates?apikey=mXVQfW4StedYEumbDj6qT7nonMiRyqNU&symbol=ABBV&limit=3
+[20:56:18] WARNING  services.fundamentals_service — Analyst estimates unavailable for ABBV: 400 Client Error: Bad Request for url: https://financialmodelingprep.com/stable/analyst-estimates?apikey=mXVQfW4StedYEumbDj6qT7nonMiRyqNU&symbol=ABBV&limit=3
+[20:56:18] INFO     providers.fmp_provider — → FMP [ABBV]  /price-target-consensus?symbol=ABBV
+OK=5  broken=-  correct_na=-
+  [55/60] MRK      Merck  [20:56:20] INFO     providers.fmp_provider — → FMP [MRK]  /profile?symbol=MRK
+[20:56:21] INFO     providers.fmp_provider — → FMP [MRK]  /key-metrics?symbol=MRK
+[20:56:23] INFO     providers.finnhub_provider — → Finnhub [MRK]  /stock/metric?symbol=MRK
+[20:56:23] INFO     providers.fmp_provider — → FMP [MRK]  /income-statement?symbol=MRK
+[20:56:25] INFO     providers.fmp_provider — → FMP [MRK]  /balance-sheet-statement?symbol=MRK
+[20:56:26] INFO     providers.fmp_provider — → FMP [MRK]  /cash-flow-statement?symbol=MRK
+[20:56:27] INFO     providers.fmp_provider — → FMP [MRK]  /analyst-estimates?symbol=MRK
+[20:56:28] WARNING  services.fundamentals_service — Analyst estimates unavailable for MRK: 400 Client Error: Bad Request for url: https://financialmodelingprep.com/stable/analyst-estimates?apikey=mXVQfW4StedYEumbDj6qT7nonMiRyqNU&symbol=MRK&limit=3
+[20:56:28] WARNING  services.fundamentals_service — Analyst estimates unavailable for MRK: 400 Client Error: Bad Request for url: https://financialmodelingprep.com/stable/analyst-estimates?apikey=mXVQfW4StedYEumbDj6qT7nonMiRyqNU&symbol=MRK&limit=3
+[20:56:28] INFO     providers.fmp_provider — → FMP [MRK]  /price-target-consensus?symbol=MRK
+OK=5  broken=-  correct_na=-
+
+--- COMMUNICATION ---
+  [56/60] GOOGL    Alphabet  [20:56:30] INFO     providers.fmp_provider — → FMP [GOOGL]  /profile?symbol=GOOGL
+[20:56:31] INFO     providers.fmp_provider — → FMP [GOOGL]  /key-metrics?symbol=GOOGL
+[20:56:33] INFO     providers.finnhub_provider — → Finnhub [GOOGL]  /stock/metric?symbol=GOOGL
+[20:56:33] INFO     providers.fmp_provider — → FMP [GOOGL]  /income-statement?symbol=GOOGL
+[20:56:35] INFO     providers.fmp_provider — → FMP [GOOGL]  /balance-sheet-statement?symbol=GOOGL
+[20:56:36] INFO     providers.fmp_provider — → FMP [GOOGL]  /cash-flow-statement?symbol=GOOGL
+[20:56:38] INFO     providers.fmp_provider — → FMP [GOOGL]  /analyst-estimates?symbol=GOOGL
+[20:56:39] WARNING  services.fundamentals_service — Analyst estimates unavailable for GOOGL: 400 Client Error: Bad Request for url: https://financialmodelingprep.com/stable/analyst-estimates?apikey=mXVQfW4StedYEumbDj6qT7nonMiRyqNU&symbol=GOOGL&limit=3
+[20:56:39] WARNING  services.fundamentals_service — Analyst estimates unavailable for GOOGL: 400 Client Error: Bad Request for url: https://financialmodelingprep.com/stable/analyst-estimates?apikey=mXVQfW4StedYEumbDj6qT7nonMiRyqNU&symbol=GOOGL&limit=3
+[20:56:39] INFO     providers.fmp_provider — → FMP [GOOGL]  /price-target-consensus?symbol=GOOGL
+OK=5  broken=-  correct_na=-
+  [57/60] META     Meta Platforms  [20:56:41] INFO     providers.fmp_provider — → FMP [META]  /profile?symbol=META
+[20:56:42] INFO     providers.fmp_provider — → FMP [META]  /key-metrics?symbol=META
+[20:56:43] INFO     providers.finnhub_provider — → Finnhub [META]  /stock/metric?symbol=META
+[20:56:44] INFO     providers.fmp_provider — → FMP [META]  /income-statement?symbol=META
+[20:56:45] INFO     providers.fmp_provider — → FMP [META]  /balance-sheet-statement?symbol=META
+[20:56:46] INFO     providers.fmp_provider — → FMP [META]  /cash-flow-statement?symbol=META
+[20:56:48] INFO     providers.fmp_provider — → FMP [META]  /analyst-estimates?symbol=META
+[20:56:49] WARNING  services.fundamentals_service — Analyst estimates unavailable for META: 400 Client Error: Bad Request for url: https://financialmodelingprep.com/stable/analyst-estimates?apikey=mXVQfW4StedYEumbDj6qT7nonMiRyqNU&symbol=META&limit=3
+[20:56:49] WARNING  services.fundamentals_service — Analyst estimates unavailable for META: 400 Client Error: Bad Request for url: https://financialmodelingprep.com/stable/analyst-estimates?apikey=mXVQfW4StedYEumbDj6qT7nonMiRyqNU&symbol=META&limit=3
+[20:56:49] INFO     providers.fmp_provider — → FMP [META]  /price-target-consensus?symbol=META
+OK=5  broken=-  correct_na=-
+  [58/60] DIS      Disney  [20:56:51] INFO     providers.fmp_provider — → FMP [DIS]  /profile?symbol=DIS
+[20:56:52] INFO     providers.fmp_provider — → FMP [DIS]  /key-metrics?symbol=DIS
+[20:56:53] INFO     providers.finnhub_provider — → Finnhub [DIS]  /stock/metric?symbol=DIS
+[20:56:54] INFO     providers.fmp_provider — → FMP [DIS]  /income-statement?symbol=DIS
+[20:56:55] INFO     providers.fmp_provider — → FMP [DIS]  /balance-sheet-statement?symbol=DIS
+[20:56:57] INFO     providers.fmp_provider — → FMP [DIS]  /cash-flow-statement?symbol=DIS
+[20:56:58] INFO     providers.fmp_provider — → FMP [DIS]  /analyst-estimates?symbol=DIS
+[20:56:59] WARNING  services.fundamentals_service — Analyst estimates unavailable for DIS: 400 Client Error: Bad Request for url: https://financialmodelingprep.com/stable/analyst-estimates?apikey=mXVQfW4StedYEumbDj6qT7nonMiRyqNU&symbol=DIS&limit=3
+[20:56:59] WARNING  services.fundamentals_service — Analyst estimates unavailable for DIS: 400 Client Error: Bad Request for url: https://financialmodelingprep.com/stable/analyst-estimates?apikey=mXVQfW4StedYEumbDj6qT7nonMiRyqNU&symbol=DIS&limit=3
+[20:56:59] INFO     providers.fmp_provider — → FMP [DIS]  /price-target-consensus?symbol=DIS
+OK=5  broken=-  correct_na=-
+  [59/60] NFLX     Netflix  [20:57:01] INFO     providers.fmp_provider — → FMP [NFLX]  /profile?symbol=NFLX
+[20:57:02] INFO     providers.fmp_provider — → FMP [NFLX]  /key-metrics?symbol=NFLX
+[20:57:04] INFO     providers.finnhub_provider — → Finnhub [NFLX]  /stock/metric?symbol=NFLX
+[20:57:05] INFO     providers.fmp_provider — → FMP [NFLX]  /income-statement?symbol=NFLX
+[20:57:06] INFO     providers.fmp_provider — → FMP [NFLX]  /balance-sheet-statement?symbol=NFLX
+[20:57:07] INFO     providers.fmp_provider — → FMP [NFLX]  /cash-flow-statement?symbol=NFLX
+[20:57:08] INFO     providers.fmp_provider — → FMP [NFLX]  /analyst-estimates?symbol=NFLX
+[20:57:10] WARNING  services.fundamentals_service — Analyst estimates unavailable for NFLX: 400 Client Error: Bad Request for url: https://financialmodelingprep.com/stable/analyst-estimates?apikey=mXVQfW4StedYEumbDj6qT7nonMiRyqNU&symbol=NFLX&limit=3
+[20:57:10] WARNING  services.fundamentals_service — Analyst estimates unavailable for NFLX: 400 Client Error: Bad Request for url: https://financialmodelingprep.com/stable/analyst-estimates?apikey=mXVQfW4StedYEumbDj6qT7nonMiRyqNU&symbol=NFLX&limit=3
+[20:57:10] INFO     providers.fmp_provider — → FMP [NFLX]  /price-target-consensus?symbol=NFLX
+OK=4  broken=-  correct_na=-
+  [60/60] VZ       Verizon  [20:57:12] INFO     providers.fmp_provider — → FMP [VZ]  /profile?symbol=VZ
+[20:57:14] INFO     providers.fmp_provider — → FMP [VZ]  /key-metrics?symbol=VZ
+[20:57:15] INFO     providers.finnhub_provider — → Finnhub [VZ]  /stock/metric?symbol=VZ
+[20:57:16] INFO     providers.fmp_provider — → FMP [VZ]  /income-statement?symbol=VZ
+[20:57:17] INFO     providers.fmp_provider — → FMP [VZ]  /balance-sheet-statement?symbol=VZ
+[20:57:18] INFO     providers.fmp_provider — → FMP [VZ]  /cash-flow-statement?symbol=VZ
+[20:57:19] INFO     providers.fmp_provider — → FMP [VZ]  /analyst-estimates?symbol=VZ
+[20:57:21] WARNING  services.fundamentals_service — Analyst estimates unavailable for VZ: 400 Client Error: Bad Request for url: https://financialmodelingprep.com/stable/analyst-estimates?apikey=mXVQfW4StedYEumbDj6qT7nonMiRyqNU&symbol=VZ&limit=3
+[20:57:21] WARNING  services.fundamentals_service — Analyst estimates unavailable for VZ: 400 Client Error: Bad Request for url: https://financialmodelingprep.com/stable/analyst-estimates?apikey=mXVQfW4StedYEumbDj6qT7nonMiRyqNU&symbol=VZ&limit=3
+[20:57:21] INFO     providers.fmp_provider — → FMP [VZ]  /price-target-consensus?symbol=VZ
+OK=5  broken=-  correct_na=-
+
+========================================================================
+COVERAGE BY SECTOR (sorted worst-first)
+========================================================================
+
+  Bucket                  Coverage   Model detail
+  ---------------------- ---------   ----------------------------------------
+  [FAIL] reit                     33.3%   paffo=0%  pb=100%  pffo=0%
+  [OK  ] insurance                93.3%   ddm=80%  pb=100%  pe=100%
+  [OK  ] technology              100.0%   dcf=100%  ev_ebitda=100%  ev_sales=100%
+  [OK  ] consumer_discretionary  100.0%   dcf=100%  ev_ebitda=100%  pe=100%
+  [OK  ] consumer_staples        100.0%   dcf=100%  ddm=100%  pe=100%
+  [OK  ] financials              100.0%   ddm=100%  pb=100%  pe=100%
+  [OK  ] utilities               100.0%   ddm=100%  ev_ebitda=100%  pe=100%
+  [OK  ] energy                  100.0%   dcf=100%  ev_ebitda=100%  pcf=100%
+  [OK  ] materials               100.0%   ev_ebitda=100%  pb=100%  pcf=100%
+  [OK  ] industrials             100.0%   dcf=100%  ev_ebitda=100%  pe=100%
+  [OK  ] healthcare              100.0%   dcf=100%  ev_sales=100%  pe=100%
+  [OK  ] communication           100.0%   dcf=100%  ev_ebitda=100%  pe=100%
+
+========================================================================
+ROOT-CAUSE TALLY (BROKEN model occurrences)
+========================================================================
+
+  [10x] RC1: FMP income-stmt 403 -> yfinance field mismatch (net_income/shares_outstanding)
+         VICI.pffo
+         VICI.paffo
+         O.pffo
+         O.paffo
+         SPG.pffo
+         SPG.paffo
+         AMT.pffo
+         AMT.paffo
+         PLD.pffo
+         PLD.paffo
+
+  [ 3x] RC3: Both FMP and yfinance statement fetch failed
+         AMZN.pcf
+         SO.pcf
+         D.pcf
+
+========================================================================
+PER-TICKER MODEL DETAIL
+========================================================================
+
+  REIT   (primary: paffo, pb, pffo)
+    VICI     Undervalued          ddm:OK paffo:XX pb:OK pcf:OK pffo:XX
+    O        Slightly Undervalued ddm:OK paffo:XX pb:OK pcf:OK pffo:XX
+    SPG      Overvalued           ddm:OK paffo:XX pb:OK pcf:OK pffo:XX
+    AMT      Overvalued           ddm:OK paffo:XX pb:OK pcf:OK pffo:XX
+    PLD      Overvalued           ddm:OK paffo:XX pb:OK pcf:OK pffo:XX
+
+  INSURANCE   (primary: ddm, pb, pe)
+    BRK-B    Overvalued           ddm:-- pb:OK pcf:OK pe:OK
+    AIG      Fairly Valued        ddm:OK pb:OK pcf:OK pe:OK
+    PRU      Fairly Valued        ddm:OK pb:OK pcf:OK pe:OK
+    MET      Overvalued           ddm:OK pb:OK pcf:OK pe:OK
+    TRV      Fairly Valued        ddm:OK pb:OK pcf:OK pe:OK
+
+  TECHNOLOGY   (primary: dcf, ev_ebitda, ev_sales)
+    AAPL     Overvalued           dcf:OK ddm:OK ev_ebitda:OK ev_sales:OK pcf:OK pe:OK
+    MSFT     Undervalued          dcf:OK ddm:OK ev_ebitda:OK ev_sales:OK pcf:OK pe:OK
+    NVDA     Slightly Overvalued  dcf:OK ddm:OK ev_ebitda:OK ev_sales:OK pcf:OK pe:OK
+    ADBE     Undervalued          dcf:OK ev_ebitda:OK ev_sales:OK pcf:OK pe:OK
+    CRM      Undervalued          dcf:OK ddm:OK ev_ebitda:OK ev_sales:OK pcf:OK pe:OK
+
+  CONSUMER_DISCRETIONARY   (primary: dcf, ev_ebitda, pe)
+    AMZN     Slightly Overvalued  dcf:OK ev_ebitda:OK pcf:XX pe:OK
+    MCD      Fairly Valued        dcf:OK ddm:OK ev_ebitda:OK pcf:OK pe:OK
+    NKE      Overvalued           dcf:OK ddm:OK ev_ebitda:OK pcf:OK pe:OK
+    LOW      Undervalued          dcf:OK ddm:OK ev_ebitda:OK pcf:OK pe:OK
+    SBUX     Overvalued           dcf:OK ddm:OK ev_ebitda:OK pcf:OK pe:OK
+
+  CONSUMER_STAPLES   (primary: dcf, ddm, pe)
+    KO       Slightly Overvalued  dcf:OK ddm:OK pcf:OK pe:OK
+    PG       Fairly Valued        dcf:OK ddm:OK pcf:OK pe:OK
+    WMT      Overvalued           dcf:OK ddm:OK pcf:OK pe:OK
+    MO       Undervalued          dcf:OK ddm:OK pcf:OK pe:OK
+    CL       Slightly Overvalued  dcf:OK ddm:OK pcf:OK pe:OK
+
+  FINANCIALS   (primary: ddm, pb, pe)
+    JPM      Overvalued           ddm:OK pb:OK pcf:OK pe:OK
+    BAC      Slightly Overvalued  ddm:OK pb:OK pcf:OK pe:OK
+    WFC      Overvalued           ddm:OK pb:OK pcf:OK pe:OK
+    GS       Overvalued           ddm:OK pb:OK pe:OK
+    MS       Overvalued           ddm:OK pb:OK pe:OK
+
+  UTILITIES   (primary: ddm, ev_ebitda, pe)
+    NEE      Overvalued           ddm:OK ev_ebitda:OK pb:OK pcf:OK pe:OK
+    DUK      Slightly Overvalued  ddm:OK ev_ebitda:OK pb:OK pcf:OK pe:OK
+    SO       Overvalued           ddm:OK ev_ebitda:OK pb:OK pcf:XX pe:OK
+    D        Overvalued           ddm:OK ev_ebitda:OK pb:OK pcf:XX pe:OK
+    AEP      Overvalued           ddm:OK ev_ebitda:OK pb:OK pcf:OK pe:OK
+
+  ENERGY   (primary: dcf, ev_ebitda, pcf)
+    XOM      Overvalued           dcf:OK ddm:OK ev_ebitda:OK pb:OK pcf:OK pe:OK
+    CVX      Overvalued           dcf:OK ddm:OK ev_ebitda:OK pb:OK pcf:OK pe:OK
+    COP      Undervalued          dcf:OK ddm:OK ev_ebitda:OK pb:OK pcf:OK pe:OK
+    EOG      Undervalued          dcf:OK ddm:OK ev_ebitda:OK pb:OK pcf:OK pe:OK
+    SLB      Overvalued           dcf:OK ddm:OK ev_ebitda:OK pb:OK pcf:OK pe:OK
+
+  MATERIALS   (primary: ev_ebitda, pb, pcf)
+    LIN      Overvalued           ddm:OK ev_ebitda:OK pb:OK pcf:OK pe:OK
+    APD      Overvalued           ddm:OK ev_ebitda:OK pb:OK pcf:OK pe:OK
+    NEM      Undervalued          ddm:OK ev_ebitda:OK pb:OK pcf:OK pe:OK
+    FCX      Overvalued           ddm:OK ev_ebitda:OK pb:OK pcf:OK pe:OK
+    PPG      Slightly Overvalued  ddm:OK ev_ebitda:OK pb:OK pcf:OK pe:OK
+
+  INDUSTRIALS   (primary: dcf, ev_ebitda, pe)
+    HON      Slightly Overvalued  dcf:OK ddm:OK ev_ebitda:OK pb:OK pcf:OK pe:OK
+    CAT      Overvalued           dcf:OK ddm:OK ev_ebitda:OK pb:OK pcf:OK pe:OK
+    UPS      Slightly Overvalued  dcf:OK ddm:OK ev_ebitda:OK pb:OK pcf:OK pe:OK
+    GE       Overvalued           dcf:OK ddm:OK ev_ebitda:OK pb:OK pcf:OK pe:OK
+    MMM      Overvalued           dcf:OK ddm:OK ev_ebitda:OK pb:OK pcf:OK pe:OK
+
+  HEALTHCARE   (primary: dcf, ev_sales, pe)
+    JNJ      Overvalued           dcf:OK ddm:OK ev_sales:OK pcf:OK pe:OK
+    UNH      Fairly Valued        dcf:OK ddm:OK ev_sales:OK pcf:OK pe:OK
+    PFE      Undervalued          dcf:OK ddm:OK ev_sales:OK pcf:OK pe:OK
+    ABBV     Overvalued           dcf:OK ddm:OK ev_sales:OK pcf:OK pe:OK
+    MRK      Fairly Valued        dcf:OK ddm:OK ev_sales:OK pcf:OK pe:OK
+
+  COMMUNICATION   (primary: dcf, ev_ebitda, pe)
+    GOOGL    Overvalued           dcf:OK ddm:OK ev_ebitda:OK pcf:OK pe:OK
+    META     Undervalued          dcf:OK ddm:OK ev_ebitda:OK pcf:OK pe:OK
+    DIS      Overvalued           dcf:OK ddm:OK ev_ebitda:OK pcf:OK pe:OK
+    NFLX     Undervalued          dcf:OK ev_ebitda:OK pcf:OK pe:OK
+    VZ       Undervalued          dcf:OK ddm:OK ev_ebitda:OK pcf:OK pe:OK
+
+========================================================================
+RANKED FIX LIST (by number of affected instances)
+========================================================================
+
+  #1  RC1: FMP income-stmt 403 -> yfinance field mismatch (net_income/shares_outstanding)
+      Affects 10 model-run(s): models=['paffo', 'pffo']  tickers=['AMT', 'O', 'PLD', 'SPG', 'VICI']
+
+  #2  RC3: Both FMP and yfinance statement fetch failed
+      Affects 3 model-run(s): models=['pcf']  tickers=['AMZN', 'D', 'SO']
+
+========================================================================
+BACKTEST EXCLUSION LIST (primary coverage < 66%)
+========================================================================
+  EXCLUDE reit                   coverage=33.3%
+
+Full results saved to: C:\Users\camer\Investment_Research\backtest\coverage_audit_results.json
+========================================================================

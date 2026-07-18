@@ -1,0 +1,395 @@
+{
+  "AAPL": {
+    "ticker": "AAPL",
+    "sector": "Technology",
+    "industry": "Consumer Electronics",
+    "bucket": "technology",
+    "bucket_label": "Technology",
+    "why_these_models": "Technology companies are valued on growth, recurring revenue, and future cash flow potential. DCF captures long-term intrinsic value, EV/Sales reflects the growth premium, and EV/EBITDA measures operating efficiency. Additionally, P/E Comparable, Dividend Discount (DDM), Price/Cash-Flow were added because this company's characteristics make them applicable (positive earnings, dividend payments, and/or positive cash flow).",
+    "models_run": {
+      "dcf": {
+        "model": "dcf",
+        "name": "Discounted Cash Flow (3-stage, 10-year)",
+        "fair_value": 243.27,
+        "confidence": 50.0,
+        "inputs_used": {
+          "fcf_ttm": 129174000000,
+          "fcf_margin": 0.2861,
+          "revenue_ttm": 451442000000,
+          "growth_source": "historical TTM (no analyst estimates available)",
+          "analyst_count": 0,
+          "g_y1": 0.1276,
+          "g_y2": 0.1228,
+          "g_y3_y5_avg": 0.1101,
+          "g_y6_y10_avg": 0.0694,
+          "terminal_growth": 0.035,
+          "wacc": 0.0936,
+          "net_debt": 48383000000,
+          "shares_out": 14768115000,
+          "pv_years_1_2": 269941185892.0,
+          "pv_years_3_10": 1114837338514.0,
+          "pv_terminal": 2256200431475.0,
+          "terminal_pct": 0.62,
+          "implied_growth": 0.2471
+        },
+        "warnings": [
+          "Analyst estimates unavailable \u2014 Stage 1 growth uses historical TTM rate"
+        ]
+      },
+      "ev_sales": {
+        "model": "ev_sales",
+        "name": "EV/Sales (Revenue Multiple)",
+        "fair_value": 225.99,
+        "confidence": 58.0,
+        "inputs_used": {
+          "revenue_per_share": 30.57,
+          "sector_ev_sales": 7.5
+        },
+        "warnings": [
+          "Uses 7.5\u00d7 (sector avg 6.0\u00d7, +25% quality adj \u2014 ROIC 52.0% vs ~15% sector median) EV/Sales"
+        ]
+      },
+      "ev_ebitda": {
+        "model": "ev_ebitda",
+        "name": "EV/EBITDA Comparable",
+        "fair_value": 268.14,
+        "confidence": 63.0,
+        "inputs_used": {
+          "ebitda_ttm": 160332000000,
+          "sector_ev_ebitda": 25.0,
+          "net_debt": 48383000000,
+          "shares_out": 14768115000
+        },
+        "warnings": [
+          "Uses 25.0\u00d7 (sector avg 20\u00d7, +25% quality adj \u2014 ROIC 52.0% vs ~15% sector median) EV/EBITDA"
+        ]
+      },
+      "pe": {
+        "model": "pe",
+        "name": "P/E Comparable",
+        "fair_value": 290.15,
+        "confidence": 65.0,
+        "inputs_used": {
+          "eps_ttm": 8.29,
+          "pe_benchmark": 35.0
+        },
+        "warnings": [
+          "Uses 35.0\u00d7 (sector avg 28\u00d7, +25% quality adj \u2014 ROIC 52.0% vs ~15% sector median) P/E"
+        ]
+      },
+      "ddm": {
+        "model": "ddm",
+        "name": "Dividend Discount Model (DDM)",
+        "fair_value": 16.68,
+        "confidence": 65.0,
+        "inputs_used": {
+          "dps": 1.0588,
+          "div_yield": 0.003358,
+          "div_growth_rate": 0.04,
+          "cost_of_equity": 0.106,
+          "risk_free_rate": 0.0454,
+          "beta": 1.1018785
+        },
+        "warnings": []
+      },
+      "pcf": {
+        "model": "pcf",
+        "name": "Price-to-Cash-Flow",
+        "fair_value": 122.5,
+        "confidence": 52.0,
+        "inputs_used": {
+          "cf_per_share": 8.75,
+          "sector_pcf_benchmark": 14
+        },
+        "warnings": [
+          "Using FCF per share from key metrics (cash flow statement unavailable)",
+          "Uses sector average P/CF of 14\u00d7"
+        ]
+      }
+    },
+    "fair_value_low": 16.68,
+    "fair_value_base": 233.28,
+    "fair_value_high": 290.15,
+    "upside_pct": -0.2602,
+    "valuation_rating": "Overvalued",
+    "overall_confidence": 45.6,
+    "weights_used": {
+      "dcf": 0.264,
+      "ev_sales": 0.23,
+      "ev_ebitda": 0.249,
+      "pe": 0.129,
+      "ddm": 0.026,
+      "pcf": 0.103
+    },
+    "blend_notes": [
+      "Dividend Discount Model (DDM) down-weighted: $17 is 93% below the median ($235) \u2014 outlier threshold is 2\u00d7/0.5\u00d7"
+    ],
+    "confidence_explanation": "Confidence is low. Supporting factors: all 6 valuation models ran successfully; financial data from primary provider (FMP). Limiting factors: models differ by 178% \u2014 high disagreement; the blended fair value should be treated with caution.",
+    "analyst_consensus": {
+      "target_median": 325,
+      "target_consensus": 327,
+      "target_high": 400,
+      "target_low": 253,
+      "analyst_count": 0,
+      "has_data": true,
+      "pt_upside_pct": 0.0307
+    },
+    "warnings": [
+      "Analyst estimates unavailable \u2014 Stage 1 growth uses historical TTM rate",
+      "Uses 7.5\u00d7 (sector avg 6.0\u00d7, +25% quality adj \u2014 ROIC 52.0% vs ~15% sector median) EV/Sales",
+      "Uses 25.0\u00d7 (sector avg 20\u00d7, +25% quality adj \u2014 ROIC 52.0% vs ~15% sector median) EV/EBITDA",
+      "Uses 35.0\u00d7 (sector avg 28\u00d7, +25% quality adj \u2014 ROIC 52.0% vs ~15% sector median) P/E",
+      "Using FCF per share from key metrics (cash flow statement unavailable)",
+      "Uses sector average P/CF of 14\u00d7",
+      "Dividend Discount Model (DDM) down-weighted: $17 is 93% below the median ($235) \u2014 outlier threshold is 2\u00d7/0.5\u00d7"
+    ]
+  },
+  "MSFT": {
+    "ticker": "MSFT",
+    "sector": "Technology",
+    "industry": "Software - Infrastructure",
+    "bucket": "technology",
+    "bucket_label": "Technology",
+    "why_these_models": "Technology companies are valued on growth, recurring revenue, and future cash flow potential. DCF captures long-term intrinsic value, EV/Sales reflects the growth premium, and EV/EBITDA measures operating efficiency. Additionally, P/E Comparable, Dividend Discount (DDM), Price/Cash-Flow were added because this company's characteristics make them applicable (positive earnings, dividend payments, and/or positive cash flow).",
+    "models_run": {
+      "dcf": {
+        "model": "dcf",
+        "name": "Discounted Cash Flow (3-stage, 10-year)",
+        "fair_value": 329.12,
+        "confidence": 50.0,
+        "inputs_used": {
+          "fcf_ttm": 72916000000,
+          "fcf_margin": 0.2291,
+          "revenue_ttm": 318273000000,
+          "growth_source": "historical TTM (no analyst estimates available)",
+          "analyst_count": 0,
+          "g_y1": 0.1787,
+          "g_y2": 0.1688,
+          "g_y3_y5_avg": 0.1425,
+          "g_y6_y10_avg": 0.0822,
+          "terminal_growth": 0.035,
+          "wacc": 0.0932,
+          "net_debt": 93327000000,
+          "shares_out": 7445000000,
+          "pv_years_1_2": 162676655162.0,
+          "pv_years_3_10": 762871145811.0,
+          "pv_terminal": 1618083199902.0,
+          "terminal_pct": 0.636,
+          "implied_growth": 0.2507
+        },
+        "warnings": [
+          "Analyst estimates unavailable \u2014 Stage 1 growth uses historical TTM rate"
+        ]
+      },
+      "ev_sales": {
+        "model": "ev_sales",
+        "name": "EV/Sales (Revenue Multiple)",
+        "fair_value": 509.01,
+        "confidence": 58.0,
+        "inputs_used": {
+          "revenue_per_share": 42.75,
+          "sector_ev_sales": 12.2
+        },
+        "warnings": [
+          "Uses 12.2\u00d7 (sector avg 10.0\u00d7, +22% quality adj \u2014 ROIC 21.6% vs ~15% sector median) EV/Sales"
+        ]
+      },
+      "ev_ebitda": {
+        "model": "ev_ebitda",
+        "name": "EV/EBITDA Comparable",
+        "fair_value": 810.74,
+        "confidence": 63.0,
+        "inputs_used": {
+          "ebitda_ttm": 200959000000,
+          "sector_ev_ebitda": 30.5,
+          "net_debt": 93327000000,
+          "shares_out": 7445000000
+        },
+        "warnings": [
+          "Uses 30.5\u00d7 (sector avg 25.0\u00d7, +22% quality adj \u2014 ROIC 21.6% vs ~15% sector median) EV/EBITDA"
+        ]
+      },
+      "pe": {
+        "model": "pe",
+        "name": "P/E Comparable",
+        "fair_value": 719.5,
+        "confidence": 65.0,
+        "inputs_used": {
+          "eps_ttm": 16.85,
+          "pe_benchmark": 42.7
+        },
+        "warnings": [
+          "Uses 42.7\u00d7 (sector avg 35.0\u00d7, +22% quality adj \u2014 ROIC 21.6% vs ~15% sector median) P/E"
+        ]
+      },
+      "ddm": {
+        "model": "ddm",
+        "name": "Dividend Discount Model (DDM)",
+        "fair_value": 53.63,
+        "confidence": 65.0,
+        "inputs_used": {
+          "dps": 3.4805,
+          "div_yield": 0.009038000000000001,
+          "div_growth_rate": 0.04,
+          "cost_of_equity": 0.1075,
+          "risk_free_rate": 0.0454,
+          "beta": 1.1289786
+        },
+        "warnings": []
+      },
+      "pcf": {
+        "model": "pcf",
+        "name": "Price-to-Cash-Flow",
+        "fair_value": 137.06,
+        "confidence": 52.0,
+        "inputs_used": {
+          "cf_per_share": 9.79,
+          "sector_pcf_benchmark": 14
+        },
+        "warnings": [
+          "Using FCF per share from key metrics (cash flow statement unavailable)",
+          "Uses sector average P/CF of 14\u00d7"
+        ]
+      }
+    },
+    "fair_value_low": 53.63,
+    "fair_value_base": 547.66,
+    "fair_value_high": 810.74,
+    "upside_pct": 0.4221,
+    "valuation_rating": "Undervalued",
+    "overall_confidence": 46.1,
+    "weights_used": {
+      "dcf": 0.288,
+      "ev_sales": 0.25,
+      "ev_ebitda": 0.272,
+      "pe": 0.14,
+      "ddm": 0.028,
+      "pcf": 0.022
+    },
+    "blend_notes": [
+      "Dividend Discount Model (DDM) down-weighted: $54 is 87% below the median ($419) \u2014 outlier threshold is 2\u00d7/0.5\u00d7",
+      "Price-to-Cash-Flow down-weighted: $137 is 67% below the median ($419) \u2014 outlier threshold is 2\u00d7/0.5\u00d7"
+    ],
+    "confidence_explanation": "Confidence is low. Supporting factors: all 6 valuation models ran successfully; financial data from primary provider (FMP). Limiting factors: models differ by 175% \u2014 high disagreement; the blended fair value should be treated with caution.",
+    "analyst_consensus": {
+      "target_median": 550,
+      "target_consensus": 549.12,
+      "target_high": 680,
+      "target_low": 400,
+      "analyst_count": 0,
+      "has_data": true,
+      "pt_upside_pct": 0.4282
+    },
+    "warnings": [
+      "Analyst estimates unavailable \u2014 Stage 1 growth uses historical TTM rate",
+      "Uses 12.2\u00d7 (sector avg 10.0\u00d7, +22% quality adj \u2014 ROIC 21.6% vs ~15% sector median) EV/Sales",
+      "Uses 30.5\u00d7 (sector avg 25.0\u00d7, +22% quality adj \u2014 ROIC 21.6% vs ~15% sector median) EV/EBITDA",
+      "Uses 42.7\u00d7 (sector avg 35.0\u00d7, +22% quality adj \u2014 ROIC 21.6% vs ~15% sector median) P/E",
+      "Using FCF per share from key metrics (cash flow statement unavailable)",
+      "Uses sector average P/CF of 14\u00d7",
+      "Dividend Discount Model (DDM) down-weighted: $54 is 87% below the median ($419) \u2014 outlier threshold is 2\u00d7/0.5\u00d7",
+      "Price-to-Cash-Flow down-weighted: $137 is 67% below the median ($419) \u2014 outlier threshold is 2\u00d7/0.5\u00d7"
+    ]
+  },
+  "VICI": {
+    "ticker": "VICI",
+    "sector": "Real Estate",
+    "industry": "REIT - Specialty",
+    "bucket": "reit",
+    "bucket_label": "Real Estate / REIT",
+    "why_these_models": "This company is classified as a REIT, so a standard free cash flow DCF is not the primary valuation method. REITs have large non-cash depreciation charges that depress reported earnings and free cash flow, making them unsuitable for DCF. P/FFO (Funds From Operations) and P/AFFO (Adjusted FFO) are the industry-standard metrics. Price-to-Book provides an asset-backing floor. Additionally, Dividend Discount (DDM), Price/Cash-Flow were added because this company's characteristics make them applicable (positive earnings, dividend payments, and/or positive cash flow).",
+    "models_run": {
+      "pffo": {
+        "model": "pffo",
+        "name": "P/FFO (Funds From Operations)",
+        "fair_value": null,
+        "confidence": 0.0,
+        "inputs_used": {},
+        "warnings": [
+          "P/FFO cannot run \u2014 net income or share count missing"
+        ]
+      },
+      "paffo": {
+        "model": "paffo",
+        "name": "P/AFFO (Adjusted Funds From Operations)",
+        "fair_value": null,
+        "confidence": 0.0,
+        "inputs_used": {},
+        "warnings": [
+          "P/AFFO cannot run \u2014 net income or share count missing"
+        ]
+      },
+      "pb": {
+        "model": "pb",
+        "name": "Price-to-Book",
+        "fair_value": 47.49,
+        "confidence": 62.0,
+        "inputs_used": {
+          "book_value_per_share": 26.38,
+          "sector_pb_benchmark": 1.8
+        },
+        "warnings": [
+          "Uses sector average P/B of 1.8\u00d7"
+        ]
+      },
+      "ddm": {
+        "model": "ddm",
+        "name": "Dividend Discount Model (DDM)",
+        "fair_value": 33.41,
+        "confidence": 65.0,
+        "inputs_used": {
+          "dps": 1.743,
+          "div_yield": 0.067013,
+          "div_growth_rate": 0.03,
+          "cost_of_equity": 0.0837,
+          "risk_free_rate": 0.0454,
+          "beta": 0.697022
+        },
+        "warnings": []
+      },
+      "pcf": {
+        "model": "pcf",
+        "name": "Price-to-Cash-Flow",
+        "fair_value": 33.46,
+        "confidence": 52.0,
+        "inputs_used": {
+          "cf_per_share": 2.39,
+          "sector_pcf_benchmark": 14
+        },
+        "warnings": [
+          "Using FCF per share from key metrics (cash flow statement unavailable)",
+          "Uses sector average P/CF of 14\u00d7"
+        ]
+      }
+    },
+    "fair_value_low": 33.41,
+    "fair_value_base": 40.67,
+    "fair_value_high": 47.49,
+    "upside_pct": 0.5635,
+    "valuation_rating": "Undervalued",
+    "overall_confidence": 54.7,
+    "weights_used": {
+      "pb": 0.515,
+      "ddm": 0.27,
+      "pcf": 0.216
+    },
+    "blend_notes": [],
+    "confidence_explanation": "Confidence is limited. Supporting factors: financial data from primary provider (FMP); data completeness is strong (100%). Limiting factors: 3 of 5 models produced a result; models differ by 35% \u2014 moderate disagreement reduces reliability of the blended estimate; the sector-specific FFO-based model (P/FFO or P/AFFO) could not run \u2014 required financial data was unavailable.",
+    "analyst_consensus": {
+      "target_median": 31,
+      "target_consensus": 31.33,
+      "target_high": 34,
+      "target_low": 29,
+      "analyst_count": 0,
+      "has_data": true,
+      "pt_upside_pct": 0.1918
+    },
+    "warnings": [
+      "P/FFO cannot run \u2014 net income or share count missing",
+      "P/AFFO cannot run \u2014 net income or share count missing",
+      "Uses sector average P/B of 1.8\u00d7",
+      "Using FCF per share from key metrics (cash flow statement unavailable)",
+      "Uses sector average P/CF of 14\u00d7"
+    ]
+  }
+}
