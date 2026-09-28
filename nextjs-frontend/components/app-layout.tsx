@@ -9,7 +9,6 @@ import {
   TrendingUp,
   Search,
   RefreshCw,
-  Menu,
   X,
   LayoutDashboard,
   Star,
@@ -21,6 +20,7 @@ import {
   Shield,
   Settings,
   Zap,
+  MoreHorizontal,
 } from 'lucide-react'
 
 // ── Navigation definition ────────────────────────────────────────────────────
@@ -59,6 +59,15 @@ const NAV_GROUPS = [
   },
 ]
 
+// The 4 most-used pages live in the bottom bar.
+// Everything else is one tap away via the "More" drawer.
+const BOTTOM_NAV = [
+  { href: '/',          label: 'Home',      icon: LayoutDashboard },
+  { href: '/research',  label: 'Research',  icon: FlaskConical },
+  { href: '/watchlist', label: 'Watchlist', icon: Star },
+  { href: '/portfolio', label: 'Portfolio', icon: Briefcase },
+]
+
 // ── Helpers ──────────────────────────────────────────────────────────────────
 
 function useMarketStatus() {
@@ -85,13 +94,18 @@ function formatNow() {
 
 export function AppLayout({ children }: { children: ReactNode }) {
   const pathname = usePathname()
-  const [mobileOpen, setMobileOpen] = useState(false)
+  const [moreOpen, setMoreOpen] = useState(false)
   const { isOpen: marketOpen } = useMarketStatus()
+
+  // Is the current page one of the bottom-bar tabs?
+  const isBottomTab = BOTTOM_NAV.some((item) => item.href === pathname)
+  // Is the current page in the "More" drawer?
+  const isMoreActive = !isBottomTab && pathname !== '/'
 
   return (
     <div className="min-h-screen bg-background">
 
-      {/* Top navigation */}
+      {/* ── Top header ──────────────────────────────────────────────────────── */}
       <header className="sticky top-0 z-50 bg-[#0B1628] shadow-lg">
 
         {/* Brand row */}
@@ -108,7 +122,7 @@ export function AppLayout({ children }: { children: ReactNode }) {
             </div>
           </div>
 
-          {/* Search */}
+          {/* Search — desktop only */}
           <div className="hidden md:flex items-center gap-2 bg-white/8 border border-white/10 rounded-lg px-3 py-1.5 w-72 hover:bg-white/12 transition-colors">
             <Search className="h-3.5 w-3.5 text-white/40 flex-shrink-0" />
             <input
@@ -118,7 +132,7 @@ export function AppLayout({ children }: { children: ReactNode }) {
             />
           </div>
 
-          {/* Date · market status · refresh */}
+          {/* Right side controls */}
           <div className="flex items-center gap-3">
             <span className="hidden lg:block text-xs text-white/45">{formatNow()}</span>
 
@@ -144,17 +158,10 @@ export function AppLayout({ children }: { children: ReactNode }) {
             >
               <RefreshCw className="h-3.5 w-3.5" />
             </button>
-
-            <button
-              onClick={() => setMobileOpen(true)}
-              className="md:hidden flex h-7 w-7 items-center justify-center rounded-md text-white/60 hover:bg-white/10"
-            >
-              <Menu className="h-4 w-4" />
-            </button>
           </div>
         </div>
 
-        {/* Nav row (desktop) */}
+        {/* Nav row — desktop only */}
         <nav className="hidden md:flex items-center gap-0.5 px-4 lg:px-6 pb-1.5 overflow-x-auto hide-scrollbar border-t border-white/8 pt-1">
           {NAV_GROUPS.map((group, gi) => (
             <div key={gi} className="flex items-center">
@@ -189,25 +196,35 @@ export function AppLayout({ children }: { children: ReactNode }) {
         </nav>
       </header>
 
-      {/* Mobile sidebar overlay */}
-      {mobileOpen && (
+      {/* ── "More" drawer (mobile) ───────────────────────────────────────────── */}
+      {moreOpen && (
         <div className="fixed inset-0 z-50 md:hidden">
-          <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={() => setMobileOpen(false)} />
-          <aside className="absolute top-0 right-0 bottom-0 w-72 bg-[#0B1628] shadow-2xl overflow-y-auto">
-            <div className="flex items-center justify-between p-4 border-b border-white/10">
-              <span className="text-sm font-semibold text-white">Navigation</span>
+          {/* Backdrop */}
+          <div
+            className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+            onClick={() => setMoreOpen(false)}
+          />
+          {/* Sheet slides up from the bottom */}
+          <aside className="absolute bottom-0 left-0 right-0 bg-[#0B1628] rounded-t-2xl shadow-2xl overflow-y-auto max-h-[80vh]">
+
+            {/* Handle + close */}
+            <div className="flex items-center justify-between px-5 pt-4 pb-3">
+              <div className="w-10 h-1 rounded-full bg-white/20 mx-auto absolute left-1/2 -translate-x-1/2 top-3" />
+              <span className="text-sm font-semibold text-white">All Pages</span>
               <button
-                onClick={() => setMobileOpen(false)}
+                onClick={() => setMoreOpen(false)}
                 className="h-8 w-8 flex items-center justify-center rounded-lg hover:bg-white/10 text-white/60"
               >
                 <X className="h-4 w-4" />
               </button>
             </div>
-            <nav className="p-3 space-y-0.5">
+
+            {/* Nav items — grouped */}
+            <nav className="px-4 pb-8 space-y-1">
               {NAV_GROUPS.map((group, gi) => (
-                <div key={gi} className={gi > 0 ? 'mt-3' : ''}>
+                <div key={gi} className={gi > 0 ? 'mt-4' : ''}>
                   {group.label && (
-                    <p className="px-2 py-1 text-[9px] font-bold uppercase tracking-widest text-white/30">
+                    <p className="px-3 py-1.5 text-[9px] font-bold uppercase tracking-widest text-white/30">
                       {group.label}
                     </p>
                   )}
@@ -217,28 +234,114 @@ export function AppLayout({ children }: { children: ReactNode }) {
                       <Link
                         key={item.href}
                         href={item.href}
-                        onClick={() => setMobileOpen(false)}
+                        onClick={() => setMoreOpen(false)}
                         className={cn(
-                          'flex items-center gap-2.5 px-3 py-2.5 rounded-lg text-sm font-medium transition-all',
-                          active ? 'bg-white/12 text-white' : 'text-white/60 hover:bg-white/8 hover:text-white/85'
+                          'flex items-center gap-3 px-4 py-3.5 rounded-xl text-[15px] font-medium transition-all',
+                          active
+                            ? 'bg-white/12 text-white'
+                            : 'text-white/65 hover:bg-white/8 hover:text-white/90'
                         )}
                       >
-                        <item.icon className="h-4 w-4 flex-shrink-0" />
+                        <item.icon className="h-5 w-5 flex-shrink-0" />
                         {item.label}
+                        {active && (
+                          <span className="ml-auto h-1.5 w-1.5 rounded-full bg-blue-400" />
+                        )}
                       </Link>
                     )
                   })}
                 </div>
               ))}
             </nav>
+
+            {/* Safe-area spacer for iPhone home bar */}
+            <div className="h-safe-bottom" style={{ height: 'env(safe-area-inset-bottom)' }} />
           </aside>
         </div>
       )}
 
-      {/* Main content */}
-      <main className="min-h-screen">
+      {/* ── Main content ─────────────────────────────────────────────────────── */}
+      {/* pb-20 on mobile adds space above the bottom nav bar so content isn't hidden */}
+      <main className="min-h-screen pb-20 md:pb-0">
         {children}
       </main>
+
+      {/* ── Bottom navigation bar (mobile only) ─────────────────────────────── */}
+      <nav
+        className={cn(
+          'md:hidden fixed bottom-0 left-0 right-0 z-40',
+          'bg-[#0B1628]/95 backdrop-blur-xl',
+          'border-t border-white/10',
+          // Safe area inset so the bar sits above the iPhone home indicator
+          'pb-safe'
+        )}
+        style={{ paddingBottom: 'max(env(safe-area-inset-bottom), 8px)' }}
+      >
+        <div className="flex items-stretch">
+          {/* The 4 primary tab buttons */}
+          {BOTTOM_NAV.map((item) => {
+            const active = pathname === item.href
+            return (
+              <Link
+                key={item.href}
+                href={item.href}
+                className={cn(
+                  'flex flex-col items-center justify-center flex-1 pt-2.5 pb-1.5 gap-1 min-h-[56px]',
+                  'transition-all duration-150 active:scale-95',
+                  active ? 'text-white' : 'text-white/40'
+                )}
+              >
+                {/* Active indicator dot above the icon */}
+                <span
+                  className={cn(
+                    'absolute top-0 h-0.5 w-8 rounded-full transition-all duration-200',
+                    active ? 'bg-blue-400 opacity-100' : 'opacity-0'
+                  )}
+                  style={{ marginTop: '-1px' }}
+                />
+                <item.icon
+                  className={cn(
+                    'h-5 w-5 flex-shrink-0 transition-transform duration-150',
+                    active ? 'scale-110' : 'scale-100'
+                  )}
+                  strokeWidth={active ? 2.2 : 1.7}
+                />
+                <span className={cn(
+                  'text-[10px] font-medium tracking-wide transition-all duration-150',
+                  active ? 'text-white' : 'text-white/40'
+                )}>
+                  {item.label}
+                </span>
+              </Link>
+            )
+          })}
+
+          {/* More button — opens the full nav drawer */}
+          <button
+            onClick={() => setMoreOpen(true)}
+            className={cn(
+              'flex flex-col items-center justify-center flex-1 pt-2.5 pb-1.5 gap-1 min-h-[56px]',
+              'transition-all duration-150 active:scale-95',
+              isMoreActive ? 'text-white' : 'text-white/40'
+            )}
+          >
+            <MoreHorizontal
+              className={cn(
+                'h-5 w-5 flex-shrink-0 transition-transform duration-150',
+                isMoreActive ? 'scale-110' : 'scale-100'
+              )}
+              strokeWidth={isMoreActive ? 2.2 : 1.7}
+            />
+            <span className={cn(
+              'text-[10px] font-medium tracking-wide',
+              isMoreActive ? 'text-white' : 'text-white/40'
+            )}>
+              More
+            </span>
+          </button>
+        </div>
+      </nav>
+
     </div>
   )
 }

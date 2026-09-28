@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from 'next'
 import { Inter, Geist_Mono } from 'next/font/google'
 import { Analytics } from '@vercel/analytics/next'
 import { ThemeProvider } from '@/components/theme-provider'
+import { PWAInit } from '@/components/pwa-init'
 import './globals.css'
 
 const inter = Inter({ 
@@ -18,6 +19,14 @@ export const metadata: Metadata = {
   title: 'AI HedgeFund | Institutional Investment Research',
   description: 'Professional-grade investment research platform for sophisticated investors',
   generator: 'v0.app',
+  // PWA manifest — makes the app installable from the browser
+  manifest: '/manifest.json',
+  // Apple-specific PWA settings
+  appleWebApp: {
+    capable: true,
+    title: 'AI HedgeFund',
+    statusBarStyle: 'black-translucent', // Lets the navy header bleed into the status bar
+  },
   icons: {
     icon: [
       {
@@ -41,7 +50,8 @@ export const viewport: Viewport = {
   width: 'device-width',
   initialScale: 1,
   maximumScale: 1,
-  themeColor: '#1e3a5f',
+  // Matches the navy header so the status bar blends in on iPhone
+  themeColor: '#0B1628',
 }
 
 export default function RootLayout({
@@ -53,6 +63,7 @@ export default function RootLayout({
     <html lang="en" className={`${inter.variable} ${geistMono.variable} bg-background`} suppressHydrationWarning>
       <body className="font-sans antialiased">
         <ThemeProvider attribute="class" defaultTheme="light" enableSystem={false}>
+          <PWAInit />
           {children}
           {process.env.NODE_ENV === 'production' && <Analytics />}
         </ThemeProvider>
