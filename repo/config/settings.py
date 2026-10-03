@@ -138,5 +138,5 @@ EVENT_CATEGORIES = [
 
 # ─── HTTP Request Settings ────────────────────────────────────────────────────
 
-REQUEST_TIMEOUT = 10       # seconds before a provider call is abandoned
-MAX_RETRIES     = 2        # how many times to retry a failed request
+REQUEST_TIMEOUT = 5        # seconds before a provider call is abandoned
+MAX_RETRIES     = 1        # how many times to retry a failed request
