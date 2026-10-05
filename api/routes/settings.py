@@ -156,7 +156,7 @@ def sharesight_debug():
         result["top_level_keys"]       = list(raw.keys())
         result["portfolio_level_keys"] = list(portfolio_obj.keys())
 
-        shareholdings = portfolio_obj.get("shareholdings", [])
+        shareholdings = portfolio_obj.get("holdings", []) or portfolio_obj.get("shareholdings", [])
         result["shareholdings_count"] = len(shareholdings)
 
         # Show only field names (no values) — enough to spot field-name mismatches

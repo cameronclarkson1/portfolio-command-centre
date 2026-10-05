@@ -188,7 +188,8 @@ def get_holdings(portfolio_id: int = None) -> list[dict]:
     today    = date.today().isoformat()
     data     = _api_get(f"/portfolios/{pid}/performance.json?start_date=2000-01-01&end_date={today}")
     portfolio = data.get("portfolio", data)
-    raw_list  = portfolio.get("shareholdings", [])
+    # Sharesight returns "holdings" on the performance endpoint (not "shareholdings")
+    raw_list  = portfolio.get("holdings", []) or portfolio.get("shareholdings", [])
 
     if not raw_list:
         log.warning(f"Sharesight: portfolio {pid} returned no shareholdings")
