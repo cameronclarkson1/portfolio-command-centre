@@ -79,15 +79,36 @@ def _get_nzd_rate() -> float:
 def _get_base_holdings() -> list[dict]:
     """
     Return the base holdings list — tries Sharesight first, falls back to sample_data.
-    Sharesight provides: ticker, name, sector, shares, avg_cost, current_price.
+
+    Hybrid strategy:
+      - Share counts come from Sharesight (always up-to-date after buys/sells)
+      - avg_cost comes from sample_data.py (Sharesight's performance endpoint derives
+        cost from period gain which doesn't match our USD cost basis exactly)
+      - Sector/name fall back to sample_data.py when Sharesight doesn't provide them
     """
+    snapshot_map = {h["ticker"]: h for h in PORTFOLIO_HOLDINGS}
+
     try:
         import providers.sharesight_provider as sharesight
         from config.api_keys import SHARESIGHT_ACCESS_TOKEN
         if SHARESIGHT_ACCESS_TOKEN:
             holdings = sharesight.get_holdings()
             if holdings:
-                return holdings
+                merged = []
+                for h in holdings:
+                    snap = snapshot_map.get(h["ticker"], {})
+                    merged.append({
+                        "ticker":        h["ticker"],
+                        "name":          h.get("name") or snap.get("name", h["ticker"]),
+                        "sector":        snap.get("sector") or h.get("sector", "Unknown"),
+                        # Sharesight quantity is always current (reflects real trades)
+                        "shares":        h["shares"],
+                        # Use sample_data avg_cost — Sharesight's derived cost doesn't
+                        # match our USD cost basis (different FX/fee accounting)
+                        "avg_cost":      snap.get("avg_cost") or h.get("avg_cost", 0.0),
+                        "current_price": snap.get("current_price") or h.get("current_price", 0.0),
+                    })
+                return merged
     except Exception as e:
         import logging
         logging.getLogger(__name__).warning(f"Sharesight unavailable, using sample_data: {e}")
