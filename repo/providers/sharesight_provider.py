@@ -197,27 +197,29 @@ def get_holdings(portfolio_id: int = None) -> list[dict]:
 
     holdings = []
     for h in raw_list:
-        # Sharesight may append the exchange code: "AAPL.XNAS" → "AAPL"
+        # Sharesight performance endpoint uses "symbol" (may include exchange: "AAPL.XNAS")
         raw_symbol = str(h.get("symbol") or h.get("ticker_symbol") or "")
         ticker     = raw_symbol.split(".")[0].upper()
         if not ticker:
             continue
 
+        # "quantity" is the field name on the performance endpoint
         quantity = float(h.get("quantity") or h.get("shares") or 0)
         if quantity <= 0:
             continue
 
-        # Sharesight provides total cost_basis; derive per-share avg
-        total_cost = float(h.get("cost_base") or h.get("cost_basis") or 0)
-        avg_cost   = round(total_cost / quantity, 4) if total_cost else 0.0
-
-        # Use Sharesight's market value for a snapshot current price
+        # performance endpoint doesn't return cost_base directly —
+        # derive it from: cost_basis = current_value - capital_gain
         market_val    = float(h.get("value") or h.get("market_value") or 0)
+        capital_gain  = float(h.get("capital_gain") or 0)
+        cost_basis    = market_val - capital_gain
+        avg_cost      = round(cost_basis / quantity, 4) if cost_basis and quantity else 0.0
         current_price = round(market_val / quantity, 4) if market_val and quantity else avg_cost
 
+        # "name" is the company name on the performance endpoint
         holdings.append({
             "ticker":        ticker,
-            "name":          h.get("security_name") or _NAME_MAP.get(ticker, ticker),
+            "name":          h.get("name") or h.get("security_name") or _NAME_MAP.get(ticker, ticker),
             "sector":        _SECTOR_MAP.get(ticker, "Unknown"),
             "shares":        quantity,
             "avg_cost":      avg_cost,
