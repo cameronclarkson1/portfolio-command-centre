@@ -142,7 +142,10 @@ def _build_live_portfolio():
 
         if pd and pd.get("price"):
             item["current_price"] = pd["price"]
-            item["change_pct"]    = pd.get("change_pct", 0.0) or 0.0
+            # Polygon returns change_pct as a decimal (0.0122 = 1.22%).
+            # Convert to percentage here so all downstream maths uses pct form.
+            raw_chg = pd.get("change_pct", 0.0) or 0.0
+            item["change_pct"] = round(raw_chg * 100, 4)  # → 1.22
             prices_live = True
         else:
             item.setdefault("current_price", h.get("current_price", 0.0))
@@ -159,6 +162,7 @@ def _build_live_portfolio():
             item["unrealised_pnl"] / item["cost_basis"] * 100
             if item["cost_basis"] else 0, 2
         )
+        # change_pct is now in percentage form (1.22), so divide by 100 is correct
         item["daily_change_dollars"] = round(item["market_value"] * item["change_pct"] / 100, 2)
         holdings.append(item)
 
