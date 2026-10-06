@@ -243,7 +243,8 @@ def get_holdings(portfolio_id: int = None) -> list[dict]:
     if not raw_list:
         from datetime import date
         today     = date.today().isoformat()
-        data      = _api_get(f"/portfolios/{pid}/performance.json?start_date=2000-01-01&end_date={today}")
+        # include_sales=false excludes fully-sold positions — only open holdings returned
+        data      = _api_get(f"/portfolios/{pid}/performance.json?start_date=2000-01-01&end_date={today}&include_sales=false")
         portfolio = data.get("portfolio", data)
         raw_list  = portfolio.get("holdings", []) or portfolio.get("shareholdings", [])
         endpoint_used = "performance"

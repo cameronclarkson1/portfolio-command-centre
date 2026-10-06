@@ -145,7 +145,7 @@ def sharesight_debug():
     today = date.today().isoformat()
     try:
         r2 = requests.get(
-            f"{BASE}/portfolios/{pid}/performance.json?start_date=2000-01-01&end_date={today}",
+            f"{BASE}/portfolios/{pid}/performance.json?start_date=2000-01-01&end_date={today}&include_sales=false",
             headers=headers, timeout=20
         )
         result["holdings_status"] = r2.status_code
