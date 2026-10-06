@@ -589,6 +589,50 @@ def update_cash(body: CashUpdate):
     return {"amount": amount}
 
 
+@router.get("/debug-source")
+def debug_holdings_source():
+    """
+    Diagnostic: shows which data source is powering the portfolio page,
+    the tickers being returned, and any error from Sharesight.
+    Returns ONLY tickers (no financial values) — safe to expose.
+    """
+    import traceback
+
+    # Try Sharesight directly and capture any error
+    sharesight_error  = None
+    sharesight_tickers: list[str] = []
+    sharesight_count  = 0
+
+    try:
+        import providers.sharesight_provider as sharesight
+        from config.api_keys import SHARESIGHT_ACCESS_TOKEN, SHARESIGHT_PORTFOLIO_ID
+        if not SHARESIGHT_ACCESS_TOKEN:
+            sharesight_error = "SHARESIGHT_ACCESS_TOKEN is empty in api_keys"
+        else:
+            holdings = sharesight.get_holdings()
+            sharesight_count   = len(holdings)
+            sharesight_tickers = [h["ticker"] for h in holdings]
+    except Exception as e:
+        sharesight_error = f"{type(e).__name__}: {e}\n{traceback.format_exc()}"
+
+    # What _get_base_holdings() would actually return
+    base = _get_base_holdings()
+    sample_tickers = [h["ticker"] for h in __import__('utils.sample_data', fromlist=['PORTFOLIO_HOLDINGS']).PORTFOLIO_HOLDINGS]
+
+    source = "sharesight" if sharesight_tickers and base[0]["ticker"] in sharesight_tickers else "sample_data"
+
+    return {
+        "source":              source,
+        "base_holdings_count": len(base),
+        "base_tickers":        [h["ticker"] for h in base],
+        "sharesight_count":    sharesight_count,
+        "sharesight_tickers":  sharesight_tickers,
+        "sharesight_error":    sharesight_error,
+        "sample_data_count":   len(sample_tickers),
+        "sample_tickers":      sample_tickers,
+    }
+
+
 @router.get("/risk")
 def get_portfolio_risk():
     """
