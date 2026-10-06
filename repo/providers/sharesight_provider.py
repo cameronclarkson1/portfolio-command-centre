@@ -102,8 +102,7 @@ def _refresh_access_token() -> str:
     _update_env("SHARESIGHT_ACCESS_TOKEN",  new_access)
     _update_env("SHARESIGHT_REFRESH_TOKEN", new_refresh)
 
-    # Update module-level globals so refreshed tokens are used for this session
-    global SHARESIGHT_ACCESS_TOKEN, SHARESIGHT_REFRESH_TOKEN
+    # global already declared at top of function — just assign
     SHARESIGHT_ACCESS_TOKEN  = new_access
     SHARESIGHT_REFRESH_TOKEN = new_refresh
 
