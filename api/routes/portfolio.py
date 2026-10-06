@@ -103,10 +103,13 @@ def _get_base_holdings() -> list[dict]:
                         "sector":        snap.get("sector") or h.get("sector", "Unknown"),
                         # Sharesight quantity is always current (reflects real trades)
                         "shares":        h["shares"],
-                        # Use sample_data avg_cost — Sharesight's derived cost doesn't
-                        # match our USD cost basis (different FX/fee accounting)
+                        # avg_cost: use sample_data USD value (Sharesight's derived cost
+                        # uses FX-adjusted period accounting, not our USD cost basis)
                         "avg_cost":      snap.get("avg_cost") or h.get("avg_cost", 0.0),
-                        "current_price": snap.get("current_price") or h.get("current_price", 0.0),
+                        # current_price fallback priority:
+                        #   1. Sharesight value/quantity — recent end-of-day USD price
+                        #   2. sample_data snapshot — stale (only if Sharesight missing)
+                        "current_price": h.get("current_price") or snap.get("current_price") or h.get("avg_cost", 0.0),
                     })
                 return merged
     except Exception as e:
