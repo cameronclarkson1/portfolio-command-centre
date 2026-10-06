@@ -161,20 +161,64 @@ def get_portfolios() -> list[dict]:
     ]
 
 
+def _parse_shareholding(h: dict) -> dict | None:
+    """
+    Parse one raw Sharesight holding (from either endpoint) into our standard format.
+    Returns None if the holding should be skipped (no ticker, no quantity, closed).
+    """
+    # shareholdings.json nests ticker inside h["security"]["code"]
+    # performance.json has ticker at top level as h["symbol"]
+    security   = h.get("security") or {}
+    raw_symbol = str(
+        security.get("code") or
+        h.get("symbol") or
+        h.get("ticker_symbol") or
+        ""
+    )
+    ticker = raw_symbol.split(".")[0].upper()
+    if not ticker:
+        return None
+
+    quantity = float(h.get("quantity") or h.get("shares") or 0)
+    if quantity <= 0:
+        return None
+
+    market_val    = float(h.get("market_value") or h.get("value") or 0)
+    capital_gain  = float(h.get("gain") or h.get("capital_gain") or 0)
+    cost_basis    = market_val - capital_gain
+    current_price = round(market_val / quantity, 4) if market_val and quantity else 0.0
+    avg_cost      = round(cost_basis / quantity, 4) if cost_basis and quantity else 0.0
+
+    name = (
+        security.get("name") or
+        h.get("name") or
+        h.get("security_name") or
+        _NAME_MAP.get(ticker, ticker)
+    )
+
+    return {
+        "ticker":        ticker,
+        "name":          name,
+        "sector":        _SECTOR_MAP.get(ticker, "Unknown"),
+        "shares":        quantity,
+        "avg_cost":      avg_cost,
+        "current_price": current_price,
+    }
+
+
 def get_holdings(portfolio_id: int = None) -> list[dict]:
     """
-    Fetch current holdings from Sharesight and return them in our
-    standard format so they slot straight into the portfolio route.
+    Fetch CURRENT (open) holdings from Sharesight.
 
-    Each item:
-      ticker, name, sector, shares, avg_cost, current_price
+    Strategy:
+      1. Try portfolios/{pid}/shareholdings.json — returns only open positions
+      2. Fall back to performance.json — returns all positions (open + closed)
+         filtered to quantity > 0 and market_value > 0
 
-    Falls back to SHARESIGHT_PORTFOLIO_ID from .env if portfolio_id not given.
     Returns [] if Sharesight is not connected or returns no data.
     """
     pid = portfolio_id or SHARESIGHT_PORTFOLIO_ID
     if not pid:
-        # Auto-select the first portfolio
         portfolios = get_portfolios()
         if not portfolios:
             log.warning("Sharesight: no portfolios found on account")
@@ -183,50 +227,45 @@ def get_holdings(portfolio_id: int = None) -> list[dict]:
         _update_env("SHARESIGHT_PORTFOLIO_ID", str(pid))
         log.info(f"Sharesight: auto-selected portfolio id={pid}")
 
-    # performance.json includes shareholdings and is available on all plans
-    from datetime import date
-    today    = date.today().isoformat()
-    data     = _api_get(f"/portfolios/{pid}/performance.json?start_date=2000-01-01&end_date={today}")
-    portfolio = data.get("portfolio", data)
-    # Sharesight returns "holdings" on the performance endpoint (not "shareholdings")
-    raw_list  = portfolio.get("holdings", []) or portfolio.get("shareholdings", [])
+    # ── Try 1: shareholdings.json (open positions only) ───────────────────────
+    raw_list: list = []
+    endpoint_used  = "none"
+    try:
+        data     = _api_get(f"/portfolios/{pid}/shareholdings.json")
+        raw_list = data.get("shareholdings", [])
+        if raw_list:
+            endpoint_used = "shareholdings"
+            log.info(f"Sharesight: shareholdings.json returned {len(raw_list)} rows")
+    except Exception as e:
+        log.warning(f"Sharesight: shareholdings.json failed ({e}), trying performance.json")
+
+    # ── Try 2: performance.json fallback ──────────────────────────────────────
+    if not raw_list:
+        from datetime import date
+        today     = date.today().isoformat()
+        data      = _api_get(f"/portfolios/{pid}/performance.json?start_date=2000-01-01&end_date={today}")
+        portfolio = data.get("portfolio", data)
+        raw_list  = portfolio.get("holdings", []) or portfolio.get("shareholdings", [])
+        endpoint_used = "performance"
+        log.info(f"Sharesight: performance.json returned {len(raw_list)} rows")
 
     if not raw_list:
-        log.warning(f"Sharesight: portfolio {pid} returned no shareholdings")
+        log.warning(f"Sharesight: portfolio {pid} returned no holdings from either endpoint")
         return []
 
     holdings = []
+    skipped  = 0
     for h in raw_list:
-        # Sharesight performance endpoint uses "symbol" (may include exchange: "AAPL.XNAS")
-        raw_symbol = str(h.get("symbol") or h.get("ticker_symbol") or "")
-        ticker     = raw_symbol.split(".")[0].upper()
-        if not ticker:
-            continue
+        parsed = _parse_shareholding(h)
+        if parsed:
+            holdings.append(parsed)
+        else:
+            skipped += 1
 
-        # "quantity" is the field name on the performance endpoint
-        quantity = float(h.get("quantity") or h.get("shares") or 0)
-        if quantity <= 0:
-            continue
-
-        # performance endpoint doesn't return cost_base directly —
-        # derive it from: cost_basis = current_value - capital_gain
-        market_val    = float(h.get("value") or h.get("market_value") or 0)
-        capital_gain  = float(h.get("capital_gain") or 0)
-        cost_basis    = market_val - capital_gain
-        avg_cost      = round(cost_basis / quantity, 4) if cost_basis and quantity else 0.0
-        current_price = round(market_val / quantity, 4) if market_val and quantity else avg_cost
-
-        # "name" is the company name on the performance endpoint
-        holdings.append({
-            "ticker":        ticker,
-            "name":          h.get("name") or h.get("security_name") or _NAME_MAP.get(ticker, ticker),
-            "sector":        _SECTOR_MAP.get(ticker, "Unknown"),
-            "shares":        quantity,
-            "avg_cost":      avg_cost,
-            "current_price": current_price,
-        })
-
-    log.info(f"Sharesight: loaded {len(holdings)} holdings from portfolio {pid}")
+    log.info(
+        f"Sharesight: loaded {len(holdings)} open holdings via {endpoint_used} "
+        f"(skipped {skipped} closed/empty rows) from portfolio {pid}"
+    )
     return holdings
 
 

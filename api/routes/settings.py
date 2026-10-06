@@ -156,20 +156,43 @@ def sharesight_debug():
         result["top_level_keys"]       = list(raw.keys())
         result["portfolio_level_keys"] = list(portfolio_obj.keys())
 
-        shareholdings = portfolio_obj.get("holdings", []) or portfolio_obj.get("shareholdings", [])
-        result["shareholdings_count"] = len(shareholdings)
+        # ── Try shareholdings.json first (open positions only) ──────────────
+        try:
+            r_sh = requests.get(
+                f"{BASE}/portfolios/{pid}/shareholdings.json",
+                headers=headers, timeout=20
+            )
+            result["shareholdings_endpoint_status"] = r_sh.status_code
+            if r_sh.status_code == 200:
+                sh_data = r_sh.json()
+                sh_list = sh_data.get("shareholdings", [])
+                result["shareholdings_count"]      = len(sh_list)
+                result["shareholdings_source"]     = "shareholdings.json (open positions only)"
+                if sh_list:
+                    result["shareholdings_field_names"] = list(sh_list[0].keys())
+                    sec = sh_list[0].get("security") or {}
+                    result["security_field_names"]      = list(sec.keys())
+            else:
+                result["shareholdings_endpoint_note"] = f"HTTP {r_sh.status_code} — falling back to performance.json"
+        except Exception as e:
+            result["shareholdings_endpoint_error"] = str(e)
 
-        # Show only field names (no values) — enough to spot field-name mismatches
-        if shareholdings:
-            result["all_field_names"] = list(shareholdings[0].keys())
-            # Check whether each field the provider expects is actually present
-            expected = ["symbol", "ticker_symbol", "quantity", "shares",
-                        "cost_base", "cost_basis", "value", "market_value", "security_name"]
-            result["expected_fields_present"] = {
-                f: f in shareholdings[0] for f in expected
-            }
+        # ── Fall back to performance.json ─────────────────────────────────
+        portfolio_obj = raw.get("portfolio", raw)
+        perf_list = portfolio_obj.get("holdings", []) or portfolio_obj.get("shareholdings", [])
+        result["performance_holdings_count"] = len(perf_list)
+        result["performance_source"]         = "performance.json (includes closed positions)"
+
+        if perf_list:
+            result["performance_field_names"] = list(perf_list[0].keys())
+            open_count = sum(
+                1 for h in perf_list
+                if float(h.get("quantity") or h.get("shares") or 0) > 0
+                and float(h.get("value") or h.get("market_value") or 0) > 0
+            )
+            result["performance_open_positions"] = open_count
         else:
-            result["conclusion"] = "Portfolio found but shareholdings list is empty"
+            result["conclusion"] = "Portfolio found but no holdings returned from performance.json either"
 
     except Exception as e:
         result["holdings_error"] = str(e)
