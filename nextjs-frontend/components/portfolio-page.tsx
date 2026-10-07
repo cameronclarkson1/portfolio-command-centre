@@ -405,7 +405,7 @@ export function PortfolioPage({ apiData }: { apiData?: PortfolioApiData | null }
           <p className="text-sm font-medium text-foreground">
             Today&apos;s P&amp;L:{' '}
             <span className={dailyChangeDollars >= 0 ? 'text-success' : 'text-destructive'}>
-              {dailyChangeDollars >= 0 ? '+' : ''}{formatCurrency(dailyChangeDollars)}
+              {dailyChangeDollars >= 0 ? '+' : ''}{fmtNZD(dailyChangeDollars)}
               {' '}({dailyChangePct >= 0 ? '+' : ''}{(dailyChangePct).toFixed(2)}%)
             </span>
           </p>
@@ -424,7 +424,7 @@ export function PortfolioPage({ apiData }: { apiData?: PortfolioApiData | null }
                   perfData.change_pct >= 0 ? 'text-success' : 'text-destructive'
                 )}>
                   Portfolio: {perfData.change_pct >= 0 ? '+' : ''}{perfData.change_pct.toFixed(2)}%
-                  {' '}({perfData.change_dollars >= 0 ? '+' : ''}{formatCurrency(perfData.change_dollars)})
+                  {' '}({perfData.change_dollars >= 0 ? '+' : ''}{fmtNZD(perfData.change_dollars)})
                 </p>
                 {perfData.benchmark_change_pct != null && (
                   <p className={cn(
@@ -628,7 +628,7 @@ export function PortfolioPage({ apiData }: { apiData?: PortfolioApiData | null }
                       </div>
                     </div>
                     <div className="text-right">
-                      <p className="text-sm font-medium text-foreground">{formatCurrency(h.value, true)}</p>
+                      <p className="text-sm font-medium text-foreground">{fmtNZD(h.value)}</p>
                       <p className={cn('text-xs', h.change >= 0 ? 'text-success' : 'text-destructive')}>
                         {h.change >= 0 ? '+' : ''}{h.change.toFixed(2)}%
                       </p>
@@ -662,12 +662,12 @@ export function PortfolioPage({ apiData }: { apiData?: PortfolioApiData | null }
                     <p className="text-xs text-muted-foreground">{h.shares.toFixed(2)} sh</p>
                   </div>
                   <div className="col-span-2 text-right">
-                    <p className="text-sm font-medium text-foreground">{formatCurrency(h.value)}</p>
+                    <p className="text-sm font-medium text-foreground">{fmtNZD(h.value)}</p>
                     <p className={cn(
                       'text-xs',
                       h.unrealisedPnl >= 0 ? 'text-success' : 'text-destructive'
                     )}>
-                      {h.unrealisedPnl >= 0 ? '+' : ''}{formatCurrency(h.unrealisedPnl)}
+                      {h.unrealisedPnl >= 0 ? '+' : ''}{fmtNZD(h.unrealisedPnl)}
                       {' '}({h.unrealisedPct >= 0 ? '+' : ''}{h.unrealisedPct.toFixed(2)}%)
                     </p>
                   </div>
@@ -683,7 +683,7 @@ export function PortfolioPage({ apiData }: { apiData?: PortfolioApiData | null }
                       {h.change >= 0 ? '+' : ''}{h.change.toFixed(2)}%
                     </p>
                     <p className={cn('text-xs', h.change >= 0 ? 'text-success/70' : 'text-destructive/70')}>
-                      {h.dailyChangeDollars >= 0 ? '+' : ''}{formatCurrency(h.dailyChangeDollars)}
+                      {h.dailyChangeDollars >= 0 ? '+' : ''}{fmtNZD(h.dailyChangeDollars)}
                     </p>
                   </div>
                   <div className="col-span-2 text-right">
@@ -802,9 +802,9 @@ export function PortfolioPage({ apiData }: { apiData?: PortfolioApiData | null }
             <div className="mt-3 divide-y divide-border">
               <DataRow label="Positions"      value={String(holdings.length)} />
               <DataRow label="Sectors"        value={String(sectorChart.filter(s => s.name !== 'Cash').length)} />
-              <DataRow label="Total Cost"     value={formatCurrency(holdings.reduce((s, h) => s + h.costBasis, 0))} />
-              <DataRow label="Unrealised G/L" value={formatCurrency(totalGain)} change={totalGainPct} />
-              <DataRow label="Cash"           value={formatCurrency(cash)} />
+              <DataRow label="Total Cost"     value={fmtNZD(holdings.reduce((s, h) => s + h.costBasis, 0))} />
+              <DataRow label="Unrealised G/L" value={fmtNZD(totalGain)} change={totalGainPct} />
+              <DataRow label="Cash"           value={fmtNZD(cash)} />
             </div>
           </div>
         </div>
