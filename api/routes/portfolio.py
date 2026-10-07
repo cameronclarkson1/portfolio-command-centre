@@ -625,6 +625,20 @@ def debug_holdings_source():
 
     source = "sharesight" if sharesight_tickers and base[0]["ticker"] in sharesight_tickers else "sample_data"
 
+    nzd = _get_nzd_rate()
+    base_breakdown = [
+        {
+            "ticker":    h["ticker"],
+            "shares":    h["shares"],
+            "avg_cost":  h["avg_cost"],
+            "cost_basis_usd": round(h["avg_cost"] * h["shares"], 2),
+            "cost_basis_nzd": round(h["avg_cost"] * h["shares"] * nzd, 2),
+        }
+        for h in base
+    ]
+    total_cost_usd = round(sum(r["cost_basis_usd"] for r in base_breakdown), 2)
+    cash_usd       = _get_cash()
+
     return {
         "source":              source,
         "base_holdings_count": len(base),
@@ -634,6 +648,12 @@ def debug_holdings_source():
         "sharesight_error":    sharesight_error,
         "sample_data_count":   len(sample_tickers),
         "sample_tickers":      sample_tickers,
+        "nzd_rate":            nzd,
+        "cash_usd":            cash_usd,
+        "cash_nzd":            round(cash_usd * nzd, 2),
+        "total_cost_usd":      total_cost_usd,
+        "total_cost_nzd":      round(total_cost_usd * nzd, 2),
+        "holdings_breakdown":  base_breakdown,
     }
 
 

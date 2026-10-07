@@ -115,6 +115,10 @@ PORTFOLIO_HOLDINGS = [
         "shares": 14.93367223, "avg_cost":  53.433, "current_price":  53.433,
     },
     {
+        "ticker": "MSFT", "name": "Microsoft",            "sector": "Technology",
+        "shares": 1.0, "avg_cost": 480.591, "current_price": 480.591,
+    },
+    {
         "ticker": "MU",   "name": "Micron Technology",    "sector": "Technology",
         "shares": 0.85077788, "avg_cost": 119.123, "current_price": 119.123,
     },
@@ -157,7 +161,7 @@ PORTFOLIO_HOLDINGS = [
 SECTOR_EXPOSURE = {
     "ETF":                      "~SCHD + VOO",
     "Consumer Discretionary":   "~AMZN + BABA + MCD",
-    "Technology":               "~AVGO + MU + NVDA",
+    "Technology":               "~AVGO + MSFT + MU + NVDA",
     "Financials":               "~BAC + MA + V + WFC",
     "Consumer Staples":         "~KO + MO",
     "Communication Services":   "~GOOG + META + VZ",
