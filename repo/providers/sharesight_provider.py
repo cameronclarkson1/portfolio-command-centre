@@ -69,10 +69,69 @@ def _update_env(key: str, value: str) -> None:
         f.writelines(lines)
 
 
+def _persist_tokens_to_railway(access_token: str, refresh_token: str) -> None:
+    """
+    Write refreshed tokens back to Railway environment variables via the Railway API.
+    This means tokens survive redeployments — no manual OAuth re-runs needed.
+
+    Requires RAILWAY_API_TOKEN in env vars (set once in Railway dashboard).
+    RAILWAY_PROJECT_ID, RAILWAY_SERVICE_ID, RAILWAY_ENVIRONMENT_ID are
+    Railway built-ins provided automatically — no manual configuration needed.
+    """
+    api_token      = os.environ.get("RAILWAY_API_TOKEN", "")
+    project_id     = os.environ.get("RAILWAY_PROJECT_ID", "")
+    service_id     = os.environ.get("RAILWAY_SERVICE_ID", "")
+    environment_id = os.environ.get("RAILWAY_ENVIRONMENT_ID", "")
+
+    if not api_token:
+        return  # not on Railway or token not configured — skip silently
+
+    if not all([project_id, service_id, environment_id]):
+        log.warning("Sharesight: Railway built-in IDs missing — tokens won't auto-persist")
+        return
+
+    mutation = """
+    mutation variableUpsert($input: VariableUpsertInput!) {
+        variableUpsert(input: $input)
+    }
+    """
+    for name, value in [
+        ("SHARESIGHT_ACCESS_TOKEN",  access_token),
+        ("SHARESIGHT_REFRESH_TOKEN", refresh_token),
+    ]:
+        try:
+            resp = requests.post(
+                "https://backboard.railway.app/graphql/v2",
+                json={
+                    "query":     mutation,
+                    "variables": {"input": {
+                        "projectId":     project_id,
+                        "serviceId":     service_id,
+                        "environmentId": environment_id,
+                        "name":          name,
+                        "value":         value,
+                    }},
+                },
+                headers={
+                    "Authorization": f"Bearer {api_token}",
+                    "Content-Type":  "application/json",
+                },
+                timeout=10,
+            )
+            result = resp.json()
+            if "errors" in result:
+                log.warning(f"Sharesight: Railway API error for {name}: {result['errors']}")
+            else:
+                log.info(f"Sharesight: persisted {name} to Railway env vars")
+        except Exception as e:
+            log.warning(f"Sharesight: failed to persist {name} to Railway: {e}")
+
+
 def _refresh_access_token() -> str:
     """
     Use the refresh token to get a new access token from Sharesight.
-    Saves the new tokens to repo/.env so they persist across restarts.
+    Saves tokens to repo/.env (local) AND Railway env vars (production)
+    so they survive redeployments.
     Returns the new access token, or raises if refresh fails.
     """
     global SHARESIGHT_ACCESS_TOKEN, SHARESIGHT_REFRESH_TOKEN
@@ -101,6 +160,9 @@ def _refresh_access_token() -> str:
 
     _update_env("SHARESIGHT_ACCESS_TOKEN",  new_access)
     _update_env("SHARESIGHT_REFRESH_TOKEN", new_refresh)
+
+    # Update Railway env vars so tokens survive the next redeploy
+    _persist_tokens_to_railway(new_access, new_refresh)
 
     # global already declared at top of function — just assign
     SHARESIGHT_ACCESS_TOKEN  = new_access
