@@ -87,10 +87,6 @@ PORTFOLIO_HOLDINGS = [
         "shares": 9.35763340, "avg_cost":  42.931, "current_price":  42.931,
     },
     {
-        "ticker": "BTG",  "name": "B2Gold Corp",          "sector": "Materials",
-        "shares": 7.87403600, "avg_cost":   6.243, "current_price":   6.243,
-    },
-    {
         "ticker": "GOOG", "name": "Alphabet",             "sector": "Communication Services",
         "shares": 4.30615586, "avg_cost": 172.441, "current_price": 172.441,
     },
@@ -167,7 +163,7 @@ SECTOR_EXPOSURE = {
     "Communication Services":   "~GOOG + META + VZ",
     "Healthcare":               "~JNJ",
     "Real Estate":              "~O",
-    "Materials":                "~BTG + NEM",
+    "Materials":                "~NEM",
 }
 
 # ─── Watchlist ─────────────────────────────────────────────────────────────────
