@@ -255,7 +255,7 @@ export function PortfolioPage({ apiData }: { apiData?: PortfolioApiData | null }
   const isLive  = liveData?.summary.prices_live ?? false
   const nzdRate = liveData?.nzd_rate ?? 1.69
 
-  // Format a USD value as NZD (primary display)
+  // Format a USD value as NZD (primary display currency)
   const fmtNZD = (usd: number) => {
     const nzd = usd * nzdRate
     const abs = Math.abs(nzd)
