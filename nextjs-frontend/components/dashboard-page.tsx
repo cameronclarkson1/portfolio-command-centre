@@ -16,7 +16,7 @@ import {
 import {
   portfolioData, marketRegime as mockRegime, portfolioHealthDetail, performanceData,
   dailyDecisions, opportunities, riskAlerts, sectorAllocation, holdings,
-  marketIndices as mockIndices, newsEvents as mockNews, upcomingEvents, topMovers, allocationDrift,
+  marketIndices as mockIndices, newsEvents as mockNews, upcomingEvents, topMovers,
 } from '@/lib/mock-data'
 import type { LiveDashboardData, DashboardDecision, DashboardOpportunity, DashboardHolding, DashboardSectorEntry, ScannerOpportunity, EarningsItem } from '@/lib/api'
 import { fetchPortfolioPerformance, triggerScan, fetchScannerStatus, fetchScannerResults, fetchPortfolioEarnings } from '@/lib/api'
@@ -99,6 +99,28 @@ export function DashboardPage({ liveData }: DashboardPageProps) {
     value: h.value, change: h.change, unrealisedPnl: h.unrealisedPnl,
   }))
   const displaySectors: DashboardSectorEntry[] = liveData?.sectorAlloc ?? sectorAllocation
+
+  // Allocation drift: Cash vs 10% target, sectors flagged if over 30% concentration cap
+  const liveAllocationDrift = (() => {
+    const cashPct   = (liveData?.portfolioSummary?.cash_pct ?? 0)
+    const cashDrift = Math.round((cashPct - 10) * 100) / 100
+    const rows: Array<{ sector: string; current: number; target: number; drift: number; action: string; actionType: 'hold' | 'buy' | 'sell' }> = [
+      {
+        sector:     'Cash',
+        current:    cashPct,
+        target:     10,
+        drift:      cashDrift,
+        action:     cashDrift >  2 ? 'Deploy' : cashDrift < -2 ? 'Add Cash' : 'Hold',
+        actionType: cashDrift >  2 ? 'buy'    : cashDrift < -2 ? 'sell'     : 'hold',
+      },
+    ]
+    for (const s of [...displaySectors].sort((a, b) => b.value - a.value)) {
+      const target = Math.min(s.value, 30)
+      const drift  = Math.round((s.value - target) * 100) / 100
+      rows.push({ sector: s.name, current: s.value, target, drift, action: drift > 0 ? 'Trim' : 'Hold', actionType: drift > 0 ? 'sell' : 'hold' })
+    }
+    return rows
+  })()
 
   // Portfolio live values (fall back to mock when API is offline)
   const ps = liveData?.portfolioSummary ?? null
@@ -771,7 +793,7 @@ export function DashboardPage({ liveData }: DashboardPageProps) {
               </tr>
             </thead>
             <tbody>
-              {allocationDrift.map((row) => {
+              {liveAllocationDrift.map((row) => {
                 const maxDrift = 6
                 const halfBarPct = Math.min(Math.abs(row.drift) / maxDrift * 50, 50)
                 return (
