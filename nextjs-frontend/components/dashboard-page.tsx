@@ -14,7 +14,7 @@ import {
   MarketRegimeBanner, formatCurrency,
 } from '@/components/ui-components'
 import {
-  portfolioData, marketRegime as mockRegime, portfolioHealthDetail, performanceData,
+  portfolioData, marketRegime as mockRegime, performanceData,
   dailyDecisions, opportunities, riskAlerts, sectorAllocation, holdings,
   marketIndices as mockIndices, newsEvents as mockNews, upcomingEvents, topMovers,
 } from '@/lib/mock-data'
@@ -133,6 +133,50 @@ export function DashboardPage({ liveData }: DashboardPageProps) {
   const investedCapital    = ps?.invested             ?? portfolioData.investedCapital
   const healthScore        = pr?.health_score ?? ps?.health_score ?? portfolioData.portfolioHealthScore
   const portfolioBeta      = pr?.metrics.portfolio_beta ?? portfolioData.beta
+
+  // Compute live Portfolio Health indicators from real API data
+  const liveHealthIndicators = (() => {
+    const cashPct     = ps?.cash_pct          ?? 0
+    const numHoldings = pr?.metrics.num_holdings ?? ps?.num_holdings ?? null
+    const numSectors  = pr?.metrics.num_sectors  ?? displaySectors.length
+    const beta        = pr?.metrics.portfolio_beta ?? null
+    const etfEntry    = displaySectors.find(s => s.name === 'ETF')
+    const etfPct      = etfEntry?.value ?? null
+    const needsRebalance = liveAllocationDrift.some(r => Math.abs(r.drift) > 2)
+    return [
+      {
+        label:  'Diversification',
+        status: (numSectors >= 6 ? 'good' : 'warning') as 'good' | 'warning',
+        detail: numHoldings !== null ? `${numSectors} sectors, ${numHoldings} positions` : `${numSectors} sectors`,
+      },
+      {
+        label:  'Cash Position',
+        status: (cashPct < 3 || cashPct > 15 ? 'warning' : 'good') as 'good' | 'warning',
+        detail: cashPct < 3
+          ? `${cashPct.toFixed(1)}% cash — consider building reserves`
+          : cashPct > 15
+          ? `${cashPct.toFixed(1)}% cash (deploy into quality dips)`
+          : `${cashPct.toFixed(1)}% cash`,
+      },
+      {
+        label:  'Beta / Risk',
+        status: (beta !== null && Math.abs(beta - 1) > 0.3 ? 'warning' : 'good') as 'good' | 'warning',
+        detail: beta !== null
+          ? `Beta ${beta.toFixed(2)} — ${beta < 0.8 ? 'defensive' : beta > 1.2 ? 'aggressive' : 'market-neutral'}`
+          : 'Beta data unavailable',
+      },
+      {
+        label:  'Rebalance Status',
+        status: (needsRebalance ? 'warning' : 'good') as 'good' | 'warning',
+        detail: needsRebalance ? 'Some positions outside target range' : 'All positions at target weight',
+      },
+      {
+        label:  'ETF Concentration',
+        status: (etfPct !== null && etfPct > 25 ? 'warning' : 'good') as 'good' | 'warning',
+        detail: etfPct !== null ? `${etfPct.toFixed(1)}% in ETFs (SCHD + VOO)` : 'ETF weight within range',
+      },
+    ]
+  })()
   // Weekly P&L derived from last 5 trading days of performance series
   const weeklyChange = (() => {
     if (!livePerf || livePerf.length < 2) return portfolioData.weeklyChange
@@ -314,7 +358,7 @@ export function DashboardPage({ liveData }: DashboardPageProps) {
             </div>
           </div>
           <div className="mt-4">
-            {portfolioHealthDetail.indicators.map((ind) => (
+            {liveHealthIndicators.map((ind) => (
               <HealthStatusRow
                 key={ind.label}
                 label={ind.label}
