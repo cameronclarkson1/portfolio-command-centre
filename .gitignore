@@ -1,5 +1,6 @@
-# Claude Code memory — not part of the project
-.claude/
+# Claude Code — ignore everything except committed project config
+.claude/*
+!.claude/settings.json
 
 # Old / experimental project folders — not part of this app
 frontend/

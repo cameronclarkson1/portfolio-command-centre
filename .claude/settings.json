@@ -1,0 +1,27 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(git add *)",
+      "Bash(git add -p)",
+      "Bash(git commit*)",
+      "Bash(git branch*)",
+      "Bash(git checkout -b *)",
+      "Bash(git switch*)",
+      "Bash(git merge --no-ff *)",
+      "Bash(git stash*)",
+      "Bash(git diff*)",
+      "Bash(git log*)",
+      "Bash(git show*)",
+      "Bash(git status)",
+      "Bash(python -m pytest*)",
+      "Bash(python -c ' *)",
+      "PowerShell($env:PATH += \";C:\\\\Program Files\\\\nodejs\"; cd \"c:\\\\Users\\\\camer\\\\Investment_Research\\\\nextjs-frontend\"; & \"C:\\\\Program Files\\\\nodejs\\\\node.exe\" node_modules\\\\typescript\\\\bin\\\\tsc --noEmit 2>&1 | Select-Object -First 40)"
+    ],
+    "deny": [
+      "Bash(git push --force*)",
+      "Bash(git push -f*)",
+      "Bash(git reset --hard*)",
+      "Bash(git clean -f*)"
+    ]
+  }
+}
