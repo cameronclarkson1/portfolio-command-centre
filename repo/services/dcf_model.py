@@ -11,6 +11,8 @@ FCF projection method: FCF margin × projected revenue.
   - If margin is negative or implausible, falls back to growing raw FCF directly.
 """
 
+import math
+
 from services.fundamentals_service import get_valuation_inputs
 from utils.logging_utils import get_logger
 
@@ -146,14 +148,25 @@ def run_dcf(ticker: str, bucket: str, inputs: dict | None = None, price: float =
     fcf        = inputs.get("free_cash_flow")
     shares_out = inputs.get("shares_out")
 
-    if not fcf or not shares_out:
+    if not shares_out or fcf is None or not isinstance(fcf, (int, float)) or not math.isfinite(fcf) or fcf == 0:
         return {
-            "model":       "dcf",
-            "name":        "Discounted Cash Flow (3-stage, 10-year)",
-            "fair_value":  None,
-            "confidence":  0.0,
-            "inputs_used": {},
-            "warnings":    warnings + ["DCF cannot run — free cash flow or share count missing"],
+            "model":              "dcf",
+            "name":               "Discounted Cash Flow (3-stage, 10-year)",
+            "fair_value":         None,
+            "confidence":         0.0,
+            "inputs_used":        {},
+            "warnings":           warnings + ["DCF cannot run — free cash flow or share count missing"],
+            "unavailable_reason": "missing_inputs",
+        }
+    if fcf < 0:
+        return {
+            "model":              "dcf",
+            "name":               "Discounted Cash Flow (3-stage, 10-year)",
+            "fair_value":         None,
+            "confidence":         0.0,
+            "inputs_used":        {"free_cash_flow": fcf},
+            "warnings":           warnings + [f"DCF unavailable: negative starting FCF (${fcf / 1e6:.1f}M)"],
+            "unavailable_reason": "negative_fcf",
         }
 
     wacc        = inputs.get("wacc_estimate", 0.09)
@@ -248,6 +261,28 @@ def run_dcf(ticker: str, bucket: str, inputs: dict | None = None, price: float =
 
     enterprise_value = sum(pv_fcfs) + pv_terminal
     equity_value     = enterprise_value - net_debt
+    if equity_value <= 0:
+        return {
+            "model":              "dcf",
+            "name":               "Discounted Cash Flow (3-stage, 10-year)",
+            "fair_value":         None,
+            "confidence":         0.0,
+            "inputs_used": {
+                "fcf_ttm":       round(fcf, 0),
+                "net_debt":      net_debt,
+                "shares_out":    shares_out,
+                "pv_years_1_2":  round(sum(pv_fcfs[:2]), 0),
+                "pv_years_3_10": round(sum(pv_fcfs[2:]), 0),
+                "pv_terminal":   round(pv_terminal, 0),
+            },
+            "warnings": warnings + [
+                f"DCF unavailable: non-positive equity value "
+                f"(EV=${enterprise_value / 1e9:.2f}B, "
+                f"net_debt=${net_debt / 1e9:.2f}B, "
+                f"equity=${equity_value / 1e9:.2f}B)"
+            ],
+            "unavailable_reason": "non_positive_equity_value",
+        }
     fair_value       = equity_value / shares_out if shares_out else None
     terminal_pct     = pv_terminal / enterprise_value if enterprise_value and enterprise_value > 0 else 0
 
@@ -316,7 +351,7 @@ def run_dcf(ticker: str, bucket: str, inputs: dict | None = None, price: float =
     return {
         "model":      "dcf",
         "name":       "Discounted Cash Flow (3-stage, 10-year)",
-        "fair_value": round(fair_value, 2) if fair_value else None,
+        "fair_value": round(fair_value, 2) if fair_value is not None else None,
         "confidence": confidence,
         "inputs_used": {
             "fcf_ttm":         round(fcf, 0),

@@ -27,6 +27,8 @@ from storage.cache_manager        import cache
 from config.settings              import CACHE_TTL
 from utils.logging_utils          import get_logger, log_cache_hit, log_cache_miss
 
+import math
+
 import providers.fmp_provider as fmp
 
 log = get_logger(__name__)
@@ -108,7 +110,12 @@ def _blend_results(model_results: dict, weights: dict, price: float) -> dict:
     """
     import statistics as _stats
 
-    valid = {k: v for k, v in model_results.items() if v.get("fair_value")}
+    valid = {
+        k: v for k, v in model_results.items()
+        if isinstance(v.get("fair_value"), (int, float))
+        and math.isfinite(v.get("fair_value"))
+        and v.get("fair_value") > 0
+    }
 
     if not valid:
         return {
@@ -252,7 +259,13 @@ def run_valuation(ticker: str, price: float | None = None) -> dict:
     # 6. Cross-validate DCF against relative models — flag it as outlier if extreme
     dcf_result = models_run.get("dcf")
     if dcf_result and dcf_result.get("fair_value"):
-        relative_keys = [k for k in models_run if k != "dcf" and models_run[k].get("fair_value")]
+        relative_keys = [
+            k for k in models_run
+            if k != "dcf"
+            and isinstance(models_run[k].get("fair_value"), (int, float))
+            and math.isfinite(models_run[k]["fair_value"])
+            and models_run[k]["fair_value"] > 0
+        ]
         if relative_keys:
             rel_avg = sum(models_run[k]["fair_value"] for k in relative_keys) / len(relative_keys)
             dcf_fv  = dcf_result["fair_value"]
