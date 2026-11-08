@@ -24,6 +24,18 @@ from utils.validation_utils import completeness_score, cross_validate, DCF_INPUT
 log = get_logger(__name__)
 
 
+def _ttm(lst, field, n=4):
+    quarters = lst[:n]
+    n_actual = len(quarters)
+    values = [(q.get(field) or 0) for q in quarters]
+    total = sum(values)
+    if total == 0 or n_actual == 0:
+        return 0
+    if n_actual < n:
+        return total * (n / n_actual)
+    return total
+
+
 def get_financial_statements(ticker: str) -> dict | None:
     """
     Return the last 4 quarters of income statements, balance sheets, and cash flows.
@@ -398,9 +410,6 @@ def get_valuation_inputs(ticker: str, price: float | None = None, sector: str = 
     # ── Depreciation, Capex, and FCF (TTM = sum of last 4 quarters) ─────────
     # Tax rate is computed later in the WACC section from income statement data.
     # Single-quarter × 4 causes seasonal distortion for companies like LULU.
-    def _ttm(lst, field, n=4):
-        return sum((q.get(field) or 0) for q in lst[:n]) or 0
-
     depreciation = _ttm(cashflow, "depreciation")
     capex        = _ttm(cashflow, "capex")
     fcf          = _ttm(cashflow, "free_cash_flow")
