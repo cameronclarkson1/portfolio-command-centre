@@ -40,6 +40,8 @@ Read it at the start of every cycle. Update it as tasks are started, completed, 
 | Nov 2026 | CLAUDE.md + `.claude/settings.json` autonomous permissions configured | c0c9ab2 |
 | Nov 2026 | Fixed `_ttm` annualisation bias in `repo/services/fundamentals_service.py` + 13 unit tests | b683a4b |
 | Nov 2026 | Deleted `run_dcf_model` and `_save_valuation_to_db` dead code from `repo/services/valuation_service.py` | 704cd90 |
+| Nov 2026 | Extracted shared `ttm_sum()` to `repo/utils/financial_calcs.py`; extended annualisation to `reit_valuation._annualise`, `relative_valuation._ttm_income/_ttm_cashflow` | b260cc6 |
+| Nov 2026 | 23 new tests covering `_annualise`, `_ttm_income`, `_ttm_cashflow`, `run_pffo`, `run_pe` with 1–4 quarter inputs | 510ec0b |
 
 ---
 
@@ -56,3 +58,4 @@ why it would help, estimated complexity, and whether it requires approval.*
 |------|---------|
 | Nov 2026 | Phase 1.1 audit completed. Phase 1 production fixes committed. Autonomous dev permissions configured. Backlog initialised. |
 | Nov 2026 | Cycle 2: Cleared all 3 Ready tasks. Fixed `_ttm` annualisation (b683a4b). Removed dead code (704cd90). Marked frontend/ tasks N/A — directory not in repo. 55/55 tests pass. |
+| Nov 2026 | Cycle 3: Extended TTM annualisation to reit_valuation and relative_valuation via shared utils/financial_calcs.py. Added 23 tests. 78/78 tests pass. All commits pushed to origin/master. |
