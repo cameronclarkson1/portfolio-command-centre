@@ -143,3 +143,4 @@ why it would help, estimated complexity, and whether it requires approval.*
 | Nov 2026 | Cycle 2: Cleared all 3 Ready tasks. Fixed `_ttm` annualisation (b683a4b). Removed dead code (704cd90). Marked frontend/ tasks N/A — directory not in repo. 55/55 tests pass. |
 | Nov 2026 | Cycle 3: Extended TTM annualisation to reit_valuation and relative_valuation via shared utils/financial_calcs.py. Added 23 tests. 78/78 tests pass. All commits pushed to origin/master. |
 | Nov 2026 | Cycle 4: Full read-only audit. Identified 2 critical bugs (ND/EBITDA single-quarter EBITDA; REIT early-stage misclassification), 4 high, 5 medium, 3 low findings. BACKLOG updated. No application code changed. |
+| Nov 2026 | Deployment: Vercel account upgraded Hobby → Pro. Resolved hourly cron rejection (`0 * * * *` in `nextjs-frontend/vercel.json` for `/api/keepalive`). Fixed `next-env.d.ts` dev→production types path. Pushed 8ee1c0e to trigger redeploy. |
