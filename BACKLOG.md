@@ -50,21 +50,19 @@ Read it at the start of every cycle. Update it as tasks are started, completed, 
 Findings from the Cycle 4 full platform quality audit (read-only, Nov 2026).
 Sorted by priority. Items marked [NEEDS APPROVAL] must not be implemented without explicit sign-off.
 
-### CRITICAL — implement first
+### CRITICAL — ✅ COMPLETED in Cycle 5
 
-**C-1 · ND/EBITDA single-quarter EBITDA bug (`scoring_service.py:534`)**  
-`ebitda_v = (incomes[0] or {}).get("ebitda")` is a single quarter value. Dividing balance-sheet
-net debt by one quarter of EBITDA inflates the ND/EBITDA ratio ~4× for every company.
-Score impact: a company with correct ND/EBITDA=2× shows as 8×, scoring 18/100 instead of ~80/100.
-Affects all stocks with any debt. **Fix:** sum `incomes[:4]` for `ebitda_ttm` before dividing.
-No approval needed — pure bug fix.
+**C-1 · ND/EBITDA single-quarter EBITDA bug — FIXED (`97bdd40`)**  
+Root cause: `ebitda_v = (incomes[0] or {}).get("ebitda")` used a single quarter value.
+Fix: `ebitda_ttm = sum((_safe_float((r or {}).get("ebitda")) or 0.0) for r in incomes[:4])`
+Before: true ND/EBITDA=1.5 computed as 6.0 → nd_score=5. After: ratio=1.5 → nd_score=80.
+22 regression tests in `test_c1_nd_ebitda.py`. 130/130 tests pass.
 
-**C-2 · REIT early-stage misclassification (`sector_mapper.py:251`)**  
-`is_early_stage()` checks raw GAAP `net_income_ttm`. REITs with negative GAAP net income
-(common from large depreciation charges) trigger early-stage override, replacing P/FFO/P/AFFO
-with EV/Sales/P/CF — entirely wrong models. The correct valuation is silently discarded.
-**Fix:** add a bucket guard (`if bucket in ("reit", "financials", "insurance"): return False`).
-No approval needed — bug fix restoring the intended sector-model assignment.
+**C-2 · REIT early-stage misclassification — FIXED (`377de04`)**  
+Root cause: `is_early_stage()` called unconditionally; REITs with negative GAAP net income
+(normal due to large property depreciation) were overridden to `early_stage` bucket.
+Fix: guard in `valuation_engine.py` — skip override for `bucket in ("reit", "financials", "insurance")`.
+30 regression tests in `test_c2_reit_classification.py`. 130/130 tests pass.
 
 ### HIGH
 
@@ -144,3 +142,4 @@ why it would help, estimated complexity, and whether it requires approval.*
 | Nov 2026 | Cycle 3: Extended TTM annualisation to reit_valuation and relative_valuation via shared utils/financial_calcs.py. Added 23 tests. 78/78 tests pass. All commits pushed to origin/master. |
 | Nov 2026 | Cycle 4: Full read-only audit. Identified 2 critical bugs (ND/EBITDA single-quarter EBITDA; REIT early-stage misclassification), 4 high, 5 medium, 3 low findings. BACKLOG updated. No application code changed. |
 | Nov 2026 | Deployment: Vercel account upgraded Hobby → Pro. Resolved hourly cron rejection (`0 * * * *` in `nextjs-frontend/vercel.json` for `/api/keepalive`). Fixed `next-env.d.ts` dev→production types path. Pushed 8ee1c0e to trigger redeploy. |
+| Nov 2026 | Cycle 5: Fixed C-1 (ND/EBITDA single-quarter EBITDA, scoring_service.py, 97bdd40) and C-2 (REIT early-stage misclassification, valuation_engine.py, 377de04). 52 new regression tests added. 130/130 tests pass. Pushed to origin/master. |
