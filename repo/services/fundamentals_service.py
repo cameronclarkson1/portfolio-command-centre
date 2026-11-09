@@ -23,17 +23,10 @@ from utils.validation_utils import completeness_score, cross_validate, DCF_INPUT
 
 log = get_logger(__name__)
 
+from utils.financial_calcs import ttm_sum
 
-def _ttm(lst, field, n=4):
-    quarters = lst[:n]
-    n_actual = len(quarters)
-    values = [(q.get(field) or 0) for q in quarters]
-    total = sum(values)
-    if total == 0 or n_actual == 0:
-        return 0
-    if n_actual < n:
-        return total * (n / n_actual)
-    return total
+# Alias kept for backward compatibility with existing tests and callers.
+_ttm = ttm_sum
 
 
 def get_financial_statements(ticker: str) -> dict | None:

@@ -20,6 +20,7 @@ looks plausible is worse than an honest N/A):
 """
 
 from utils.logging_utils import get_logger
+from utils.financial_calcs import ttm_sum
 
 log = get_logger(__name__)
 
@@ -28,9 +29,9 @@ PAFFO_BENCHMARK = 22.0   # REITs typically trade at higher P/AFFO (AFFO < FFO)
 
 
 def _annualise(statements: dict, field: str, statement_type: str) -> float | None:
-    """Sum the last 4 quarters of a field to get a TTM annual figure."""
+    """Sum and annualise up to 4 quarters of a field. Returns None when no data."""
     data = statements.get(statement_type) or []
-    total = sum((q.get(field) or 0) for q in data[:4])
+    total = ttm_sum(data, field)
     return total if total != 0 else None
 
 

@@ -7,6 +7,8 @@ Each model compares the stock's fundamentals against sector benchmark multiples.
 All income/cashflow figures are annualised as TTM (sum of last 4 quarters).
 """
 
+from utils.financial_calcs import ttm_sum
+
 # ── Sector benchmark multiples (2024-2025 long-run averages) ──────────────────
 # These are approximate historical averages, not current peaks.
 # Updated annually.
@@ -246,20 +248,20 @@ PCF_BENCHMARKS = {
 
 
 def _ttm_income(statements: dict) -> dict:
-    """Sum the last 4 quarters of income statement for TTM figures."""
+    """Annualised TTM sum of income statement fields (up to 4 quarters)."""
     income = statements.get("income") or []
     ttm = {}
     for field in ("revenue", "gross_profit", "operating_income", "net_income", "ebitda", "eps"):
-        ttm[field] = sum((q.get(field) or 0) for q in income[:4]) or None
+        ttm[field] = ttm_sum(income, field) or None
     return ttm
 
 
 def _ttm_cashflow(statements: dict) -> dict:
-    """Sum the last 4 quarters of cash flow for TTM figures."""
+    """Annualised TTM sum of cash flow fields (up to 4 quarters)."""
     cashflow = statements.get("cashflow") or []
     ttm = {}
     for field in ("operating_cash_flow", "capex", "free_cash_flow"):
-        ttm[field] = sum((q.get(field) or 0) for q in cashflow[:4]) or None
+        ttm[field] = ttm_sum(cashflow, field) or None
     return ttm
 
 
