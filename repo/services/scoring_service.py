@@ -528,13 +528,17 @@ def build_scoring_inputs(
     d["beta"]        = _safe_float(r.get("beta"))
 
     # Net debt / EBITDA from balance sheet + income statement
+    # Net debt is a point-in-time balance-sheet figure (no annualisation needed).
+    # EBITDA must be TTM (sum of last 4 quarterly values) so both sides of the
+    # ratio use the same annual period.  Using a single quarter understates the
+    # denominator by ~4×, inflating the ratio and destroying the safety score.
     d["net_debt_to_ebitda"] = None
     balance = s.get("balance", [])
     if balance and incomes:
         net_debt_v = _safe_float((balance[0] or {}).get("net_debt"))
-        ebitda_v   = _safe_float((incomes[0]  or {}).get("ebitda"))
-        if _is_valid(net_debt_v) and _is_valid(ebitda_v) and ebitda_v and ebitda_v > 0:
-            d["net_debt_to_ebitda"] = net_debt_v / ebitda_v
+        ebitda_ttm = sum((_safe_float((r or {}).get("ebitda")) or 0.0) for r in incomes[:4])
+        if _is_valid(net_debt_v) and ebitda_ttm > 0:
+            d["net_debt_to_ebitda"] = net_debt_v / ebitda_ttm
 
     # 52-week drawdown: how far price has fallen from peak
     week52_high = _safe_float(r.get("52_week_high"))
