@@ -240,7 +240,12 @@ def run_valuation(ticker: str, price: float | None = None) -> dict:
 
     # 3. Determine valuation bucket (with early-stage override)
     bucket = get_bucket(sector, industry)
-    if is_early_stage(ratios, statements):
+    # REITs, financials, and insurance have structural reasons for negative GAAP
+    # net income that are unrelated to business maturity: REIT non-cash depreciation
+    # on property, bank loan-loss provisions, insurance reserve strengthening.
+    # Never override their sector bucket to early_stage based on GAAP earnings alone —
+    # doing so replaces P/FFO/P/AFFO (correct REIT models) with EV/Sales (wrong).
+    if bucket not in ("reit", "financials", "insurance") and is_early_stage(ratios, statements):
         bucket = "early_stage"
 
     # 4. Characteristic-aware model selection (P2.1) — adds eligible models
