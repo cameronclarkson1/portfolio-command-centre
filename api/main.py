@@ -81,9 +81,15 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(title="AI HedgeFund API", version="1.0.0", lifespan=lifespan)
 
+_cors_origins_env = os.environ.get("CORS_ALLOW_ORIGIN", "")
+_cors_origins = (
+    [o.strip() for o in _cors_origins_env.split(",") if o.strip()]
+    if _cors_origins_env
+    else ["*"]
+)
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=_cors_origins,
     allow_credentials=False,
     allow_methods=["GET", "POST", "PATCH", "PUT", "DELETE", "OPTIONS"],
     allow_headers=["*"],
