@@ -478,16 +478,26 @@ def build_scoring_inputs(
     incomes   = s.get("income",   [])
 
     def _ttm(lst, *fields):
+        # Annualise when fewer than 4 quarters are present so that quality and
+        # safety scores are not systematically understated for new/partial-year
+        # companies.  Mirrors the shared ttm_sum() in utils/financial_calcs.py.
+        n = 4
+        rows = (lst or [])[:n]
+        n_actual = len(rows)
         total = 0
         found = False
-        for row in lst[:4]:
+        for row in rows:
             for f in fields:
-                v = _safe_float(row.get(f))
+                v = _safe_float((row or {}).get(f))
                 if _is_valid(v):
                     total += v
                     found = True
                     break
-        return total if found else None
+        if not found:
+            return None
+        if n_actual < n and n_actual > 0:
+            return total * (n / n_actual)
+        return total
 
     d["free_cash_flow"] = _ttm(cashflows, "free_cash_flow")
     d["net_income"]     = _ttm(incomes,   "net_income", "netIncome")
