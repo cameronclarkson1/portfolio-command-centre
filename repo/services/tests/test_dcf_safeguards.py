@@ -71,7 +71,7 @@ _stub(
     "storage.cache_manager",
     cache=MagicMock(get=MagicMock(return_value=None), set=MagicMock()),
 )
-_stub("config.settings", CACHE_TTL={"valuation": 3600, "fundamentals": 3600})
+_stub("config.settings", CACHE_TTL={"valuation": 3600, "fundamentals": 86400, "val_inputs": 3600})
 _stub("providers.fmp_provider")
 
 from services.dcf_model import run_dcf                    # noqa: E402

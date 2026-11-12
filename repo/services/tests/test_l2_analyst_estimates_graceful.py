@@ -26,7 +26,10 @@ if str(REPO_DIR) not in sys.path:
 class TestAnalystEstimatesGraceful:
 
     def _call_with_empty_response(self):
+        import sys
         from unittest.mock import patch
+        # Clear any stub installed by test_dcf_safeguards so we get the real module.
+        sys.modules.pop("providers.fmp_provider", None)
         import providers.fmp_provider as fmp
         with patch("providers.fmp_provider._get", return_value=None):
             return fmp.get_analyst_estimates("NOCOVER", limit=4)
@@ -49,7 +52,9 @@ class TestAnalystEstimatesGraceful:
 
     def test_empty_list_response_returns_empty_list(self):
         """FMP returning [] (not None) → also returns empty list."""
+        import sys
         from unittest.mock import patch
+        sys.modules.pop("providers.fmp_provider", None)
         import providers.fmp_provider as fmp
         with patch("providers.fmp_provider._get", return_value=[]):
             result = fmp.get_analyst_estimates("NOCOVER", limit=4)
@@ -57,7 +62,9 @@ class TestAnalystEstimatesGraceful:
 
     def test_valid_response_still_parsed(self):
         """Normal data path still works — fix must not break existing behaviour."""
+        import sys
         from unittest.mock import patch
+        sys.modules.pop("providers.fmp_provider", None)
         import providers.fmp_provider as fmp
         fake_data = [{
             "date":               "2025-12-31",

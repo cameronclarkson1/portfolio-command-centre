@@ -25,6 +25,10 @@ REPO_DIR = Path(__file__).resolve().parent.parent.parent
 if str(REPO_DIR) not in sys.path:
     sys.path.insert(0, str(REPO_DIR))
 
+# Remove any stub that other test files (e.g. test_dcf_safeguards) may have
+# installed via sys.modules substitution, so we always import the real module.
+sys.modules.pop("services.relative_valuation", None)
+
 from services.relative_valuation import run_ev_ebitda, run_ev_sales
 
 

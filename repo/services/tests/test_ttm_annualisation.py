@@ -56,7 +56,7 @@ _stub(
     DCF_INPUT_FIELDS=[],
 )
 _stub("storage.cache_manager", cache=MagicMock(get=MagicMock(return_value=None), set=MagicMock()))
-_stub("config.settings", CACHE_TTL={"fundamentals": 3600, "valuation": 3600})
+_stub("config.settings", CACHE_TTL={"fundamentals": 86400, "valuation": 3600, "val_inputs": 3600})
 _stub("providers.fmp_provider")
 _stub("providers.finnhub_provider")
 _stub("providers.sec_edgar_provider")
