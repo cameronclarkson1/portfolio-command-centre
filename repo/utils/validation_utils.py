@@ -35,7 +35,7 @@ def fields_present(data: dict, required: list[str]) -> tuple[bool, list[str]]:
     Returns:
         (all_present: bool, missing_fields: list[str])
     """
-    missing = [f for f in required if data.get(f) in (None, "", 0)]
+    missing = [f for f in required if data.get(f) in (None, "")]
     return len(missing) == 0, missing
 
 
@@ -50,7 +50,7 @@ def completeness_score(data: dict, expected_fields: list[str]) -> float:
         return 1.0
     filled = sum(
         1 for f in expected_fields
-        if data.get(f) not in (None, "", 0, [])
+        if data.get(f) not in (None, "", [])
     )
     return filled / len(expected_fields)
 

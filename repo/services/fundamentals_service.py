@@ -551,7 +551,7 @@ def get_valuation_inputs(ticker: str, price: float | None = None, sector: str = 
         "revenue_ttm", "revenue_growth", "ebit_margin", "free_cash_flow",
         "depreciation", "capex", "net_debt", "shares_out",
     ]
-    filled = sum(1 for k in required if inputs.get(k) not in (None, 0))
+    filled = sum(1 for k in required if inputs.get(k) is not None)
     completeness = filled / len(required)
 
     inputs["warnings"]     = warnings
