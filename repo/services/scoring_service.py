@@ -13,6 +13,8 @@ from __future__ import annotations
 import math
 from typing import Optional
 
+from utils.financial_calcs import ttm_sum as _ttm_sum
+
 
 # ── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -504,12 +506,14 @@ def build_scoring_inputs(
         if _is_valid(eps_now) and _is_valid(eps_prior) and eps_prior and eps_prior != 0:
             d["earnings_growth"] = (eps_now - eps_prior) / abs(eps_prior)
 
-    # FCF CAGR over 3 years (quarters[0] vs quarters[3])
+    # FCF CAGR: TTM now vs TTM 3 years ago — requires 12+ quarters of history.
+    # cashflows[0:4]  = most recent TTM;  cashflows[8:12] = TTM from 3 years prior.
+    # Both windows must be positive; negative-FCF base produces nan via fractional exponent.
     d["fcf_cagr"] = None
-    if len(cashflows) >= 4:
-        fcf_now = _safe_float((cashflows[0] or {}).get("free_cash_flow"))
-        fcf_old = _safe_float((cashflows[3] or {}).get("free_cash_flow"))
-        if _is_valid(fcf_now) and _is_valid(fcf_old) and fcf_old and fcf_old > 0:
+    if len(cashflows) >= 12:
+        fcf_now = _ttm_sum(cashflows,     "free_cash_flow")
+        fcf_old = _ttm_sum(cashflows[8:], "free_cash_flow")
+        if fcf_now > 0 and fcf_old > 0:
             d["fcf_cagr"] = (fcf_now / fcf_old) ** (1.0 / 3.0) - 1.0
 
     # ── Valuation inputs ──────────────────────────────────────────────────────
