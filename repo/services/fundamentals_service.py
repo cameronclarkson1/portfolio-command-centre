@@ -196,7 +196,7 @@ def get_key_ratios(ticker: str) -> dict | None:
 
     # FCF/Share — TTM free cash flow divided by diluted shares
     _fcf_ps_computed = None
-    _fcf_ttm = sum(q.get("free_cash_flow") or 0 for q in _cashflow[:4])
+    _fcf_ttm = ttm_sum(_cashflow, "free_cash_flow")
     _shares   = next((q.get("shares_diluted") or q.get("shares_basic")
                       for q in _income[:4] if q.get("shares_diluted") or q.get("shares_basic")), None)
     if _fcf_ttm and _shares and _shares > 0:
