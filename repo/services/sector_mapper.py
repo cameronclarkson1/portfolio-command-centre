@@ -5,6 +5,8 @@ Each bucket defines which 3 valuation models are most appropriate,
 their weights, and the plain-English explanation shown to the user.
 """
 
+from utils.financial_calcs import ttm_sum
+
 # FMP sector strings → our internal bucket keys
 SECTOR_MAP = {
     "Technology":                  "technology",
@@ -194,8 +196,8 @@ def select_models(
 
     div_yield  = ratios_d.get("dividend_yield") or 0.0
     pe_ratio   = ratios_d.get("pe_ratio")
-    eps_ttm    = sum((q.get("eps") or 0) for q in income[:4])
-    op_cf_ttm  = sum((q.get("operating_cash_flow") or 0) for q in cashflow[:4])
+    eps_ttm    = ttm_sum(income,    "eps")
+    op_cf_ttm  = ttm_sum(cashflow,  "operating_cash_flow")
     equity     = (balance[0] if balance else {}).get("total_equity") or 0
 
     # asset-heavy sectors benefit from a P/B anchor
