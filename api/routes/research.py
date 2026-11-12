@@ -31,11 +31,17 @@ def _extract_income_series(statements: dict | None) -> list[dict]:
     """
     Extract annual revenue and EPS series from FMP/yfinance income statement list.
     Returns [{year, revenue_b, eps}, ...] sorted oldest → newest, max 5 years.
+
+    FMP provides quarterly records.  Revenue is summed across all quarters in
+    each calendar year to produce the true annual figure.  EPS is taken from
+    the most-recent quarter of that year as a representative value (summing
+    quarterly EPS overstates because diluted share counts differ per quarter).
     """
     if not statements or not statements.get("income"):
         return []
 
-    rows = []
+    # Group by year: sum revenue, keep the EPS from the first (most-recent) quarter.
+    by_year: dict[str, dict] = {}
     for item in statements["income"]:
         date = str(item.get("date") or item.get("period") or "")
         year = date[:4]
@@ -43,23 +49,24 @@ def _extract_income_series(statements: dict | None) -> list[dict]:
             continue
         revenue = item.get("revenue") or item.get("totalRevenue") or 0
         eps     = item.get("eps") or item.get("epsDiluted") or 0
-        if revenue:
-            rows.append({
-                "year":      year,
-                "revenue_b": round(revenue / 1_000_000_000, 2) if revenue > 1_000_000 else round(revenue, 2),
-                "eps":       round(float(eps), 2) if eps else 0,
-            })
+        if not revenue:
+            continue
+        if year not in by_year:
+            by_year[year] = {"revenue_sum": 0.0, "eps_first": float(eps) if eps else 0.0}
+        by_year[year]["revenue_sum"] += revenue
 
-    # Deduplicate by year (keep first occurrence = most recent quarter aggregation)
-    seen, unique = set(), []
-    for r in rows:
-        if r["year"] not in seen:
-            seen.add(r["year"])
-            unique.append(r)
+    rows = []
+    for year, agg in by_year.items():
+        rev = agg["revenue_sum"]
+        rows.append({
+            "year":      year,
+            "revenue_b": round(rev / 1_000_000_000, 2) if rev > 1_000_000 else round(rev, 2),
+            "eps":       round(agg["eps_first"], 2),
+        })
 
-    # Sort oldest → newest, keep last 5
-    unique.sort(key=lambda r: r["year"])
-    return unique[-5:]
+    # Sort oldest → newest, keep last 5 years.
+    rows.sort(key=lambda r: r["year"])
+    return rows[-5:]
 
 
 def _get_company_name(ticker: str) -> str | None:
