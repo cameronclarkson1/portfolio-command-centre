@@ -396,7 +396,7 @@ def get_analyst_estimates(ticker: str, limit: int = 3) -> list[dict]:
 
     data = _get("/analyst-estimates", params={"symbol": ticker, "limit": limit})
     if not data:
-        raise ValueError(f"FMP returned no analyst estimates for {ticker}")
+        return []
 
     results = []
     for est in (data or []):
