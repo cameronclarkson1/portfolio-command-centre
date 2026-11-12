@@ -253,7 +253,7 @@ def get_valuation_inputs(ticker: str, price: float | None = None, sector: str = 
     """
     ticker    = ticker.upper()
     cache_key = f"val_inputs:{ticker}"
-    ttl       = CACHE_TTL["fundamentals"]
+    ttl       = CACHE_TTL["val_inputs"]
 
     cached = cache.get(cache_key, ttl)
     if cached:

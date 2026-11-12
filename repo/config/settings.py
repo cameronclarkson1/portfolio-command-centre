@@ -16,6 +16,7 @@ CACHE_TTL = {
     "candles_intraday": 300,       # 5 minutes
     "candles_daily":   3600,       # 1 hour — daily candles don't change much
     "fundamentals":   86400,       # 24 hours — quarterly data
+    "val_inputs":      3600,       # 1 hour — DCF/valuation inputs re-derive each session
     "sec_filing":     86400,       # 24 hours
     "news":             900,       # 15 minutes
     "analyst_actions":  900,       # 15 minutes
