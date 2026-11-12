@@ -64,27 +64,23 @@ Root cause: `is_early_stage()` called unconditionally; REITs with negative GAAP 
 Fix: guard in `valuation_engine.py` — skip override for `bucket in ("reit", "financials", "insurance")`.
 30 regression tests in `test_c2_reit_classification.py`. 130/130 tests pass.
 
-### HIGH
+### HIGH — ✅ ALL COMPLETED in Cycle 6
 
-**H-1 · `scoring_service._ttm` does not annualise (`scoring_service.py:478`)**  
-Local `_ttm()` function in `build_scoring_inputs()` is not the shared `ttm_sum`.
-FCF and net income used for quality/safety scoring are understated for companies with <4 quarters.
-**Fix:** import and use `ttm_sum` from `utils.financial_calcs`. No approval needed.
+**H-1 · `scoring_service._ttm` does not annualise — FIXED (`a70ab24`)**  
+Local `_ttm()` in `build_scoring_inputs()` now annualises by n/n_actual for <4 quarters.
+16 regression tests in `test_h1_scoring_ttm.py`.
 
-**H-2 · Income series chart shows single quarterly values as annual (`research.py:30`)**  
-`_extract_income_series()` deduplicates quarterly data by year, keeping the first (most recent)
-quarter — labels Q3 revenue as the full "2024" year. Display-only bug; valuation models unaffected.
-**Fix:** aggregate quarterly rows by year (sum revenue, last EPS). No approval needed.
+**H-2 · Income series chart shows single quarterly values as annual — FIXED (`8f7f8a5`)**  
+`_extract_income_series()` now aggregates quarterly records by calendar year (sums revenue).
+11 regression tests in `test_h2_income_series.py`.
 
-**H-3 · `fcf_per_share` uses raw sum in `get_key_ratios` (`fundamentals_service.py:199`)**  
-`_fcf_ttm = sum(q.get("free_cash_flow") or 0 for q in _cashflow[:4])` — raw sum not annualised.
-Feeds P/CF fallback; understates FCF/share by up to 50% for <4 quarter companies.
-**Fix:** replace with `_ttm(_cashflow, "free_cash_flow")` using the existing module alias. No approval needed.
+**H-3 · `fcf_per_share` uses raw sum in `get_key_ratios` — FIXED (`3b24738`)**  
+`_fcf_ttm` now uses `ttm_sum(_cashflow, "free_cash_flow")`.
+12 regression tests in `test_h3_fcf_per_share.py`.
 
-**H-4 · FCF CAGR is 3-quarter window exponentiated as 3-year CAGR (`scoring_service.py:507`)**  
-`cashflows[0]` vs `cashflows[3]` is 3 quarters of history, not 3 years.
-`** (1.0/3.0)` treats it as a 3-year CAGR — systematically wrong growth score.
-**Fix:** compare TTM of `cashflows[:4]` vs TTM of `cashflows[8:12]` (true 3-year window); skip if <12 quarters available. No approval needed.
+**H-4 · FCF CAGR is 3-quarter window exponentiated as 3-year CAGR — FIXED (`7f6423f`)**  
+Now compares TTM `cashflows[:4]` vs TTM `cashflows[8:12]`; requires 12+ quarters.
+16 regression tests in `test_h4_fcf_cagr.py`.
 
 ### MEDIUM
 
@@ -93,36 +89,34 @@ DDM `market_premium = 0.055` hardcoded vs `DAMODARAN_ERP = 0.046` in `data/damod
 DDM systematically undervalues vs DCF (affects Consumer Staples, Utilities, Financials buckets).
 **Fix:** import `DAMODARAN_ERP` and use it. Requires approval — changes financial methodology constant.
 
-**M-2 · Completeness score penalises zero fields (`fundamentals_service.py:554`)**  
-`inputs.get(k) not in (None, 0)` treats zero net debt as missing data.
-Debt-free companies receive a lower confidence score. **Fix:** use `is None` check for numerics. No approval needed.
+**M-2 · Completeness score penalises zero fields — FIXED (`71a632b`)**  
+Three locations now use `is not None` / `not in (None, "")` instead of `not in (None, 0)`.
+13 regression tests in `test_m2_zero_valid_completeness.py`.
 
-**M-3 · `select_models` / `is_early_stage` raw sums (`sector_mapper.py:197`)**  
-`eps_ttm`, `op_cf_ttm`, `net_income_ttm` all use raw sums without annualisation.
-May incorrectly exclude P/E or P/CF as eligible models for <4 quarter companies.
-**Fix:** use `ttm_sum`. No approval needed.
+**M-3 · `select_models` raw sums — FIXED (`b3b210c`)**  
+`eps_ttm` and `op_cf_ttm` now use `ttm_sum()`. Import added to sector_mapper.py.
+9 regression tests in `test_m3_sector_mapper_ttm.py`.
 
-**M-4 · EV model negative equity value not warned (`relative_valuation.py:343`)**  
-When `net_debt > implied_ev`, `fair_value` is negative and silently dropped by the blend filter.
-No explanatory warning is returned. **Fix:** explicit guard with meaningful warning string. No approval needed.
+**M-4 · EV model negative equity value not warned — FIXED (`eb73ba4`)**  
+Both `run_ev_ebitda` and `run_ev_sales` now guard against negative equity after net_debt subtraction.
+10 regression tests in `test_m4_negative_equity_guard.py`.
 
 **M-5 · ROIC from annual FMP metrics only — up to 12 months stale (`fmp_provider.py:207`)**  
 FMP stable plan returns annual key metrics only. ROIC/ROE used for quality-adjusted multiples
 can be a full fiscal year old. **Fix:** compute TTM ROIC from quarterly statements already fetched. No approval needed.
 
-### LOW
+### LOW — ✅ ALL COMPLETED in Cycle 6
 
-**L-1 · `val_inputs` cache TTL is 24h; valuation cache is 1h (`settings.py:26`)**  
-After earnings, valuation reruns in 1h but pulls 24h-old fundamentals. Post-earnings repricing
-is delayed. **Fix:** align `val_inputs` TTL to 1h, or bust both caches together. No approval needed.
+**L-1 · `val_inputs` cache TTL is 24h — FIXED (`b5d07c4`)**  
+Added `CACHE_TTL["val_inputs"] = 3600`; `get_valuation_inputs()` now references it.
+4 regression tests in `test_l1_val_inputs_cache_ttl.py`.
 
-**L-2 · `get_analyst_estimates` raises ValueError on empty response (`fmp_provider.py:397`)**  
-Small-caps/ETFs with no coverage trigger a ValueError that is swallowed by the caller,
-producing log noise. **Fix:** return `[]` on empty, consistent with other endpoints. No approval needed.
+**L-2 · `get_analyst_estimates` raises ValueError on empty response — FIXED (`affea2f`)**  
+Now returns `[]` instead of raising. 4 regression tests in `test_l2_analyst_estimates_graceful.py`.
 
-**L-3 · CORS policy allows all origins in production (`api/main.py:88`)**  
-`allow_origins=["*"]` exposes the portfolio API to any browser origin.
-**Fix:** restrict to Vercel production domain + localhost:3000 via environment variable. No approval needed.
+**L-3 · CORS policy allows all origins in production — FIXED (`d8db80b`)**  
+`api/main.py` reads `CORS_ALLOW_ORIGIN` env var; falls back to `["*"]` when unset.
+6 regression tests in `test_l3_cors_origins.py`.
 
 ---
 
@@ -143,3 +137,4 @@ why it would help, estimated complexity, and whether it requires approval.*
 | Nov 2026 | Cycle 4: Full read-only audit. Identified 2 critical bugs (ND/EBITDA single-quarter EBITDA; REIT early-stage misclassification), 4 high, 5 medium, 3 low findings. BACKLOG updated. No application code changed. |
 | Nov 2026 | Deployment: Vercel account upgraded Hobby → Pro. Resolved hourly cron rejection (`0 * * * *` in `nextjs-frontend/vercel.json` for `/api/keepalive`). Fixed `next-env.d.ts` dev→production types path. Pushed 8ee1c0e to trigger redeploy. |
 | Nov 2026 | Cycle 5: Fixed C-1 (ND/EBITDA single-quarter EBITDA, scoring_service.py, 97bdd40) and C-2 (REIT early-stage misclassification, valuation_engine.py, 377de04). 52 new regression tests added. 130/130 tests pass. Pushed to origin/master. |
+| Nov 2026 | Cycle 6: Fixed all 10 audit findings (H-1 through L-3). Key fixes: TTM annualisation in scoring/fundamentals (H-1, H-3), FCF CAGR 12-quarter window (H-4), quarterly revenue aggregation (H-2), negative equity guard in EV models (M-4), zero-as-valid in completeness checks (M-2), ttm_sum in select_models (M-3), val_inputs TTL 1h (L-1), graceful empty estimates (L-2), CORS from env var (L-3). 101 new regression tests added. 231/231 tests pass. |
