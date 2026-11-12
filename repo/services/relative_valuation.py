@@ -342,6 +342,10 @@ def run_ev_ebitda(bucket: str, ratios: dict, statements: dict, industry: str = "
 
     implied_ev   = ebitda * benchmark
     equity_value = implied_ev - net_debt
+    if equity_value <= 0:
+        return {"model": "ev_ebitda", "name": "EV/EBITDA Comparable", "fair_value": None,
+                "confidence": 0.0, "inputs_used": {},
+                "warnings": [f"EV/EBITDA implies negative equity value ({round(equity_value/1e9, 1)}B net debt exceeds implied EV)"]}
     fair_value   = equity_value / shares_out
 
     return {
@@ -375,6 +379,10 @@ def run_ev_sales(bucket: str, ratios: dict, statements: dict, price: float = 0, 
     if revenue and shares_out:
         implied_ev   = revenue * benchmark
         equity_value = implied_ev - net_debt
+        if equity_value <= 0:
+            return {"model": "ev_sales", "name": "EV/Sales (Revenue Multiple)", "fair_value": None,
+                    "confidence": 0.0, "inputs_used": {},
+                    "warnings": [f"EV/Sales implies negative equity value ({round(equity_value/1e9, 1)}B net debt exceeds implied EV)"]}
         fair_value   = equity_value / shares_out
         confidence   = 58.0
     else:
