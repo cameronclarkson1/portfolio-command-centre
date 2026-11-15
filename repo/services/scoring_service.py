@@ -516,13 +516,15 @@ def build_scoring_inputs(
         if _is_valid(eps_now) and _is_valid(eps_prior) and eps_prior and eps_prior != 0:
             d["earnings_growth"] = (eps_now - eps_prior) / abs(eps_prior)
 
-    # FCF CAGR: TTM now vs TTM 3 years ago — requires 12+ quarters of history.
-    # cashflows[0:4]  = most recent TTM;  cashflows[8:12] = TTM from 3 years prior.
+    # FCF CAGR: TTM now vs TTM 3 years ago — requires 16+ quarters of history.
+    # cashflows[0:4]   = most recent TTM (ends at T).
+    # cashflows[12:16] = TTM ending at T-12 quarters = T-3 years.
+    # Elapsed time between window ends = 3 years → exponent 1/3 is correct.
     # Both windows must be positive; negative-FCF base produces nan via fractional exponent.
     d["fcf_cagr"] = None
-    if len(cashflows) >= 12:
-        fcf_now = _ttm_sum(cashflows,     "free_cash_flow")
-        fcf_old = _ttm_sum(cashflows[8:], "free_cash_flow")
+    if len(cashflows) >= 16:
+        fcf_now = _ttm_sum(cashflows,      "free_cash_flow")
+        fcf_old = _ttm_sum(cashflows[12:], "free_cash_flow")
         if fcf_now > 0 and fcf_old > 0:
             d["fcf_cagr"] = (fcf_now / fcf_old) ** (1.0 / 3.0) - 1.0
 
